@@ -1,0 +1,15 @@
+{
+  "note": "Static smoke checks run in Python because Node is not installed in this sandbox. The repository also includes npm test for local/Railway Node environments.",
+  "results": [
+    {
+      "run": 1,
+      "status": "passed",
+      "checks": 33
+    },
+    {
+      "run": 2,
+      "status": "passed",
+      "checks": 33
+    }
+  ]
+}

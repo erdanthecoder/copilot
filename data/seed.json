@@ -1,0 +1,27 @@
+{
+  "users": [],
+  "announcements": [
+    {
+      "id": "a1",
+      "title": {
+        "en": "Welcome to KidLearn",
+        "ru": "Добро пожаловать в KidLearn"
+      },
+      "body": {
+        "en": "Choose your language, avatar and island. Learn, play, and earn stars!",
+        "ru": "Выбери язык, аватар и остров. Учись, играй и получай звёзды!"
+      },
+      "at": "2026-06-26"
+    }
+  ],
+  "homework": [],
+  "forms": [],
+  "events": [],
+  "leaderboard": [],
+  "worlds": {
+    "math-isle": {},
+    "language-bay": {},
+    "creative-mountain": {},
+    "science-lab": {}
+  }
+}
