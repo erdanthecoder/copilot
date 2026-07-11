@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Erdan's Notebook</title>
+<style>
+  :root {
+    --bg: #f6f6f8;
+    --bg-elevated: #ffffff;
+    --text: #1f2328;
+    --text-muted: #6b7280;
+    --border: #e3e3e7;
+    --accent: #3b6ef6;
+    --accent-contrast: #ffffff;
+    --sidebar-bg: #fafafa;
+    --danger: #d1453b;
+    --hover: #eef0f5;
+    --shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  html[data-theme="dark"] {
+    --bg: #1e1f22;
+    --bg-elevated: #26272b;
+    --text: #e8e8ea;
+    --text-muted: #9a9aa2;
+    --border: #38393e;
+    --accent: #5b8dff;
+    --accent-contrast: #101114;
+    --sidebar-bg: #202124;
+    --danger: #ff6b63;
+    --hover: #2e2f34;
+    --shadow: 0 2px 10px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+  button, input, select {
+    font-family: inherit;
+    color: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+
+  /* ---------- Layout ---------- */
+  .app {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .sidebar {
+    width: 270px;
+    min-width: 270px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.2s ease;
+  }
+  .sidebar-header {
+    padding: 16px 14px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sidebar-header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .sidebar-header .subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .close-sidebar-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--text-muted);
+    padding: 4px 8px;
+  }
+
+  .new-notebook-row {
+    padding: 4px 10px 10px;
+  }
+  .new-notebook-row button {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: left;
+  }
+  .new-notebook-row button:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
+
+  .tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 6px 10px;
+  }
+
+  .tree-node { margin-bottom: 2px; }
+
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 6px 6px 8px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tree-row:hover { background: var(--hover); }
+  .tree-row.active { background: var(--accent); color: var(--accent-contrast); }
+  .tree-row.active .icon-btn { color: var(--accent-contrast); }
+
+  .tree-row .caret {
+    width: 14px;
+    flex: none;
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+  }
+  .tree-row.collapsed .caret { transform: rotate(-90deg); }
+  .tree-row.active .caret { color: var(--accent-contrast); }
+
+  .tree-row .label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tree-row.notebook-row .label { font-weight: 600; }
+  .tree-row.page-row { padding-left: 30px; }
+  .tree-row.section-row { padding-left: 20px; }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 4px;
+    opacity: 0;
+    flex: none;
+  }
+  .tree-row:hover .icon-btn { opacity: 1; }
+  .icon-btn:hover { background: rgba(128,128,128,0.25); }
+
+  .children { margin-left: 6px; }
+  .children.collapsed { display: none; }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--border);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .storage-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 2px;
+  }
+  .storage-status.blocked {
+    color: #b8860b;
+  }
+  html[data-theme="dark"] .storage-status.blocked { color: #e0b23a; }
+
+  .footer-buttons {
+    display: flex;
+    gap: 6px;
+  }
+  .footer-buttons button {
+    flex: 1;
+    padding: 7px 6px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    font-size: 12px;
+  }
+  .footer-buttons button:hover { background: var(--hover); }
+  #themeToggle { flex: none; width: 34px; }
+
+  /* ---------- Main / Editor ---------- */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-elevated);
+  }
+
+  .main-topbar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hamburger-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    padding: 4px 8px;
+  }
+
+  .editor-header {
+    padding: 22px 36px 0;
+    border-bottom: 1px solid transparent;
+  }
+  .page-title {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 4px 0 12px;
+  }
+  .page-title::placeholder { color: var(--text-muted); }
+
+  .page-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+  }
+  .page-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .delete-page-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+  .delete-page-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 36px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-elevated);
+    z-index: 5;
+  }
+  .toolbar select,
+  .toolbar button {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 13px;
+    min-height: 30px;
+  }
+  .toolbar button:hover, .toolbar select:hover { background: var(--hover); }
+  .toolbar .sep {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    margin: 0 4px;
+  }
+  .toolbar button.bold-btn { font-weight: 700; }
+  .toolbar button.italic-btn { font-style: italic; }
+  .toolbar button.underline-btn { text-decoration: underline; }
+
+  .color-popover-wrap { position: relative; }
+  .color-popover {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 8px;
+    display: none;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 150px;
+    z-index: 10;
+  }
+  .color-popover.open { display: flex; }
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.15);
+    cursor: pointer;
+    flex: none;
+  }
+  .swatch.none-swatch {
+    background: repeating-linear-gradient(45deg, #ccc 0 4px, transparent 4px 8px);
+  }
+
+  .editor-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 60px;
+  }
+  .editor {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 18px 36px 200px;
+    min-height: 100%;
+    font-size: 15.5px;
+    line-height: 1.65;
+    outline: none;
+  }
+  .editor h1 { font-size: 26px; margin: 22px 0 10px; }
+  .editor h2 { font-size: 21px; margin: 18px 0 8px; }
+  .editor h3 { font-size: 17.5px; margin: 16px 0 6px; }
+  .editor p { margin: 0 0 10px; }
+  .editor blockquote {
+    margin: 10px 0;
+    padding: 4px 14px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+  }
+  .editor ul, .editor ol { padding-left: 26px; margin: 0 0 10px; }
+  .editor table {
+    border-collapse: collapse;
+    margin: 10px 0;
+    width: 100%;
+  }
+  .editor table td, .editor table th {
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    min-width: 60px;
+    vertical-align: top;
+  }
+  .editor .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 2px 0;
+  }
+  .editor .checklist-item input[type="checkbox"] {
+    margin-top: 4px;
+    flex: none;
+  }
+  .editor .checklist-item .chk-text { flex: 1; outline: none; }
+  .editor .checklist-item.checked .chk-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 15px;
+    text-align: center;
+    padding: 40px;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .sidebar-backdrop {
+    display: none;
+  }
+
+  @media (max-width: 820px) {
+    .main-topbar { display: flex; }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 30;
+      margin-left: -270px;
+      box-shadow: var(--shadow);
+    }
+    .sidebar.open { margin-left: 0; }
+    .close-sidebar-btn { display: inline-block; }
+    .sidebar-backdrop.open {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 20;
+    }
+    .editor-header, .toolbar { padding-left: 18px; padding-right: 18px; }
+    .editor { padding-left: 18px; padding-right: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div>
+        <h1>Erdan's Notebook</h1>
+        <div class="subtitle">Private &amp; offline</div>
+      </div>
+      <button class="close-sidebar-btn" id="closeSidebarBtn" title="Close">&times;</button>
+    </div>
+
+    <div class="new-notebook-row">
+      <button id="newNotebookBtn">+ New notebook</button>
+    </div>
+
+    <div class="tree" id="tree"></div>
+
+    <div class="sidebar-footer">
+      <div class="storage-status" id="storageStatus">Checking storage…</div>
+      <div class="footer-buttons">
+        <button id="exportBtn" title="Save everything to a file">Export</button>
+        <button id="importBtn" title="Load from an exported file">Import</button>
+        <button id="themeToggle" title="Toggle light / dark theme">🌙</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-topbar">
+      <button class="hamburger-btn" id="hamburgerBtn" title="Menu">&#9776;</button>
+      <strong>Erdan's Notebook</strong>
+    </div>
+
+    <div id="editorHeader" class="editor-header" style="display:none;">
+      <input type="text" id="pageTitle" class="page-title" placeholder="Untitled page">
+      <div class="page-meta-row">
+        <span class="page-meta" id="pageMeta"></span>
+        <button class="delete-page-btn" id="deletePageBtn">Delete page</button>
+      </div>
+    </div>
+
+    <div class="toolbar" id="toolbar" style="display:none;">
+      <select id="blockStyleSelect" title="Text style">
+        <option value="P">Paragraph</option>
+        <option value="H1">Heading 1</option>
+        <option value="H2">Heading 2</option>
+        <option value="H3">Heading 3</option>
+        <option value="BLOCKQUOTE">Quote</option>
+      </select>
+
+      <div class="sep"></div>
+
+      <button class="bold-btn" data-cmd="bold" title="Bold (Ctrl+B)">B</button>
+      <button class="italic-btn" data-cmd="italic" title="Italic (Ctrl+I)">I</button>
+      <button class="underline-btn" data-cmd="underline" title="Underline (Ctrl+U)">U</button>
+
+      <div class="sep"></div>
+
+      <button data-cmd="insertUnorderedList" title="Bulleted list">&bull; List</button>
+      <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+      <button id="checklistBtn" title="Checklist">&#9745; Check</button>
+
+      <div class="sep"></div>
+
+      <div class="color-popover-wrap">
+        <button id="highlightBtn" title="Highlight">&#128997; Highlight</button>
+        <div class="color-popover" id="highlightPopover"></div>
+      </div>
+      <div class="color-popover-wrap">
+        <button id="colorBtn" title="Text color">A Color</button>
+        <div class="color-popover" id="colorPopover"></div>
+      </div>
+
+      <div class="sep"></div>
+
+      <button id="tableBtn" title="Insert table">&#9638; Table</button>
+    </div>
+
+    <div class="editor-scroll">
+      <div class="editor" id="editor" contenteditable="true" style="display:none;"></div>
+      <div class="empty-state" id="emptyState">Select a page from the sidebar, or create a new notebook to get started.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     STORAGE LAYER
+     Every call is wrapped in try/catch. If localStorage is
+     blocked, missing, or throws for any reason (private
+     browsing, cookies disabled, sandboxed iframe, quota
+     exceeded, etc.) the app keeps working entirely from the
+     in-memory `state` object. Nothing here is allowed to
+     throw back out to the caller.
+     ========================================================= */
+  var STORAGE_KEY = "erdanNotebookData";
+
+  var Storage = {
+    isAvailable: function () {
+      try {
+        var testKey = "__erdan_storage_test__";
+        window.localStorage.setItem(testKey, "1");
+        window.localStorage.removeItem(testKey);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    load: function () {
+      try {
+        var raw = window.localStorage.getItem(STORAGE_KEY);
+        return raw ? raw : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    save: function (jsonString) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, jsonString);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+  };
+
+  /* =========================================================
+     STATE
+     The app always renders from this in-memory object.
+     Persistence is best-effort and secondary.
+     ========================================================= */
+  function uid() {
+    return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function makeDefaultState() {
+    var pageId = uid();
+    var sectionId = uid();
+    var notebookId = uid();
+    return {
+      version: 1,
+      theme: "light",
+      activePageId: pageId,
+      notebooks: [
+        {
+          id: notebookId,
+          name: "Erdan's Notebook",
+          expanded: true,
+          sections: [
+            {
+              id: sectionId,
+              name: "Getting Started",
+              expanded: true,
+              pages: [
+                {
+                  id: pageId,
+                  title: "Welcome, Erdan!",
+                  content:
+                    "<p>This is your own private writing notebook. It works fully offline &mdash; nothing leaves this device.</p>" +
+                    "<p>A few tips:</p>" +
+                    "<ul>" +
+                    "<li>Use the toolbar above to add headings, <b>bold</b>, <i>italic</i>, lists, checklists, quotes, tables, highlights and colors.</li>" +
+                    "<li>Click <b>+ New notebook</b>, then add sections and pages from the sidebar to organize your writing.</li>" +
+                    "<li>Your work saves automatically on this device. Use <b>Export</b> to save a backup file, and <b>Import</b> to bring it back on another computer or your iPad.</li>" +
+                    "</ul>" +
+                    "<p>Happy writing!</p>",
+                  updatedAt: Date.now()
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+  }
+
+  var state = null;
+  var storageAvailable = false;
+
+  function loadInitialState() {
+    storageAvailable = Storage.isAvailable();
+    if (storageAvailable) {
+      var raw = Storage.load();
+      if (raw) {
+        try {
+          var parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.notebooks)) {
+            return parsed;
+          }
+        } catch (e) {
+          /* Corrupt saved data: fall through to defaults, keep app usable. */
+        }
+      }
+    }
+    return makeDefaultState();
+  }
+
+  state = loadInitialState();
+
+  var saveTimer = null;
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 400);
+  }
+
+  function flushSave() {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    var ok = false;
+    try {
+      var json = JSON.stringify(state);
+      ok = Storage.save(json);
+    } catch (e) {
+      ok = false;
+    }
+    updateStorageStatus(ok);
+  }
+
+  /* =========================================================
+     DATA HELPERS
+     ========================================================= */
+  function findPageLocation(pageId) {
+    for (var i = 0; i < state.notebooks.length; i++) {
+      var nb = state.notebooks[i];
+      for (var j = 0; j < nb.sections.length; j++) {
+        var sec = nb.sections[j];
+        for (var k = 0; k < sec.pages.length; k++) {
+          if (sec.pages[k].id === pageId) {
+            return { notebook: nb, section: sec, page: sec.pages[k] };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function getActivePage() {
+    if (!state.activePageId) return null;
+    var loc = findPageLocation(state.activePageId);
+    return loc ? loc.page : null;
+  }
+
+  /* =========================================================
+     DOM REFERENCES
+     ========================================================= */
+  var el = {
+    app: document.getElementById("app"),
+    sidebar: document.getElementById("sidebar"),
+    sidebarBackdrop: document.getElementById("sidebarBackdrop"),
+    tree: document.getElementById("tree"),
+    newNotebookBtn: document.getElementById("newNotebookBtn"),
+    storageStatus: document.getElementById("storageStatus"),
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn"),
+    importFile: document.getElementById("importFile"),
+    themeToggle: document.getElementById("themeToggle"),
+    editorHeader: document.getElementById("editorHeader"),
+    pageTitle: document.getElementById("pageTitle"),
+    pageMeta: document.getElementById("pageMeta"),
+    deletePageBtn: document.getElementById("deletePageBtn"),
+    toolbar: document.getElementById("toolbar"),
+    editor: document.getElementById("editor"),
+    emptyState: document.getElementById("emptyState"),
+    blockStyleSelect: document.getElementById("blockStyleSelect"),
+    checklistBtn: document.getElementById("checklistBtn"),
+    highlightBtn: document.getElementById("highlightBtn"),
+    highlightPopover: document.getElementById("highlightPopover"),
+    colorBtn: document.getElementById("colorBtn"),
+    colorPopover: document.getElementById("colorPopover"),
+    tableBtn: document.getElementById("tableBtn"),
+    hamburgerBtn: document.getElementById("hamburgerBtn"),
+    closeSidebarBtn: document.getElementById("closeSidebarBtn")
+  };
+
+  /* =========================================================
+     RENDERING
+     ========================================================= */
+  function renderStorageStatusText() {
+    updateStorageStatus(null);
+  }
+
+  function updateStorageStatus(lastSaveOk) {
+    if (!storageAvailable) {
+      el.storageStatus.textContent = "Autosave unavailable on this device — use Export often to keep your work safe.";
+      el.storageStatus.className = "storage-status blocked";
+      return;
+    }
+    if (lastSaveOk === false) {
+      el.storageStatus.textContent = "Could not save automatically — use Export to back up your work.";
+      el.storageStatus.className = "storage-status blocked";
+      return;
+    }
+    el.storageStatus.textContent = "Saved automatically on this device.";
+    el.storageStatus.className = "storage-status";
+  }
+
+  function clearChildren(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function makeIconButton(symbol, title, onClick) {
+    var b = document.createElement("button");
+    b.className = "icon-btn";
+    b.type = "button";
+    b.title = title;
+    b.textContent = symbol;
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      onClick();
+    });
+    return b;
+  }
+
+  function renderTree() {
+    clearChildren(el.tree);
+
+    state.notebooks.forEach(function (notebook) {
+      var nbNode = document.createElement("div");
+      nbNode.className = "tree-node";
+
+      var nbRow = document.createElement("div");
+      nbRow.className = "tree-row notebook-row" + (notebook.expanded ? "" : " collapsed");
+      nbRow.tabIndex = 0;
+
+      var caret = document.createElement("span");
+      caret.className = "caret";
+      caret.textContent = "▼";
+      nbRow.appendChild(caret);
+
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = notebook.name;
+      nbRow.appendChild(label);
+
+      nbRow.appendChild(makeIconButton("+", "Add section", function () {
+        addSection(notebook.id);
+      }));
+      nbRow.appendChild(makeIconButton("✎", "Rename notebook", function () {
+        renameNotebook(notebook.id);
+      }));
+      nbRow.appendChild(makeIconButton("✕", "Delete notebook", function () {
+        deleteNotebook(notebook.id);
+      }));
+
+      nbRow.addEventListener("click", function () {
+        notebook.expanded = !notebook.expanded;
+        renderTree();
+      });
+
+      nbNode.appendChild(nbRow);
+
+      var secWrap = document.createElement("div");
+      secWrap.className = "children" + (notebook.expanded ? "" : " collapsed");
+
+      notebook.sections.forEach(function (section) {
+        var secNode = document.createElement("div");
+        secNode.className = "tree-node";
+
+        var secRow = document.createElement("div");
+        secRow.className = "tree-row section-row" + (section.expanded ? "" : " collapsed");
+        secRow.tabIndex = 0;
+
+        var secCaret = document.createElement("span");
+        secCaret.className = "caret";
+        secCaret.textContent = "▼";
+        secRow.appendChild(secCaret);
+
+        var secLabel = document.createElement("span");
+        secLabel.className = "label";
+        secLabel.textContent = section.name;
+        secRow.appendChild(secLabel);
+
+        secRow.appendChild(makeIconButton("+", "Add page", function () {
+          addPage(notebook.id, section.id);
+        }));
+        secRow.appendChild(makeIconButton("✎", "Rename section", function () {
+          renameSection(notebook.id, section.id);
+        }));
+        secRow.appendChild(makeIconButton("✕", "Delete section", function () {
+          deleteSection(notebook.id, section.id);
+        }));
+
+        secRow.addEventListener("click", function () {
+          section.expanded = !section.expanded;
+          renderTree();
+        });
+
+        secNode.appendChild(secRow);
+
+        var pageWrap = document.createElement("div");
+        pageWrap.className = "children" + (section.expanded ? "" : " collapsed");
+
+        section.pages.forEach(function (page) {
+          var pageRow = document.createElement("div");
+          pageRow.className = "tree-row page-row" + (page.id === state.activePageId ? " active" : "");
+          pageRow.tabIndex = 0;
+
+          var pageLabel = document.createElement("span");
+          pageLabel.className = "label";
+          pageLabel.textContent = page.title || "Untitled page";
+          pageRow.appendChild(pageLabel);
+
+          pageRow.appendChild(makeIconButton("✕", "Delete page", function () {
+            deletePage(notebook.id, section.id, page.id);
+          }));
+
+          pageRow.addEventListener("click", function () {
+            openPage(page.id);
+          });
+
+          pageWrap.appendChild(pageRow);
+        });
+
+        secNode.appendChild(pageWrap);
+        secWrap.appendChild(secNode);
+      });
+
+      nbNode.appendChild(secWrap);
+      el.tree.appendChild(nbNode);
+    });
+  }
+
+  function renderEditor() {
+    var page = getActivePage();
+    if (!page) {
+      el.editorHeader.style.display = "none";
+      el.toolbar.style.display = "none";
+      el.editor.style.display = "none";
+      el.emptyState.style.display = "flex";
+      return;
+    }
+    el.editorHeader.style.display = "block";
+    el.toolbar.style.display = "flex";
+    el.editor.style.display = "block";
+    el.emptyState.style.display = "none";
+
+    el.pageTitle.value = page.title || "";
+    el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
+
+    if (el.editor.innerHTML !== page.content) {
+      el.editor.innerHTML = page.content || "";
+    }
+  }
+
+  function formatDate(ts) {
+    if (!ts) return "";
+    try {
+      var d = new Date(ts);
+      return d.toLocaleString();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function renderAll() {
+    renderTree();
+    renderEditor();
+  }
+
+  /* =========================================================
+     MUTATIONS
+     ========================================================= */
+  function addNotebook() {
+    var name = prompt("Name this notebook:", "New Notebook");
+    if (name === null) return;
+    name = name.trim() || "New Notebook";
+    state.notebooks.push({ id: uid(), name: name, expanded: true, sections: [] });
+    renderTree();
+    scheduleSave();
+  }
+
+  function renameNotebook(notebookId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var name = prompt("Rename notebook:", nb.name);
+    if (name === null) return;
+    nb.name = name.trim() || nb.name;
+    renderTree();
+    scheduleSave();
+  }
+
+  function deleteNotebook(notebookId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    if (!confirm("Delete notebook \"" + nb.name + "\" and everything inside it? This cannot be undone.")) return;
+    var wasActiveInside = nb.sections.some(function (s) {
+      return s.pages.some(function (p) { return p.id === state.activePageId; });
+    });
+    state.notebooks = state.notebooks.filter(function (n) { return n.id !== notebookId; });
+    if (wasActiveInside) state.activePageId = null;
+    renderAll();
+    scheduleSave();
+  }
+
+  function addSection(notebookId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var name = prompt("Name this section:", "New Section");
+    if (name === null) return;
+    name = name.trim() || "New Section";
+    nb.sections.push({ id: uid(), name: name, expanded: true, pages: [] });
+    nb.expanded = true;
+    renderTree();
+    scheduleSave();
+  }
+
+  function renameSection(notebookId, sectionId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
+    if (!sec) return;
+    var name = prompt("Rename section:", sec.name);
+    if (name === null) return;
+    sec.name = name.trim() || sec.name;
+    renderTree();
+    scheduleSave();
+  }
+
+  function deleteSection(notebookId, sectionId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
+    if (!sec) return;
+    if (!confirm("Delete section \"" + sec.name + "\" and all its pages? This cannot be undone.")) return;
+    var wasActiveInside = sec.pages.some(function (p) { return p.id === state.activePageId; });
+    nb.sections = nb.sections.filter(function (s) { return s.id !== sectionId; });
+    if (wasActiveInside) state.activePageId = null;
+    renderAll();
+    scheduleSave();
+  }
+
+  function addPage(notebookId, sectionId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
+    if (!sec) return;
+    var page = { id: uid(), title: "Untitled page", content: "", updatedAt: Date.now() };
+    sec.pages.push(page);
+    sec.expanded = true;
+    nb.expanded = true;
+    state.activePageId = page.id;
+    renderAll();
+    scheduleSave();
+    setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
+  }
+
+  function deletePage(notebookId, sectionId, pageId) {
+    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
+    if (!nb) return;
+    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
+    if (!sec) return;
+    var page = sec.pages.find(function (p) { return p.id === pageId; });
+    if (!page) return;
+    if (!confirm("Delete page \"" + (page.title || "Untitled page") + "\"? This cannot be undone.")) return;
+    sec.pages = sec.pages.filter(function (p) { return p.id !== pageId; });
+    if (state.activePageId === pageId) state.activePageId = null;
+    renderAll();
+    scheduleSave();
+  }
+
+  function openPage(pageId) {
+    state.activePageId = pageId;
+    renderAll();
+    closeSidebarOnMobile();
+  }
+
+  /* =========================================================
+     EDITOR TOOLBAR
+     ========================================================= */
+  // Prevent the toolbar from stealing focus/selection away from the
+  // contenteditable area before a command runs.
+  el.toolbar.addEventListener("mousedown", function (e) {
+    if (e.target.tagName !== "SELECT") e.preventDefault();
+  });
+
+  function runCommand(cmd, value) {
+    el.editor.focus();
+    try {
+      document.execCommand(cmd, false, value);
+    } catch (e) {
+      /* Unsupported command in this browser: fail silently, editor still usable. */
+    }
+    onEditorChanged();
+  }
+
+  el.toolbar.querySelectorAll("button[data-cmd]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      runCommand(btn.getAttribute("data-cmd"));
+    });
+  });
+
+  el.blockStyleSelect.addEventListener("change", function () {
+    runCommand("formatBlock", el.blockStyleSelect.value);
+    el.editor.focus();
+  });
+
+  el.checklistBtn.addEventListener("click", function () {
+    insertChecklistItem();
+  });
+
+  function insertChecklistItem() {
+    el.editor.focus();
+    var html =
+      '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text">To do</span></div><p><br></p>';
+    try {
+      document.execCommand("insertHTML", false, html);
+    } catch (e) {
+      /* ignore */
+    }
+    onEditorChanged();
+  }
+
+  function buildColorPopover(container, colors, applyFn) {
+    colors.forEach(function (c) {
+      var sw = document.createElement("div");
+      sw.className = "swatch" + (c.value === null ? " none-swatch" : "");
+      if (c.value !== null) sw.style.background = c.value;
+      sw.title = c.name;
+      sw.addEventListener("click", function (e) {
+        e.stopPropagation();
+        applyFn(c.value);
+        closeAllPopovers();
+      });
+      container.appendChild(sw);
+    });
+  }
+
+  var HIGHLIGHT_COLORS = [
+    { name: "None", value: null },
+    { name: "Yellow", value: "#fff59d" },
+    { name: "Green", value: "#b9f6ca" },
+    { name: "Blue", value: "#bbdefb" },
+    { name: "Pink", value: "#f8bbd0" },
+    { name: "Orange", value: "#ffe0b2" }
+  ];
+  var TEXT_COLORS = [
+    { name: "Default", value: "#1f2328" },
+    { name: "Red", value: "#e03131" },
+    { name: "Orange", value: "#e8590c" },
+    { name: "Green", value: "#2f9e44" },
+    { name: "Blue", value: "#1971c2" },
+    { name: "Purple", value: "#9c36b5" }
+  ];
+
+  buildColorPopover(el.highlightPopover, HIGHLIGHT_COLORS, function (value) {
+    applyHighlight(value);
+  });
+  buildColorPopover(el.colorPopover, TEXT_COLORS, function (value) {
+    runCommand("foreColor", value);
+  });
+
+  function applyHighlight(value) {
+    el.editor.focus();
+    if (value === null) value = "transparent";
+    try {
+      document.execCommand("hiliteColor", false, value);
+    } catch (e) {
+      try { document.execCommand("backColor", false, value); } catch (e2) { /* ignore */ }
+    }
+    onEditorChanged();
+  }
+
+  function closeAllPopovers() {
+    el.highlightPopover.classList.remove("open");
+    el.colorPopover.classList.remove("open");
+  }
+
+  el.highlightBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var isOpen = el.highlightPopover.classList.contains("open");
+    closeAllPopovers();
+    if (!isOpen) el.highlightPopover.classList.add("open");
+  });
+  el.colorBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var isOpen = el.colorPopover.classList.contains("open");
+    closeAllPopovers();
+    if (!isOpen) el.colorPopover.classList.add("open");
+  });
+  document.addEventListener("click", closeAllPopovers);
+
+  el.tableBtn.addEventListener("click", function () {
+    var sizeInput = prompt("Table size as rows x columns (e.g. 3x3):", "3x3");
+    if (sizeInput === null) return;
+    var match = sizeInput.toLowerCase().match(/(\d+)\s*x\s*(\d+)/);
+    var rows = match ? Math.min(parseInt(match[1], 10), 20) : 3;
+    var cols = match ? Math.min(parseInt(match[2], 10), 12) : 3;
+    if (!rows || !cols) { rows = 3; cols = 3; }
+    insertTable(rows, cols);
+  });
+
+  function insertTable(rows, cols) {
+    var html = "<table>";
+    for (var r = 0; r < rows; r++) {
+      html += "<tr>";
+      for (var c = 0; c < cols; c++) {
+        html += "<td>" + (r === 0 ? "<br>" : "<br>") + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</table><p><br></p>";
+    el.editor.focus();
+    try {
+      document.execCommand("insertHTML", false, html);
+    } catch (e) {
+      /* ignore */
+    }
+    onEditorChanged();
+  }
+
+  // Toggle a checklist item's "checked" look when its checkbox is clicked,
+  // and let Enter create a new checklist item (or exit the list if empty).
+  el.editor.addEventListener("change", function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains("chk")) {
+      var item = e.target.closest(".checklist-item");
+      if (item) item.classList.toggle("checked", e.target.checked);
+      onEditorChanged();
+    }
+  });
+
+  el.editor.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    var node = sel.anchorNode;
+    var item = node && (node.nodeType === 1 ? node.closest(".checklist-item") : node.parentElement && node.parentElement.closest(".checklist-item"));
+    if (!item) return;
+
+    e.preventDefault();
+    var textSpan = item.querySelector(".chk-text");
+    var isEmpty = !textSpan || textSpan.textContent.trim() === "";
+
+    if (isEmpty) {
+      var p = document.createElement("p");
+      p.innerHTML = "<br>";
+      item.replaceWith(p);
+      placeCaretAtStart(p);
+    } else {
+      var newItem = document.createElement("div");
+      newItem.className = "checklist-item";
+      newItem.innerHTML = '<input type="checkbox" class="chk"><span class="chk-text"></span>';
+      item.insertAdjacentElement("afterend", newItem);
+      placeCaretAtStart(newItem.querySelector(".chk-text"));
+    }
+    onEditorChanged();
+  });
+
+  function placeCaretAtStart(node) {
+    var range = document.createRange();
+    range.selectNodeContents(node);
+    range.collapse(true);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  /* =========================================================
+     EDITOR CONTENT / TITLE SYNC
+     ========================================================= */
+  function onEditorChanged() {
+    var page = getActivePage();
+    if (!page) return;
+    page.content = el.editor.innerHTML;
+    page.updatedAt = Date.now();
+    el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
+    scheduleSave();
+  }
+
+  el.editor.addEventListener("input", onEditorChanged);
+
+  el.pageTitle.addEventListener("input", function () {
+    var page = getActivePage();
+    if (!page) return;
+    page.title = el.pageTitle.value;
+    page.updatedAt = Date.now();
+    renderTree();
+    scheduleSave();
+  });
+
+  el.deletePageBtn.addEventListener("click", function () {
+    var loc = findPageLocation(state.activePageId);
+    if (!loc) return;
+    deletePage(loc.notebook.id, loc.section.id, loc.page.id);
+  });
+
+  /* =========================================================
+     EXPORT / IMPORT
+     ========================================================= */
+  el.exportBtn.addEventListener("click", function () {
+    flushSave();
+    var json = JSON.stringify(state, null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = "erdans-notebook-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+
+  el.importBtn.addEventListener("click", function () {
+    el.importFile.value = "";
+    el.importFile.click();
+  });
+
+  el.importFile.addEventListener("change", function () {
+    var file = el.importFile.files && el.importFile.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var parsed = JSON.parse(String(reader.result));
+        if (!parsed || !Array.isArray(parsed.notebooks)) {
+          alert("This file doesn't look like a Erdan's Notebook export.");
+          return;
+        }
+        if (!confirm("Import this file? It will replace everything currently in the app.")) return;
+        state = parsed;
+        if (!state.theme) state.theme = "light";
+        applyTheme(state.theme);
+        renderAll();
+        scheduleSave();
+      } catch (e) {
+        alert("Could not read that file. Make sure it's an export from this app.");
+      }
+    };
+    reader.onerror = function () {
+      alert("Could not read that file.");
+    };
+    reader.readAsText(file);
+  });
+
+  /* =========================================================
+     THEME
+     ========================================================= */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+    el.themeToggle.textContent = theme === "dark" ? "☀" : "\u{1F319}";
+  }
+
+  el.themeToggle.addEventListener("click", function () {
+    state.theme = state.theme === "dark" ? "light" : "dark";
+    applyTheme(state.theme);
+    scheduleSave();
+  });
+
+  /* =========================================================
+     RESPONSIVE SIDEBAR (small screens / iPad portrait split view)
+     ========================================================= */
+  function openSidebarOnMobile() {
+    el.sidebar.classList.add("open");
+    el.sidebarBackdrop.classList.add("open");
+  }
+  function closeSidebarOnMobile() {
+    el.sidebar.classList.remove("open");
+    el.sidebarBackdrop.classList.remove("open");
+  }
+  el.hamburgerBtn.addEventListener("click", openSidebarOnMobile);
+  el.closeSidebarBtn.addEventListener("click", closeSidebarOnMobile);
+  el.sidebarBackdrop.addEventListener("click", closeSidebarOnMobile);
+
+  /* =========================================================
+     MISC
+     ========================================================= */
+  el.newNotebookBtn.addEventListener("click", addNotebook);
+
+  document.addEventListener("keydown", function (e) {
+    var mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      flushSave();
+    }
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") flushSave();
+  });
+  window.addEventListener("pagehide", flushSave);
+
+  /* =========================================================
+     INIT
+     ========================================================= */
+  applyTheme(state.theme || "light");
+  renderStorageStatusText();
+  renderAll();
+})();
+</script>
+</body>
+</html>
