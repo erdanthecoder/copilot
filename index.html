@@ -386,6 +386,7 @@
     cursor: pointer;
     flex: none;
   }
+  html[data-theme="dark"] .swatch { border-color: rgba(255,255,255,0.3); }
   .swatch.none-swatch {
     background: repeating-linear-gradient(45deg, #ccc 0 4px, transparent 4px 8px);
   }
@@ -646,7 +647,7 @@
     <div class="sidebar-header">
       <div>
         <h1>Erdan's Notebook</h1>
-        <div class="subtitle">Private writing, synced to your account</div>
+        <div class="subtitle" id="sidebarSubtitle">Private, offline-first writing</div>
       </div>
       <button class="close-sidebar-btn" id="closeSidebarBtn" title="Close">&times;</button>
     </div>
@@ -707,7 +708,7 @@
       <div class="sep"></div>
 
       <div class="color-popover-wrap">
-        <button id="highlightBtn" title="Highlight">&#128997; Highlight</button>
+        <button id="highlightBtn" title="Highlight">🖍️ Highlight</button>
         <div class="color-popover" id="highlightPopover"></div>
       </div>
       <div class="color-popover-wrap">
@@ -1061,7 +1062,8 @@
     authFooterMsg: document.getElementById("authFooterMsg"),
     conflictModal: document.getElementById("conflictModal"),
     useCloudBtn: document.getElementById("useCloudBtn"),
-    useLocalBtn: document.getElementById("useLocalBtn")
+    useLocalBtn: document.getElementById("useLocalBtn"),
+    sidebarSubtitle: document.getElementById("sidebarSubtitle")
   };
 
   /* =========================================================
@@ -1365,8 +1367,26 @@
     if (e.target.tagName !== "SELECT") e.preventDefault();
   });
 
+  // Clicking a checkbox or other interactive element inside the editor can
+  // leave the browser selection collapsed outside any text node, which
+  // makes execCommand silently no-op. Toolbar actions call this first so
+  // they always have somewhere valid to insert into.
+  function ensureEditorSelection() {
+    var sel = window.getSelection();
+    if (!sel) return;
+    var range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+    var inEditor = range && el.editor.contains(range.commonAncestorContainer);
+    if (inEditor) return;
+    var fallback = document.createRange();
+    fallback.selectNodeContents(el.editor);
+    fallback.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(fallback);
+  }
+
   function runCommand(cmd, value) {
     el.editor.focus();
+    ensureEditorSelection();
     try {
       document.execCommand(cmd, false, value);
     } catch (e) {
@@ -1392,13 +1412,20 @@
 
   function insertChecklistItem() {
     el.editor.focus();
+    ensureEditorSelection();
     var html =
-      '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text">To do</span></div><p><br></p>';
+      '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div><p><br></p>';
     try {
       document.execCommand("insertHTML", false, html);
     } catch (e) {
       /* ignore */
     }
+    // insertHTML's post-insert caret placement across a multi-node fragment
+    // isn't reliable enough to depend on, so place it explicitly in the new
+    // item's text span — otherwise typing lands in the wrong place.
+    var items = el.editor.querySelectorAll(".checklist-item .chk-text");
+    var newItem = items[items.length - 1];
+    if (newItem) placeCaretAtStart(newItem);
     onEditorChanged();
   }
 
@@ -1443,6 +1470,7 @@
 
   function applyHighlight(value) {
     el.editor.focus();
+    ensureEditorSelection();
     if (value === null) value = "transparent";
     try {
       document.execCommand("hiliteColor", false, value);
@@ -1492,6 +1520,7 @@
     }
     html += "</table><p><br></p>";
     el.editor.focus();
+    ensureEditorSelection();
     try {
       document.execCommand("insertHTML", false, html);
     } catch (e) {
@@ -1530,7 +1559,7 @@
     } else {
       var newItem = document.createElement("div");
       newItem.className = "checklist-item";
-      newItem.innerHTML = '<input type="checkbox" class="chk"><span class="chk-text"></span>';
+      newItem.innerHTML = '<input type="checkbox" class="chk"><span class="chk-text"><br></span>';
       item.insertAdjacentElement("afterend", newItem);
       placeCaretAtStart(newItem.querySelector(".chk-text"));
     }
@@ -2002,6 +2031,7 @@
     el.tabSignUp.classList.toggle("active", mode === "signup");
     el.authSubmit.textContent = mode === "signin" ? "Sign in" : "Create account";
     el.forgotPasswordLink.style.display = mode === "signin" ? "inline" : "none";
+    el.authPassword.autocomplete = mode === "signin" ? "current-password" : "new-password";
     showAuthError("");
   }
   el.tabSignIn.addEventListener("click", function () { setAuthMode("signin"); });
@@ -2124,6 +2154,7 @@
     // original local-only app, with no login screen at all.
     renderAccountSection();
   } else {
+    el.sidebarSubtitle.textContent = "Private writing, synced to your account";
     if (!isGoogleConfigured() || window.location.protocol === "file:") {
       el.googleSignInBtn.style.display = "none";
       el.authDivider.style.display = "none";
