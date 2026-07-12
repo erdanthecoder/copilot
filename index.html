@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Erdan's Notebook</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='64' y2='64'%3E%3Cstop offset='0' stop-color='%237c6cff'/%3E%3Cstop offset='1' stop-color='%233b6ef6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Crect x='15' y='11' width='27' height='42' rx='4' fill='%23ffffff'/%3E%3Crect x='15' y='11' width='7' height='42' rx='4' fill='%23dcdcf7'/%3E%3Ccircle cx='18.5' cy='19' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='27' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='35' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='43' r='1.7' fill='%237c6cff'/%3E%3Cline x1='27' y1='21' x2='38' y2='21' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='27' y1='28' x2='38' y2='28' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='27' y1='35' x2='34' y2='35' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cg transform='rotate(38 47 18)'%3E%3Crect x='43' y='2' width='8' height='26' rx='2' fill='%23ffd166'/%3E%3Crect x='43' y='2' width='8' height='6' fill='%23555b6e'/%3E%3Cpolygon points='43,28 51,28 47,36' fill='%23f2a65a'/%3E%3Cpolygon points='45.5,32 48.5,32 47,36' fill='%233a3a3a'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g2' x1='0' y1='0' x2='64' y2='64'%3E%3Cstop offset='0' stop-color='%237c6cff'/%3E%3Cstop offset='1' stop-color='%233b6ef6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g2)'/%3E%3Crect x='15' y='11' width='27' height='42' rx='4' fill='%23ffffff'/%3E%3Crect x='15' y='11' width='7' height='42' rx='4' fill='%23dcdcf7'/%3E%3Ccircle cx='18.5' cy='19' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='27' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='35' r='1.7' fill='%237c6cff'/%3E%3Ccircle cx='18.5' cy='43' r='1.7' fill='%237c6cff'/%3E%3Cline x1='27' y1='21' x2='38' y2='21' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='27' y1='28' x2='38' y2='28' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='27' y1='35' x2='34' y2='35' stroke='%23c7c7ea' stroke-width='2.2' stroke-linecap='round'/%3E%3Cg transform='rotate(38 47 18)'%3E%3Crect x='43' y='2' width='8' height='26' rx='2' fill='%23ffd166'/%3E%3Crect x='43' y='2' width='8' height='6' fill='%23555b6e'/%3E%3Cpolygon points='43,28 51,28 47,36' fill='%23f2a65a'/%3E%3Cpolygon points='45.5,32 48.5,32 47,36' fill='%233a3a3a'/%3E%3C/g%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #f6f6f8;
@@ -12,6 +14,7 @@
     --text-muted: #6b7280;
     --border: #e3e3e7;
     --accent: #3b6ef6;
+    --accent2: #8b5cf6;
     --accent-contrast: #ffffff;
     --sidebar-bg: #fafafa;
     --danger: #d1453b;
@@ -20,6 +23,7 @@
     --hover: #eef0f5;
     --shadow: 0 2px 10px rgba(0,0,0,0.08);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.16);
+    --font-display: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive, sans-serif;
   }
   html[data-theme="dark"] {
     --bg: #1e1f22;
@@ -28,6 +32,7 @@
     --text-muted: #9a9aa2;
     --border: #38393e;
     --accent: #5b8dff;
+    --accent2: #a78bfa;
     --accent-contrast: #101114;
     --sidebar-bg: #202124;
     --danger: #ff6b63;
@@ -77,16 +82,37 @@
     transition: margin-left 0.2s ease;
   }
   .sidebar-header {
-    padding: 16px 14px 8px;
+    padding: 16px 14px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: linear-gradient(160deg, rgba(124,108,255,0.12), rgba(59,110,246,0.05) 60%, transparent);
+  }
+  .sidebar-header .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    filter: drop-shadow(0 2px 4px rgba(59,110,246,0.25));
   }
   .sidebar-header h1 {
-    font-size: 16px;
+    font-family: var(--font-display);
+    font-size: 18px;
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.01em;
+    color: var(--accent);
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+    .sidebar-header h1, .auth-brand h2, .topbar-title { -webkit-text-fill-color: initial; background: none; }
   }
   .sidebar-header .subtitle {
     font-size: 11px;
@@ -158,9 +184,16 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .tree-row.notebook-row .label { font-weight: 600; }
+  .tree-row.notebook-row .label { font-weight: 700; font-family: var(--font-display); }
   .tree-row.page-row { padding-left: 30px; }
   .tree-row.section-row { padding-left: 20px; }
+
+  .notebook-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
 
   .icon-btn {
     background: none;
@@ -286,6 +319,16 @@
     padding: 8px 12px;
     border-bottom: 1px solid var(--border);
   }
+  .main-topbar .logo-mark { width: 26px; height: 26px; }
+  .topbar-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--accent);
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
   .hamburger-btn {
     background: none;
     border: none;
@@ -304,6 +347,7 @@
     background: transparent;
     font-size: 28px;
     font-weight: 700;
+    font-family: var(--font-display);
     color: var(--text);
     padding: 4px 0 12px;
   }
@@ -405,9 +449,10 @@
     line-height: 1.65;
     outline: none;
   }
-  .editor h1 { font-size: 26px; margin: 22px 0 10px; }
-  .editor h2 { font-size: 21px; margin: 18px 0 8px; }
-  .editor h3 { font-size: 17.5px; margin: 16px 0 6px; }
+  .editor h1, .editor h2, .editor h3 { font-family: var(--font-display); }
+  .editor h1 { font-size: 28px; margin: 22px 0 10px; }
+  .editor h2 { font-size: 22px; margin: 18px 0 8px; }
+  .editor h3 { font-size: 18.5px; margin: 16px 0 6px; }
   .editor p { margin: 0 0 10px; }
   .editor blockquote {
     margin: 10px 0;
@@ -445,6 +490,7 @@
 
   .empty-state {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
@@ -452,6 +498,18 @@
     font-size: 15px;
     text-align: center;
     padding: 40px;
+  }
+  .empty-state svg {
+    width: 130px;
+    height: auto;
+    margin-bottom: 18px;
+    opacity: 0.7;
+  }
+  .empty-state p {
+    margin: 0;
+    max-width: 280px;
+    font-family: var(--font-display);
+    font-size: 16px;
   }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -466,7 +524,9 @@
   .auth-overlay {
     position: fixed;
     inset: 0;
-    background: var(--bg);
+    background: radial-gradient(circle at 20% 15%, rgba(124,108,255,0.16), transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(59,110,246,0.14), transparent 45%),
+                var(--bg);
     z-index: 100;
     display: flex;
     align-items: center;
@@ -479,26 +539,28 @@
     max-width: 380px;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 32px 28px;
     box-shadow: var(--shadow-lg);
     margin: auto;
   }
   .auth-brand { text-align: center; margin-bottom: 22px; }
   .auth-brand .mark {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 20px;
+    width: 52px;
+    height: 52px;
     margin: 0 auto 12px;
+    filter: drop-shadow(0 3px 6px rgba(59,110,246,0.3));
   }
-  .auth-brand h2 { margin: 0 0 4px; font-size: 18px; }
+  .auth-brand h2 {
+    margin: 0 0 4px;
+    font-size: 21px;
+    font-family: var(--font-display);
+    color: var(--accent);
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
   .auth-brand p { margin: 0; font-size: 12.5px; color: var(--text-muted); }
 
   .auth-tabs {
@@ -645,9 +707,35 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div>
-        <h1>Erdan's Notebook</h1>
-        <div class="subtitle" id="sidebarSubtitle">Private, offline-first writing</div>
+      <div class="brand-row">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="logoGradSidebar" x1="0" y1="0" x2="64" y2="64">
+              <stop offset="0" stop-color="#7c6cff"/>
+              <stop offset="1" stop-color="#3b6ef6"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="16" fill="url(#logoGradSidebar)"/>
+          <rect x="15" y="11" width="27" height="42" rx="4" fill="#ffffff"/>
+          <rect x="15" y="11" width="7" height="42" rx="4" fill="#dcdcf7"/>
+          <circle cx="18.5" cy="19" r="1.7" fill="#7c6cff"/>
+          <circle cx="18.5" cy="27" r="1.7" fill="#7c6cff"/>
+          <circle cx="18.5" cy="35" r="1.7" fill="#7c6cff"/>
+          <circle cx="18.5" cy="43" r="1.7" fill="#7c6cff"/>
+          <line x1="27" y1="21" x2="38" y2="21" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="27" y1="28" x2="38" y2="28" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="27" y1="35" x2="34" y2="35" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+          <g transform="rotate(38 47 18)">
+            <rect x="43" y="2" width="8" height="26" rx="2" fill="#ffd166"/>
+            <rect x="43" y="2" width="8" height="6" fill="#555b6e"/>
+            <polygon points="43,28 51,28 47,36" fill="#f2a65a"/>
+            <polygon points="45.5,32 48.5,32 47,36" fill="#3a3a3a"/>
+          </g>
+        </svg>
+        <div>
+          <h1>Erdan's Notebook</h1>
+          <div class="subtitle" id="sidebarSubtitle">Private, offline-first writing</div>
+        </div>
       </div>
       <button class="close-sidebar-btn" id="closeSidebarBtn" title="Close">&times;</button>
     </div>
@@ -673,7 +761,31 @@
   <main class="main">
     <div class="main-topbar">
       <button class="hamburger-btn" id="hamburgerBtn" title="Menu">&#9776;</button>
-      <strong>Erdan's Notebook</strong>
+      <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGradTopbar" x1="0" y1="0" x2="64" y2="64">
+            <stop offset="0" stop-color="#7c6cff"/>
+            <stop offset="1" stop-color="#3b6ef6"/>
+          </linearGradient>
+        </defs>
+        <rect width="64" height="64" rx="16" fill="url(#logoGradTopbar)"/>
+        <rect x="15" y="11" width="27" height="42" rx="4" fill="#ffffff"/>
+        <rect x="15" y="11" width="7" height="42" rx="4" fill="#dcdcf7"/>
+        <circle cx="18.5" cy="19" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="27" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="35" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="43" r="1.7" fill="#7c6cff"/>
+        <line x1="27" y1="21" x2="38" y2="21" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="28" x2="38" y2="28" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="35" x2="34" y2="35" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <g transform="rotate(38 47 18)">
+          <rect x="43" y="2" width="8" height="26" rx="2" fill="#ffd166"/>
+          <rect x="43" y="2" width="8" height="6" fill="#555b6e"/>
+          <polygon points="43,28 51,28 47,36" fill="#f2a65a"/>
+          <polygon points="45.5,32 48.5,32 47,36" fill="#3a3a3a"/>
+        </g>
+      </svg>
+      <strong class="topbar-title">Erdan's Notebook</strong>
     </div>
 
     <div id="editorHeader" class="editor-header" style="display:none;">
@@ -723,7 +835,20 @@
 
     <div class="editor-scroll">
       <div class="editor" id="editor" contenteditable="true" style="display:none;"></div>
-      <div class="empty-state" id="emptyState">Select a page from the sidebar, or create a new notebook to get started.</div>
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 120 90" aria-hidden="true">
+          <path d="M60 20 C50 12 30 10 14 14 V70 C30 66 50 68 60 76 C70 68 90 66 106 70 V14 C90 10 70 12 60 20 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="60" y1="20" x2="60" y2="76" stroke="currentColor" stroke-width="3"/>
+          <line x1="24" y1="26" x2="46" y2="24" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <line x1="24" y1="34" x2="46" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <line x1="24" y1="42" x2="42" y2="40" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <line x1="74" y1="24" x2="96" y2="26" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <line x1="74" y1="32" x2="96" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <line x1="74" y1="40" x2="92" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          <path d="M98 14 L100.5 19 L106 20 L100.5 22.5 L98 28 L96 22.5 L90.5 20 L96 19 Z" fill="currentColor" opacity="0.55"/>
+        </svg>
+        <p>Select a page from the sidebar, or create a new notebook to get started.</p>
+      </div>
     </div>
   </main>
 </div>
@@ -731,7 +856,30 @@
 <div class="auth-overlay" id="authOverlay" style="display:none;">
   <div class="auth-card">
     <div class="auth-brand">
-      <div class="mark">E</div>
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGradAuth" x1="0" y1="0" x2="64" y2="64">
+            <stop offset="0" stop-color="#7c6cff"/>
+            <stop offset="1" stop-color="#3b6ef6"/>
+          </linearGradient>
+        </defs>
+        <rect width="64" height="64" rx="16" fill="url(#logoGradAuth)"/>
+        <rect x="15" y="11" width="27" height="42" rx="4" fill="#ffffff"/>
+        <rect x="15" y="11" width="7" height="42" rx="4" fill="#dcdcf7"/>
+        <circle cx="18.5" cy="19" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="27" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="35" r="1.7" fill="#7c6cff"/>
+        <circle cx="18.5" cy="43" r="1.7" fill="#7c6cff"/>
+        <line x1="27" y1="21" x2="38" y2="21" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="28" x2="38" y2="28" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="27" y1="35" x2="34" y2="35" stroke="#c7c7ea" stroke-width="2.2" stroke-linecap="round"/>
+        <g transform="rotate(38 47 18)">
+          <rect x="43" y="2" width="8" height="26" rx="2" fill="#ffd166"/>
+          <rect x="43" y="2" width="8" height="6" fill="#555b6e"/>
+          <polygon points="43,28 51,28 47,36" fill="#f2a65a"/>
+          <polygon points="45.5,32 48.5,32 47,36" fill="#3a3a3a"/>
+        </g>
+      </svg>
       <h2>Erdan's Notebook</h2>
       <p>Sign in to sync your writing across devices.</p>
     </div>
@@ -899,6 +1047,11 @@
     return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
+  var NOTEBOOK_COLORS = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#7c6cff", "#c86bfa", "#ff8fab"];
+  function getNotebookColor(notebook, index) {
+    return notebook.color || NOTEBOOK_COLORS[index % NOTEBOOK_COLORS.length];
+  }
+
   function makeDefaultState() {
     var pageId = uid();
     var sectionId = uid();
@@ -914,6 +1067,7 @@
         {
           id: notebookId,
           name: "Erdan's Notebook",
+          color: NOTEBOOK_COLORS[0],
           expanded: true,
           sections: [
             {
@@ -1108,7 +1262,7 @@
   function renderTree() {
     clearChildren(el.tree);
 
-    state.notebooks.forEach(function (notebook) {
+    state.notebooks.forEach(function (notebook, notebookIndex) {
       var nbNode = document.createElement("div");
       nbNode.className = "tree-node";
 
@@ -1120,6 +1274,11 @@
       caret.className = "caret";
       caret.textContent = "▼";
       nbRow.appendChild(caret);
+
+      var dot = document.createElement("span");
+      dot.className = "notebook-dot";
+      dot.style.background = getNotebookColor(notebook, notebookIndex);
+      nbRow.appendChild(dot);
 
       var label = document.createElement("span");
       label.className = "label";
@@ -1258,7 +1417,8 @@
     var name = prompt("Name this notebook:", "New Notebook");
     if (name === null) return;
     name = name.trim() || "New Notebook";
-    state.notebooks.push({ id: uid(), name: name, expanded: true, sections: [] });
+    var color = NOTEBOOK_COLORS[state.notebooks.length % NOTEBOOK_COLORS.length];
+    state.notebooks.push({ id: uid(), name: name, color: color, expanded: true, sections: [] });
     renderTree();
     scheduleSave();
   }
