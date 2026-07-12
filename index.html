@@ -159,6 +159,44 @@
     color: var(--text);
   }
 
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 10px 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .search-icon { font-size: 12px; flex: none; opacity: 0.7; }
+  .search-row input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    font-size: 13px;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .search-row input:focus { outline: none; }
+  .search-row #searchClearBtn {
+    flex: none;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+  }
+  .search-empty {
+    padding: 16px 14px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
   .tree {
     flex: 1;
     overflow-y: auto;
@@ -991,7 +1029,14 @@
       <button id="newItemBtn" type="button">+ New</button>
     </div>
 
+    <div class="search-row">
+      <span class="search-icon">🔎</span>
+      <input type="text" id="searchInput" placeholder="Search pages..." autocomplete="off">
+      <button type="button" id="searchClearBtn" title="Clear search" style="display:none;">&times;</button>
+    </div>
+
     <div class="tree" id="tree"></div>
+    <div class="search-empty" id="searchEmpty" style="display:none;">No pages match "<span id="searchEmptyQuery"></span>"</div>
 
     <div class="sidebar-footer">
       <div id="accountSection"></div>
@@ -1322,8 +1367,8 @@
                     "<p>A few tips:</p>" +
                     "<ul>" +
                     "<li>Use the toolbar above to add headings, <b>bold</b>, <i>italic</i>, lists, checklists, quotes, tables, highlights and colors.</li>" +
-                    "<li>Click <b>+ New</b>, then choose a file, folder, or mind map — folders can hold more folders or files, nested as deep as you like.</li>" +
-                    "<li>A <b>Mind Map</b> file gives you draggable, connectable idea bubbles for brainstorming.</li>" +
+                    "<li>Click <b>+ New</b>, then choose a page, folder, or mind map — folders can hold more folders or pages, nested as deep as you like.</li>" +
+                    "<li>A <b>Mind Map</b> page gives you draggable, connectable idea bubbles for brainstorming.</li>" +
                     "<li>Sign in from the sidebar to sync your writing between devices automatically. You can also always use <b>Export</b> / <b>Import</b> to move a backup file by hand.</li>" +
                     "</ul>" +
                     "<p>Happy writing!</p>",
@@ -1487,6 +1532,10 @@
     sidebarBackdrop: document.getElementById("sidebarBackdrop"),
     tree: document.getElementById("tree"),
     newItemBtn: document.getElementById("newItemBtn"),
+    searchInput: document.getElementById("searchInput"),
+    searchClearBtn: document.getElementById("searchClearBtn"),
+    searchEmpty: document.getElementById("searchEmpty"),
+    searchEmptyQuery: document.getElementById("searchEmptyQuery"),
     storageStatus: document.getElementById("storageStatus"),
     buildVersion: document.getElementById("buildVersion"),
     exportBtn: document.getElementById("exportBtn"),
@@ -1674,6 +1723,7 @@
   // than living in static HTML, since there can be one per row.
   var activeRowMenu = null;
   var pendingHighlightId = null;
+  var searchQuery = "";
   function closeRowMenu() {
     if (activeRowMenu) { activeRowMenu.remove(); activeRowMenu = null; }
     document.removeEventListener("click", closeRowMenu);
@@ -1706,16 +1756,29 @@
 
   function addMenuItemsFor(folderItem) {
     return [
-      { label: "📄  New file", onClick: function () { addFile(folderItem, "doc"); } },
+      { label: "📄  New page", onClick: function () { addFile(folderItem, "doc"); } },
       { label: "🧠  New mind map", onClick: function () { addFile(folderItem, "mindmap"); } },
       { label: "📁  New folder", onClick: function () { addFolder(folderItem); } }
     ];
+  }
+
+  function itemMatchesSearch(item, query) {
+    var name = item.kind === "folder" ? item.name : (item.title || "Untitled");
+    if (name.toLowerCase().indexOf(query) !== -1) return true;
+    if (item.kind !== "folder") return false;
+    return item.children.some(function (child) { return itemMatchesSearch(child, query); });
   }
 
   function renderTree() {
     clearChildren(el.tree);
     renderItemList(state.items, el.tree, 0);
     pendingHighlightId = null;
+
+    var query = searchQuery.trim();
+    var hasAnyItems = state.items.length > 0;
+    var noResults = !!query && hasAnyItems && el.tree.children.length === 0;
+    el.searchEmpty.style.display = noResults ? "block" : "none";
+    if (noResults) el.searchEmptyQuery.textContent = query;
   }
 
   // The just-added CSS animation is one-shot; strip the class once it has
@@ -1728,19 +1791,24 @@
   }
 
   function renderItemList(items, container, depth) {
+    var query = searchQuery.trim().toLowerCase();
     items.forEach(function (item, index) {
-      container.appendChild(renderItemNode(item, index, depth));
+      if (query && !itemMatchesSearch(item, query)) return;
+      container.appendChild(renderItemNode(item, index, depth, query));
     });
   }
 
-  function renderItemNode(item, index, depth) {
+  function renderItemNode(item, index, depth, query) {
     var node = document.createElement("div");
     node.className = "tree-node" + (item.id === pendingHighlightId ? " just-added" : "");
 
     var isFolder = item.kind === "folder";
+    // While searching, force every matching branch open so results are
+    // visible, without touching the folder's actual saved expanded state.
+    var showExpanded = query ? true : item.expanded;
     var row = document.createElement("div");
     row.className = "tree-row " + (isFolder ? "folder-row" : "file-row") +
-      (isFolder && !item.expanded ? " collapsed" : "") +
+      (isFolder && !showExpanded ? " collapsed" : "") +
       (!isFolder && item.id === state.activePageId ? " active" : "");
     row.style.paddingLeft = (8 + depth * 16 + (isFolder ? 0 : 6)) + "px";
     row.tabIndex = 0;
@@ -1772,7 +1840,7 @@
         showRowMenu(e.currentTarget, addMenuItemsFor(item));
       }));
     }
-    row.appendChild(makeIconButton("⋯", isFolder ? "Folder options" : "File options", function (e) {
+    row.appendChild(makeIconButton("⋯", isFolder ? "Folder options" : "Page options", function (e) {
       showRowMenu(e.currentTarget, [
         { label: "✏️  Rename", onClick: function () { renameItem(item); } },
         { label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } }
@@ -1792,7 +1860,7 @@
 
     if (isFolder) {
       var childWrap = document.createElement("div");
-      childWrap.className = "children" + (item.expanded ? "" : " collapsed");
+      childWrap.className = "children" + (showExpanded ? "" : " collapsed");
       renderItemList(item.children, childWrap, depth + 1);
       node.appendChild(childWrap);
     }
@@ -1913,7 +1981,7 @@
         updatedAt: Date.now()
       };
     } else {
-      file = { id: uid(), kind: "file", type: "doc", title: "Untitled file", content: "", updatedAt: Date.now() };
+      file = { id: uid(), kind: "file", type: "doc", title: "Untitled page", content: "", updatedAt: Date.now() };
     }
     siblings.push(file);
     if (parentItem) parentItem.expanded = true;
@@ -1929,7 +1997,7 @@
     var isFolder = item.kind === "folder";
     var current = isFolder ? item.name : item.title;
     var icon = isFolder ? "📁" : "✏️";
-    showPromptModal(icon + " Rename " + (isFolder ? "folder" : "file"), current).then(function (name) {
+    showPromptModal(icon + " Rename " + (isFolder ? "folder" : "page"), current).then(function (name) {
       if (name === null) return;
       name = name.trim() || current;
       if (isFolder) item.name = name; else item.title = name;
@@ -1963,7 +2031,7 @@
     var msg = isFolder
       ? "Delete folder \"" + name + "\" and everything inside it? This cannot be undone."
       : "Delete \"" + name + "\"? This cannot be undone.";
-    showConfirmModal("🗑️ Delete " + (isFolder ? "folder" : "file") + "?", msg, { confirmLabel: "Delete", danger: true }).then(function (confirmed) {
+    showConfirmModal("🗑️ Delete " + (isFolder ? "folder" : "page") + "?", msg, { confirmLabel: "Delete", danger: true }).then(function (confirmed) {
       if (!confirmed) return;
       var wasActiveInside = state.activePageId ? itemContainsId(item, state.activePageId) : false;
       removeItemFromTree(state.items, item.id);
@@ -3077,6 +3145,28 @@
   el.newItemBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     showRowMenu(el.newItemBtn, addMenuItemsFor(null));
+  });
+
+  el.searchInput.addEventListener("input", function () {
+    searchQuery = el.searchInput.value;
+    el.searchClearBtn.style.display = searchQuery ? "inline-block" : "none";
+    renderTree();
+  });
+  el.searchInput.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && searchQuery) {
+      e.preventDefault();
+      el.searchInput.value = "";
+      searchQuery = "";
+      el.searchClearBtn.style.display = "none";
+      renderTree();
+    }
+  });
+  el.searchClearBtn.addEventListener("click", function () {
+    el.searchInput.value = "";
+    searchQuery = "";
+    el.searchClearBtn.style.display = "none";
+    el.searchInput.focus();
+    renderTree();
   });
 
   document.addEventListener("keydown", function (e) {
