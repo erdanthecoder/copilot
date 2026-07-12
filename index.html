@@ -973,9 +973,41 @@
     .editor-header, .toolbar { padding-left: 18px; padding-right: 18px; }
     .editor { padding-left: 18px; padding-right: 18px; }
   }
+
+  .global-error-banner {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+    background: var(--danger);
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 13px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    flex-wrap: wrap;
+  }
+  .global-error-banner button {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .global-error-banner button:hover { background: rgba(255,255,255,0.32); }
 </style>
 </head>
 <body>
+<div class="global-error-banner" id="globalErrorBanner">
+  <span>⚠️ Something went wrong. Your writing is saved on this device.</span>
+  <button type="button" id="reloadAppBtn">Tap to reload</button>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="obsitionLogoBg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
@@ -1129,7 +1161,7 @@
           <line x1="74" y1="40" x2="92" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
           <path d="M98 14 L100.5 19 L106 20 L100.5 22.5 L98 28 L96 22.5 L90.5 20 L96 19 Z" fill="currentColor" opacity="0.55"/>
         </svg>
-        <p>Select a page from the sidebar, or create a new notebook to get started.</p>
+        <p>Select a page from the sidebar, or click <b>+ New</b> to get started.</p>
       </div>
     </div>
   </main>
@@ -1209,7 +1241,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-12.6";
+  var BUILD_ID = "2026-07-12.7";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -1538,6 +1570,8 @@
     searchEmptyQuery: document.getElementById("searchEmptyQuery"),
     storageStatus: document.getElementById("storageStatus"),
     buildVersion: document.getElementById("buildVersion"),
+    globalErrorBanner: document.getElementById("globalErrorBanner"),
+    reloadAppBtn: document.getElementById("reloadAppBtn"),
     exportBtn: document.getElementById("exportBtn"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
@@ -1590,6 +1624,22 @@
     addNodeBtn: document.getElementById("addNodeBtn"),
     editorScroll: document.getElementById("editorScroll")
   };
+
+  /* =========================================================
+     ERROR RESILIENCE
+     Browsers/devices we can't test here may hit an error we've never
+     seen. Rather than let that silently leave the UI half-updated
+     (sidebar stuck open, editor never switching pages), surface it and
+     let people recover with a reload instead of wondering if anything
+     happened at all. Local data is never at risk either way — it's
+     saved independently of rendering.
+     ========================================================= */
+  function reportRenderError(err) {
+    console.error("[Obsition]", err);
+    if (el.globalErrorBanner) el.globalErrorBanner.style.display = "flex";
+  }
+  window.addEventListener("error", function (e) { reportRenderError(e.error || e.message); });
+  window.addEventListener("unhandledrejection", function (e) { reportRenderError(e.reason); });
 
   /* =========================================================
      PROMPT / CONFIRM MODAL
@@ -1770,15 +1820,22 @@
   }
 
   function renderTree() {
-    clearChildren(el.tree);
-    renderItemList(state.items, el.tree, 0);
-    pendingHighlightId = null;
+    // Wrapped defensively: a failure here must never block whatever the
+    // caller does next (closing the sidebar, saving, etc.) — it should
+    // surface as a visible error, not a silently half-finished UI.
+    try {
+      clearChildren(el.tree);
+      renderItemList(state.items, el.tree, 0);
+      pendingHighlightId = null;
 
-    var query = searchQuery.trim();
-    var hasAnyItems = state.items.length > 0;
-    var noResults = !!query && hasAnyItems && el.tree.children.length === 0;
-    el.searchEmpty.style.display = noResults ? "block" : "none";
-    if (noResults) el.searchEmptyQuery.textContent = query;
+      var query = searchQuery.trim();
+      var hasAnyItems = state.items.length > 0;
+      var noResults = !!query && hasAnyItems && el.tree.children.length === 0;
+      el.searchEmpty.style.display = noResults ? "block" : "none";
+      if (noResults) el.searchEmptyQuery.textContent = query;
+    } catch (e) {
+      reportRenderError(e);
+    }
   }
 
   // The just-added CSS animation is one-shot; strip the class once it has
@@ -1869,44 +1926,48 @@
   }
 
   function renderEditor() {
-    var page = getActivePage();
-    if (!page) {
-      el.editorHeader.style.display = "none";
-      el.toolbar.style.display = "none";
-      el.mindmapToolbar.style.display = "none";
-      el.editor.style.display = "none";
-      el.mindmapWrap.style.display = "none";
-      el.emptyState.style.display = "flex";
-      return;
-    }
-
-    renderBreadcrumb(findItemPath(page.id));
-
-    el.editorHeader.style.display = "block";
-    el.emptyState.style.display = "none";
-    el.pageTitle.value = page.title || "";
-    el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
-
-    if (page.type === "mindmap") {
-      el.toolbar.style.display = "none";
-      el.editor.style.display = "none";
-      el.mindmapToolbar.style.display = "flex";
-      el.mindmapWrap.style.display = "block";
-      el.mindmapWrap.classList.remove("page-fade-in");
-      void el.mindmapWrap.offsetWidth;
-      el.mindmapWrap.classList.add("page-fade-in");
-      renderMindmap(page);
-    } else {
-      el.mindmapToolbar.style.display = "none";
-      el.mindmapWrap.style.display = "none";
-      el.toolbar.style.display = "flex";
-      el.editor.style.display = "block";
-      el.editor.classList.remove("page-fade-in");
-      void el.editor.offsetWidth;
-      el.editor.classList.add("page-fade-in");
-      if (el.editor.innerHTML !== page.content) {
-        el.editor.innerHTML = page.content || "";
+    try {
+      var page = getActivePage();
+      if (!page) {
+        el.editorHeader.style.display = "none";
+        el.toolbar.style.display = "none";
+        el.mindmapToolbar.style.display = "none";
+        el.editor.style.display = "none";
+        el.mindmapWrap.style.display = "none";
+        el.emptyState.style.display = "flex";
+        return;
       }
+
+      renderBreadcrumb(findItemPath(page.id));
+
+      el.editorHeader.style.display = "block";
+      el.emptyState.style.display = "none";
+      el.pageTitle.value = page.title || "";
+      el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
+
+      if (page.type === "mindmap") {
+        el.toolbar.style.display = "none";
+        el.editor.style.display = "none";
+        el.mindmapToolbar.style.display = "flex";
+        el.mindmapWrap.style.display = "block";
+        el.mindmapWrap.classList.remove("page-fade-in");
+        void el.mindmapWrap.offsetWidth;
+        el.mindmapWrap.classList.add("page-fade-in");
+        renderMindmap(page);
+      } else {
+        el.mindmapToolbar.style.display = "none";
+        el.mindmapWrap.style.display = "none";
+        el.toolbar.style.display = "flex";
+        el.editor.style.display = "block";
+        el.editor.classList.remove("page-fade-in");
+        void el.editor.offsetWidth;
+        el.editor.classList.add("page-fade-in");
+        if (el.editor.innerHTML !== page.content) {
+          el.editor.innerHTML = page.content || "";
+        }
+      }
+    } catch (e) {
+      reportRenderError(e);
     }
   }
 
@@ -2043,8 +2104,11 @@
 
   function openPage(pageId) {
     state.activePageId = pageId;
-    renderAll();
-    closeSidebarOnMobile();
+    try {
+      renderAll();
+    } finally {
+      closeSidebarOnMobile();
+    }
   }
 
   /* =========================================================
@@ -3142,6 +3206,8 @@
   /* =========================================================
      MISC
      ========================================================= */
+  el.reloadAppBtn.addEventListener("click", function () { location.reload(); });
+
   el.newItemBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     showRowMenu(el.newItemBtn, addMenuItemsFor(null));
