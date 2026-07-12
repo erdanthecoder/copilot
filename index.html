@@ -735,6 +735,11 @@
     font-size: 13px;
   }
   .mindmap-toolbar button:hover { background: var(--hover); }
+  #physicsBtn.active {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+  }
   .mindmap-hint { font-size: 12px; color: var(--text-muted); }
 
   .mindmap-canvas-wrap {
@@ -1221,6 +1226,7 @@
 
     <div class="mindmap-toolbar" id="mindmapToolbar" style="display:none;">
       <button id="addNodeBtn" type="button">+ Node</button>
+      <button id="physicsBtn" type="button" title="Let connected ideas pull together and unconnected ones push apart, like Obsidian's graph view">⚛️ Auto-arrange</button>
       <span class="mindmap-hint">Double-click the canvas to add a node &bull; drag a node to move it &bull; drag the blue dot to connect ideas</span>
     </div>
 
@@ -1334,7 +1340,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-12.8";
+  var BUILD_ID = "2026-07-12.9";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -1725,6 +1731,7 @@
     mindmapCanvas: document.getElementById("mindmapCanvas"),
     mmEdges: document.getElementById("mmEdges"),
     addNodeBtn: document.getElementById("addNodeBtn"),
+    physicsBtn: document.getElementById("physicsBtn"),
     editorScroll: document.getElementById("editorScroll")
   };
 
@@ -2087,6 +2094,9 @@
   function renderEditor() {
     try {
       var page = getActivePage();
+      if (mindmapPhysics.active && (!page || !mindmapPhysics.page || page.id !== mindmapPhysics.page.id)) {
+        stopMindmapPhysics();
+      }
       if (!page) {
         el.editorHeader.style.display = "none";
         el.toolbar.style.display = "none";
@@ -2691,6 +2701,124 @@
     });
   }
 
+  // Obsidian Graph View-style force-directed auto-layout: unconnected
+  // nodes repel each other, connected nodes pull together like springs,
+  // and everything settles instead of oscillating forever.
+  var mindmapPhysics = { active: false, rafId: null, page: null, lastSaveAt: 0 };
+
+  function toggleMindmapPhysics() {
+    var page = getActivePage();
+    if (!page || page.type !== "mindmap") return;
+    if (mindmapPhysics.active) {
+      stopMindmapPhysics();
+    } else {
+      startMindmapPhysics(page);
+    }
+  }
+
+  function startMindmapPhysics(page) {
+    mindmapPhysics.active = true;
+    mindmapPhysics.page = page;
+    mindmapPhysics.lastSaveAt = Date.now();
+    el.physicsBtn.classList.add("active");
+    el.physicsBtn.textContent = "⚛️ Auto-arrange: On";
+    page.nodes.forEach(function (n) {
+      if (typeof n.vx !== "number") n.vx = 0;
+      if (typeof n.vy !== "number") n.vy = 0;
+    });
+    function tick() {
+      if (!mindmapPhysics.active) return;
+      physicsStep(mindmapPhysics.page);
+      mindmapPhysics.rafId = requestAnimationFrame(tick);
+    }
+    mindmapPhysics.rafId = requestAnimationFrame(tick);
+  }
+
+  function stopMindmapPhysics() {
+    mindmapPhysics.active = false;
+    if (mindmapPhysics.rafId) cancelAnimationFrame(mindmapPhysics.rafId);
+    mindmapPhysics.rafId = null;
+    el.physicsBtn.classList.remove("active");
+    el.physicsBtn.textContent = "⚛️ Auto-arrange";
+    if (mindmapPhysics.page) onMindmapChanged(mindmapPhysics.page);
+    mindmapPhysics.page = null;
+  }
+
+  function physicsStep(page) {
+    var nodes = page.nodes;
+    var edges = page.edges;
+    var REPULSION = 14000;
+    var REPULSION_RANGE = 420;
+    var SPRING_LEN = 220;
+    var SPRING_K = 0.02;
+    var DAMPING = 0.86;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var a = nodes[i];
+      var fx = 0, fy = 0;
+      for (var j = 0; j < nodes.length; j++) {
+        if (i === j) continue;
+        var b = nodes[j];
+        var dx = a.x - b.x, dy = a.y - b.y;
+        var distSq = dx * dx + dy * dy || 1;
+        var dist = Math.sqrt(distSq);
+        if (dist < REPULSION_RANGE) {
+          var force = REPULSION / distSq;
+          fx += (dx / dist) * force;
+          fy += (dy / dist) * force;
+        }
+      }
+      a._fx = fx;
+      a._fy = fy;
+    }
+
+    edges.forEach(function (edge) {
+      var a = nodes.find(function (n) { return n.id === edge.from; });
+      var b = nodes.find(function (n) { return n.id === edge.to; });
+      if (!a || !b) return;
+      var dx = b.x - a.x, dy = b.y - a.y;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var force = SPRING_K * (dist - SPRING_LEN);
+      var fx = (dx / dist) * force;
+      var fy = (dy / dist) * force;
+      a._fx += fx;
+      a._fy += fy;
+      b._fx -= fx;
+      b._fy -= fy;
+    });
+
+    nodes.forEach(function (n) {
+      if (n._dragging) return;
+      n.vx = (n.vx + n._fx) * DAMPING;
+      n.vy = (n.vy + n._fy) * DAMPING;
+      n.x = Math.max(0, n.x + n.vx);
+      n.y = Math.max(0, n.y + n.vy);
+    });
+
+    updateMindmapNodePositions(page);
+    updateMindmapEdgePositions(page);
+
+    // Save periodically while running, not every frame, so the layout
+    // isn't lost if someone navigates away mid-simulation.
+    if (Date.now() - mindmapPhysics.lastSaveAt > 1500) {
+      mindmapPhysics.lastSaveAt = Date.now();
+      onMindmapChanged(page);
+    }
+  }
+
+  function updateMindmapNodePositions(page) {
+    page.nodes.forEach(function (n) {
+      if (n._dragging) return;
+      var nodeEl = el.mindmapCanvas.querySelector('.mm-node[data-node-id="' + n.id + '"]');
+      if (nodeEl) {
+        nodeEl.style.left = n.x + "px";
+        nodeEl.style.top = n.y + "px";
+      }
+    });
+  }
+
+  el.physicsBtn.addEventListener("click", toggleMindmapPhysics);
+
   function attachNodeDrag(page, node, nodeEl) {
     var dragging = false;
     var pointerId = null;
@@ -2715,9 +2843,12 @@
       var dy = e.clientY - startClientY;
       if (!dragging && Math.hypot(dx, dy) < 5) return;
       dragging = true;
+      node._dragging = true;
       nodeEl.classList.add("dragging");
       node.x = Math.max(0, startX + dx);
       node.y = Math.max(0, startY + dy);
+      node.vx = 0;
+      node.vy = 0;
       nodeEl.style.left = node.x + "px";
       nodeEl.style.top = node.y + "px";
       updateMindmapEdgePositions(page);
@@ -2727,6 +2858,7 @@
       if (pointerId === null || e.pointerId !== pointerId) return;
       if (dragging) {
         nodeEl.classList.remove("dragging");
+        node._dragging = false;
         onMindmapChanged(page);
       }
       dragging = false;
@@ -3564,6 +3696,18 @@
   renderAll();
   renderTrashButton();
   if (el.buildVersion) el.buildVersion.textContent = "build " + BUILD_ID;
+
+  // Offline app-shell caching. Only registers when actually served over
+  // http(s) — opening index.html directly as a local file (double-click,
+  // no server) is explicitly supported and skips this entirely, since
+  // service workers require a real origin.
+  if ("serviceWorker" in navigator && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js").catch(function () {
+        /* Offline caching unavailable; the app still works fully online. */
+      });
+    });
+  }
 
   if (!isFirebaseConfigured()) {
     // No account backend configured yet: behave exactly like the
