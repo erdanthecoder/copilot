@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -45,7 +45,7 @@
     --shadow: 0 2px 10px rgba(0,0,0,0.35);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     height: 100%;
     margin: 0;
@@ -59,9 +59,12 @@
   button, input, select {
     font-family: inherit;
     color: inherit;
+    -webkit-appearance: none;
+    appearance: none;
   }
   button {
     cursor: pointer;
+    touch-action: manipulation;
     transition: transform 0.08s ease, background-color 0.12s ease, opacity 0.12s ease;
   }
   button:active { transform: scale(0.96); }
@@ -88,6 +91,8 @@
   }
   .sidebar-header {
     padding: 16px 14px 10px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-left: max(14px, env(safe-area-inset-left));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -215,6 +220,8 @@
     font-size: 13.5px;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
   .tree-row:hover { background: var(--hover); }
@@ -360,6 +367,42 @@
     font-family: var(--font-display);
     padding-top: 2px;
   }
+  .trash-btn {
+    width: 100%;
+    text-align: left;
+    padding: 6px 8px;
+    border-radius: 7px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .trash-btn:hover { background: var(--hover); color: var(--text); }
+  .trash-modal-card { max-width: 480px; }
+  .trash-list { max-height: 320px; overflow-y: auto; margin-bottom: 16px; }
+  .trash-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .trash-item:last-child { border-bottom: none; }
+  .trash-item .trash-item-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trash-item .trash-item-date { font-size: 11px; color: var(--text-muted); flex: none; }
+  .trash-item button {
+    flex: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  .trash-item button:hover { background: var(--hover); }
+  .trash-item button.danger { color: var(--danger); border-color: var(--danger); }
+  .trash-empty-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
   .build-version {
     text-align: center;
     font-size: 9px;
@@ -446,6 +489,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
+    padding-top: max(8px, env(safe-area-inset-top));
     border-bottom: 1px solid var(--border);
   }
   .main-topbar .logo-mark { width: 26px; height: 26px; }
@@ -469,6 +513,27 @@
     padding: 22px 36px 0;
     border-bottom: 1px solid transparent;
   }
+  .nav-history-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .nav-history-btn {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-history-btn:hover:not(:disabled) { background: var(--hover); }
+  .nav-history-btn:disabled { opacity: 0.35; cursor: default; }
+
   .breadcrumb {
     font-size: 12.5px;
     color: var(--text-muted);
@@ -616,6 +681,13 @@
     color: var(--text-muted);
   }
   .editor ul, .editor ol { padding-left: 26px; margin: 0 0 10px; }
+  .editor a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: rgba(124,108,255,0.4);
+    text-underline-offset: 2px;
+  }
+  .editor a:hover { text-decoration-color: currentColor; }
   .editor table {
     border-collapse: collapse;
     margin: 10px 0;
@@ -901,6 +973,10 @@
     justify-content: center;
     padding: 20px;
   }
+  /* promptModal is used for confirmations (e.g. "delete forever") that can
+     be triggered while another modal (like Trash) is already open behind
+     it, so it must always paint above every other .modal-overlay. */
+  #promptModal { z-index: 130; }
   .modal-card {
     max-width: 420px;
     width: 100%;
@@ -1048,7 +1124,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="brand-row">
-        <svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol"></use></svg>
+        <svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol" xlink:href="#obsitionLogoSymbol"></use></svg>
         <div>
           <h1>Obsition</h1>
           <div class="subtitle" id="sidebarSubtitle">Private, offline-first writing</div>
@@ -1071,6 +1147,7 @@
     <div class="search-empty" id="searchEmpty" style="display:none;">No pages match "<span id="searchEmptyQuery"></span>"</div>
 
     <div class="sidebar-footer">
+      <button type="button" id="trashBtn" class="trash-btn" style="display:none;">🗑️ Trash <span id="trashCount"></span></button>
       <div id="accountSection"></div>
       <div class="storage-status" id="storageStatus">Checking storage…</div>
       <div class="footer-buttons">
@@ -1087,11 +1164,15 @@
   <main class="main">
     <div class="main-topbar">
       <button class="hamburger-btn" id="hamburgerBtn" title="Menu">&#9776;</button>
-      <svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol"></use></svg>
+      <svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol" xlink:href="#obsitionLogoSymbol"></use></svg>
       <strong class="topbar-title">Obsition</strong>
     </div>
 
     <div id="editorHeader" class="editor-header" style="display:none;">
+      <div class="nav-history-row">
+        <button type="button" id="navBackBtn" class="nav-history-btn" title="Back" disabled>&larr;</button>
+        <button type="button" id="navForwardBtn" class="nav-history-btn" title="Forward" disabled>&rarr;</button>
+      </div>
       <div class="breadcrumb" id="breadcrumb"></div>
       <input type="text" id="pageTitle" class="page-title" placeholder="Untitled page">
       <div class="page-meta-row">
@@ -1134,6 +1215,7 @@
 
       <div class="sep"></div>
 
+      <button id="linkBtn" title="Add link (Ctrl+K)">🔗 Link</button>
       <button id="tableBtn" title="Insert table">&#9638; Table</button>
     </div>
 
@@ -1170,7 +1252,7 @@
 <div class="auth-overlay" id="authOverlay" style="display:none;">
   <div class="auth-card">
     <div class="auth-brand">
-      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol"></use></svg>
+      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol" xlink:href="#obsitionLogoSymbol"></use></svg>
       <h2>Obsition</h2>
       <p>Sign in to sync your writing across devices.</p>
     </div>
@@ -1234,6 +1316,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="trashModal">
+  <div class="modal-card trash-modal-card">
+    <h3>🗑️ Trash</h3>
+    <p>Deleted pages and folders stay here until you restore them or delete them forever.</p>
+    <div class="trash-list" id="trashList"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="trashModalCloseBtn" class="primary">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -1241,7 +1334,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-12.7";
+  var BUILD_ID = "2026-07-12.8";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -1375,6 +1468,7 @@
       activePageId: pageId,
       updatedAt: now,
       seedCreatedAt: now,
+      trash: [],
       items: [
         {
           id: rootId,
@@ -1489,6 +1583,7 @@
           var migrated = migrateLegacyState(parsed);
           if (migrated) {
             if (!migrated.updatedAt) migrated.updatedAt = Date.now();
+            if (!migrated.trash) migrated.trash = [];
             return migrated;
           }
         } catch (e) {
@@ -1573,6 +1668,11 @@
     globalErrorBanner: document.getElementById("globalErrorBanner"),
     reloadAppBtn: document.getElementById("reloadAppBtn"),
     exportBtn: document.getElementById("exportBtn"),
+    trashBtn: document.getElementById("trashBtn"),
+    trashCount: document.getElementById("trashCount"),
+    trashModal: document.getElementById("trashModal"),
+    trashList: document.getElementById("trashList"),
+    trashModalCloseBtn: document.getElementById("trashModalCloseBtn"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     themeToggle: document.getElementById("themeToggle"),
@@ -1590,6 +1690,7 @@
     colorBtn: document.getElementById("colorBtn"),
     colorPopover: document.getElementById("colorPopover"),
     tableBtn: document.getElementById("tableBtn"),
+    linkBtn: document.getElementById("linkBtn"),
     hamburgerBtn: document.getElementById("hamburgerBtn"),
     closeSidebarBtn: document.getElementById("closeSidebarBtn"),
     accountSection: document.getElementById("accountSection"),
@@ -1617,6 +1718,8 @@
     promptModalConfirm: document.getElementById("promptModalConfirm"),
     sidebarSubtitle: document.getElementById("sidebarSubtitle"),
     breadcrumb: document.getElementById("breadcrumb"),
+    navBackBtn: document.getElementById("navBackBtn"),
+    navForwardBtn: document.getElementById("navForwardBtn"),
     mindmapToolbar: document.getElementById("mindmapToolbar"),
     mindmapWrap: document.getElementById("mindmapWrap"),
     mindmapCanvas: document.getElementById("mindmapCanvas"),
@@ -1818,6 +1921,62 @@
     if (item.kind !== "folder") return false;
     return item.children.some(function (child) { return itemMatchesSearch(child, query); });
   }
+
+  function renderTrashButton() {
+    var count = (state.trash || []).length;
+    el.trashBtn.style.display = count > 0 ? "block" : "none";
+    el.trashCount.textContent = count > 0 ? "(" + count + ")" : "";
+  }
+
+  function renderTrashModal() {
+    clearChildren(el.trashList);
+    var trash = state.trash || [];
+    if (trash.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "trash-empty-msg";
+      empty.textContent = "Trash is empty.";
+      el.trashList.appendChild(empty);
+      return;
+    }
+    trash.slice().reverse().forEach(function (entry) {
+      var isFolder = entry.item.kind === "folder";
+      var name = isFolder ? entry.item.name : (entry.item.title || "Untitled");
+      var row = document.createElement("div");
+      row.className = "trash-item";
+
+      var icon = document.createElement("span");
+      icon.textContent = isFolder ? "📁" : (entry.item.type === "mindmap" ? "🧠" : "📄");
+      row.appendChild(icon);
+
+      var label = document.createElement("span");
+      label.className = "trash-item-label";
+      label.textContent = name;
+      row.appendChild(label);
+
+      var date = document.createElement("span");
+      date.className = "trash-item-date";
+      date.textContent = formatDate(entry.deletedAt);
+      row.appendChild(date);
+
+      var restoreBtn = document.createElement("button");
+      restoreBtn.type = "button";
+      restoreBtn.textContent = "Restore";
+      restoreBtn.addEventListener("click", function () { restoreFromTrash(entry); renderTrashModal(); });
+      row.appendChild(restoreBtn);
+
+      var deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "danger";
+      deleteBtn.textContent = "Delete forever";
+      deleteBtn.addEventListener("click", function () { permanentlyDeleteFromTrash(entry); });
+      row.appendChild(deleteBtn);
+
+      el.trashList.appendChild(row);
+    });
+  }
+
+  function showTrashModal() { renderTrashModal(); el.trashModal.style.display = "flex"; }
+  function hideTrashModal() { el.trashModal.style.display = "none"; }
 
   function renderTree() {
     // Wrapped defensively: a failure here must never block whatever the
@@ -2047,6 +2206,7 @@
     siblings.push(file);
     if (parentItem) parentItem.expanded = true;
     state.activePageId = file.id;
+    pushNavHistory(file.id);
     pendingHighlightId = file.id;
     renderAll();
     clearHighlightSoon();
@@ -2075,35 +2235,108 @@
     return item.children.some(function (child) { return itemContainsId(child, id); });
   }
 
+  // Returns the removed item (with its subtree intact, if it was a
+  // folder) so callers can move it to Trash, or null if not found.
   function removeItemFromTree(items, itemId) {
     for (var i = 0; i < items.length; i++) {
       if (items[i].id === itemId) {
-        items.splice(i, 1);
-        return true;
+        return items.splice(i, 1)[0];
       }
-      if (items[i].kind === "folder" && removeItemFromTree(items[i].children, itemId)) return true;
+      if (items[i].kind === "folder") {
+        var found = removeItemFromTree(items[i].children, itemId);
+        if (found) return found;
+      }
     }
-    return false;
+    return null;
   }
 
   function deleteItem(item) {
     var isFolder = item.kind === "folder";
     var name = isFolder ? item.name : (item.title || "Untitled");
     var msg = isFolder
-      ? "Delete folder \"" + name + "\" and everything inside it? This cannot be undone."
-      : "Delete \"" + name + "\"? This cannot be undone.";
-    showConfirmModal("🗑️ Delete " + (isFolder ? "folder" : "page") + "?", msg, { confirmLabel: "Delete", danger: true }).then(function (confirmed) {
+      ? "Move folder \"" + name + "\" and everything inside it to Trash? You can restore it later from Trash."
+      : "Move \"" + name + "\" to Trash? You can restore it later from Trash.";
+    showConfirmModal("🗑️ Delete " + (isFolder ? "folder" : "page") + "?", msg, { confirmLabel: "Move to Trash", danger: true }).then(function (confirmed) {
       if (!confirmed) return;
       var wasActiveInside = state.activePageId ? itemContainsId(item, state.activePageId) : false;
-      removeItemFromTree(state.items, item.id);
+      var removed = removeItemFromTree(state.items, item.id);
+      if (removed) {
+        if (!state.trash) state.trash = [];
+        state.trash.push({ item: removed, deletedAt: Date.now() });
+      }
       if (wasActiveInside) state.activePageId = null;
       renderAll();
+      renderTrashButton();
       scheduleSave();
     });
   }
 
+  function restoreFromTrash(trashEntry) {
+    state.items.push(trashEntry.item);
+    var idx = state.trash.indexOf(trashEntry);
+    if (idx !== -1) state.trash.splice(idx, 1);
+    pendingHighlightId = trashEntry.item.id;
+    renderAll();
+    renderTrashButton();
+    clearHighlightSoon();
+    scheduleSave();
+  }
+
+  function permanentlyDeleteFromTrash(trashEntry) {
+    var isFolder = trashEntry.item.kind === "folder";
+    var name = isFolder ? trashEntry.item.name : (trashEntry.item.title || "Untitled");
+    showConfirmModal(
+      "⚠️ Delete forever?",
+      "Permanently delete \"" + name + "\"" + (isFolder ? " and everything inside it" : "") + "? This cannot be undone.",
+      { confirmLabel: "Delete forever", danger: true }
+    ).then(function (confirmed) {
+      if (!confirmed) return;
+      var idx = state.trash.indexOf(trashEntry);
+      if (idx !== -1) state.trash.splice(idx, 1);
+      renderTrashModal();
+      renderTrashButton();
+      scheduleSave();
+    });
+  }
+
+  // Browser-style back/forward between recently visited pages, like
+  // Notion's history arrows. navHistory holds page ids; navIndex points
+  // at the current position. navigatingViaHistory suppresses re-pushing
+  // an entry while a back/forward navigation is itself calling openPage.
+  var navHistory = [];
+  var navIndex = -1;
+  var navigatingViaHistory = false;
+
+  function pushNavHistory(pageId) {
+    if (navigatingViaHistory || !pageId) return;
+    if (navHistory[navIndex] === pageId) return;
+    navHistory = navHistory.slice(0, navIndex + 1);
+    navHistory.push(pageId);
+    navIndex = navHistory.length - 1;
+    updateNavButtons();
+  }
+
+  function updateNavButtons() {
+    el.navBackBtn.disabled = navIndex <= 0;
+    el.navForwardBtn.disabled = navIndex >= navHistory.length - 1;
+  }
+
+  function navigateHistory(direction) {
+    var nextIndex = navIndex + direction;
+    if (nextIndex < 0 || nextIndex >= navHistory.length) return;
+    navIndex = nextIndex;
+    navigatingViaHistory = true;
+    openPage(navHistory[navIndex]);
+    navigatingViaHistory = false;
+    updateNavButtons();
+  }
+
+  el.navBackBtn.addEventListener("click", function () { navigateHistory(-1); });
+  el.navForwardBtn.addEventListener("click", function () { navigateHistory(1); });
+
   function openPage(pageId) {
     state.activePageId = pageId;
+    pushNavHistory(pageId);
     try {
       renderAll();
     } finally {
@@ -2262,6 +2495,63 @@
       insertTable(rows, cols);
     });
   });
+
+  function escapeHtml(s) {
+    var div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  // Only allow schemes that are safe to click; anything else (javascript:,
+  // data:, etc.) gets treated as a bare host and prefixed with https://.
+  function sanitizeLinkUrl(raw) {
+    var url = raw.trim();
+    var schemeMatch = url.match(/^([a-z][a-z0-9+.-]*):/i);
+    var safeSchemes = ["http", "https", "mailto", "tel"];
+    if (schemeMatch && safeSchemes.indexOf(schemeMatch[1].toLowerCase()) === -1) {
+      return "https://" + url.replace(/^[a-z0-9+.-]*:\/*/i, "");
+    }
+    if (!schemeMatch) return "https://" + url;
+    return url;
+  }
+
+  function insertLink() {
+    el.editor.focus();
+    ensureEditorSelection();
+    var sel = window.getSelection();
+    var savedRange = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    var selectedText = savedRange ? savedRange.toString() : "";
+
+    showPromptModal(
+      "🔗 Add link",
+      "https://",
+      selectedText ? 'Link for "' + selectedText + '"' : "URL"
+    ).then(function (rawUrl) {
+      if (rawUrl === null) return;
+      var trimmed = rawUrl.trim();
+      if (!trimmed) return;
+      var url = sanitizeLinkUrl(trimmed);
+
+      el.editor.focus();
+      if (savedRange) {
+        var sel2 = window.getSelection();
+        sel2.removeAllRanges();
+        sel2.addRange(savedRange);
+      }
+      if (selectedText) {
+        document.execCommand("createLink", false, url);
+      } else {
+        document.execCommand(
+          "insertHTML",
+          false,
+          '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + "</a>"
+        );
+      }
+      onEditorChanged();
+    });
+  }
+
+  el.linkBtn.addEventListener("click", insertLink);
 
   function insertTable(rows, cols) {
     var html = "<table>";
@@ -2659,6 +2949,9 @@
   /* =========================================================
      EXPORT / IMPORT
      ========================================================= */
+  el.trashBtn.addEventListener("click", showTrashModal);
+  el.trashModalCloseBtn.addEventListener("click", hideTrashModal);
+
   el.exportBtn.addEventListener("click", function () {
     flushSave();
     var json = JSON.stringify(state, null, 2);
@@ -2696,8 +2989,10 @@
           state = migrated;
           if (!state.theme) state.theme = "light";
           if (!state.updatedAt) state.updatedAt = Date.now();
+          if (!state.trash) state.trash = [];
           applyTheme(state.theme);
           renderAll();
+          renderTrashButton();
           scheduleSave();
         });
       } catch (e) {
@@ -2910,9 +3205,11 @@
   function applyRemoteState(remote) {
     state = migrateLegacyState(remote) || remote;
     hasLocalEditsThisSession = false;
+    if (!state.trash) state.trash = [];
     if (!state.theme) state.theme = "light";
     applyTheme(state.theme);
     renderAll();
+    renderTrashButton();
     try { Storage.save(JSON.stringify(state)); } catch (e) { /* ignore */ }
   }
 
@@ -3241,6 +3538,10 @@
       e.preventDefault();
       flushSave();
     }
+    if (mod && e.key.toLowerCase() === "k" && el.editor.style.display !== "none" && el.editor.contains(document.activeElement)) {
+      e.preventDefault();
+      insertLink();
+    }
   });
 
   document.addEventListener("visibilitychange", function () {
@@ -3261,6 +3562,7 @@
   applyTheme(state.theme || "light");
   renderStorageStatusText();
   renderAll();
+  renderTrashButton();
   if (el.buildVersion) el.buildVersion.textContent = "build " + BUILD_ID;
 
   if (!isFirebaseConfigured()) {
