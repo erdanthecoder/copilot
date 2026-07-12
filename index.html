@@ -225,8 +225,20 @@
   .tree-row:hover .icon-btn { opacity: 1; }
   .icon-btn:hover { background: rgba(128,128,128,0.25); }
 
-  .children { margin-left: 6px; }
-  .children.collapsed { display: none; }
+  .children {
+    margin-left: 6px;
+    overflow: hidden;
+    max-height: 4000px;
+    opacity: 1;
+    transition: max-height 0.2s ease, opacity 0.15s ease;
+  }
+  .children.collapsed { max-height: 0; opacity: 0; transition: max-height 0.16s ease, opacity 0.1s ease; }
+
+  .tree-node.just-added > .tree-row { animation: row-added-in 0.32s cubic-bezier(0.2, 0.8, 0.3, 1.1); }
+  @keyframes row-added-in {
+    from { opacity: 0; transform: translateX(-6px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
 
   .row-menu {
     position: fixed;
@@ -1516,6 +1528,7 @@
   // "⋯" (rename/delete) actions on a tree row. Built on demand rather
   // than living in static HTML, since there can be one per row.
   var activeRowMenu = null;
+  var pendingHighlightId = null;
   function closeRowMenu() {
     if (activeRowMenu) { activeRowMenu.remove(); activeRowMenu = null; }
     document.removeEventListener("click", closeRowMenu);
@@ -1557,6 +1570,16 @@
   function renderTree() {
     clearChildren(el.tree);
     renderItemList(state.items, el.tree, 0);
+    pendingHighlightId = null;
+  }
+
+  // The just-added CSS animation is one-shot; strip the class once it has
+  // finished playing so the node doesn't stay marked "just added" forever.
+  function clearHighlightSoon() {
+    setTimeout(function () {
+      var node = el.tree.querySelector(".tree-node.just-added");
+      if (node) node.classList.remove("just-added");
+    }, 400);
   }
 
   function renderItemList(items, container, depth) {
@@ -1567,7 +1590,7 @@
 
   function renderItemNode(item, index, depth) {
     var node = document.createElement("div");
-    node.className = "tree-node";
+    node.className = "tree-node" + (item.id === pendingHighlightId ? " just-added" : "");
 
     var isFolder = item.kind === "folder";
     var row = document.createElement("div");
@@ -1721,9 +1744,12 @@
     name = name.trim() || "New Folder";
     var siblings = childArrayOf(parentItem);
     var color = NOTEBOOK_COLORS[siblings.length % NOTEBOOK_COLORS.length];
-    siblings.push({ id: uid(), kind: "folder", name: name, color: color, expanded: true, children: [] });
+    var newFolder = { id: uid(), kind: "folder", name: name, color: color, expanded: true, children: [] };
+    siblings.push(newFolder);
     if (parentItem) parentItem.expanded = true;
+    pendingHighlightId = newFolder.id;
     renderTree();
+    clearHighlightSoon();
     scheduleSave();
   }
 
@@ -1746,7 +1772,9 @@
     siblings.push(file);
     if (parentItem) parentItem.expanded = true;
     state.activePageId = file.id;
+    pendingHighlightId = file.id;
     renderAll();
+    clearHighlightSoon();
     scheduleSave();
     setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
   }
