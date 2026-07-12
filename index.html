@@ -217,13 +217,22 @@
     line-height: 1;
     padding: 3px 4px;
     border-radius: 4px;
-    opacity: 0;
+    opacity: 0.55;
     flex: none;
     white-space: nowrap;
     transition: opacity 0.12s ease, background-color 0.12s ease;
   }
-  .tree-row:hover .icon-btn { opacity: 1; }
+  .tree-row:hover .icon-btn,
+  .tree-row:focus-within .icon-btn,
+  .icon-btn:focus-visible {
+    opacity: 1;
+  }
   .icon-btn:hover { background: rgba(128,128,128,0.25); }
+  /* Touch devices have no hover state, so keep these fully visible
+     rather than relying on a gesture that doesn't exist there. */
+  @media (hover: none) {
+    .icon-btn { opacity: 0.85; }
+  }
 
   .children {
     margin-left: 6px;
