@@ -168,7 +168,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 6px 6px 8px;
+    min-height: 30px;
+    padding: 8px 6px 8px 8px;
     border-radius: 6px;
     font-size: 13.5px;
     cursor: pointer;
@@ -644,6 +645,9 @@
     touch-action: none;
   }
   .mm-node.dragging { cursor: grabbing; box-shadow: var(--shadow-lg); z-index: 5; }
+  .mm-node.connected-highlight { box-shadow: 0 0 0 2.5px var(--accent), var(--shadow); }
+  .mm-edge-line { transition: stroke 0.12s ease, stroke-width 0.12s ease; }
+  .mm-edge-line.connected-highlight { stroke: var(--accent); stroke-width: 3.2; }
   @keyframes mm-pop {
     from { transform: scale(0.85); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -1122,11 +1126,11 @@
 
 <div class="modal-overlay" id="conflictModal">
   <div class="modal-card">
-    <h3>Two versions of your notebook</h3>
-    <p>Your account already has saved writing from another device, and this device also has changes that were never synced. Which one do you want to keep? (You can Export first from either device as a backup.)</p>
+    <h3>⚠️ Two versions of your notebook</h3>
+    <p>Your account already has saved writing from another device, and this device also has changes that were never synced. Which one do you want to keep? (You can Export first from either device as a backup — nothing is deleted until you choose.)</p>
     <div class="modal-actions">
-      <button type="button" class="primary" id="useCloudBtn">Use the version from your account<small>Replaces what's on this device</small></button>
-      <button type="button" id="useLocalBtn">Keep what's on this device<small>Replaces the version in your account</small></button>
+      <button type="button" class="primary" id="useLocalBtn">Keep what's on this device<small>Sends this device's version to your account</small></button>
+      <button type="button" id="useCloudBtn">Use the version from your account<small>Replaces what's on this device</small></button>
     </div>
   </div>
 </div>
@@ -1376,6 +1380,12 @@
   var storageAvailable = false;
   var authSession = null;
   var pendingRemoteState = null;
+  // True the moment anything changes locally during this page session.
+  // Sync must never silently discard those changes — if this is true,
+  // any would-be automatic "just apply the cloud version" has to go
+  // through the conflict modal instead, no matter what the timestamp
+  // bookkeeping (which can be unreliable if storage is flaky) says.
+  var hasLocalEditsThisSession = false;
 
   function loadInitialState() {
     storageAvailable = Storage.isAvailable();
@@ -1402,6 +1412,7 @@
   var saveTimer = null;
   function scheduleSave() {
     state.updatedAt = Date.now();
+    hasLocalEditsThisSession = true;
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSave, 400);
     Sync.notifyLocalChange();
@@ -2374,7 +2385,23 @@
     attachNodeDrag(page, node, nodeEl);
     attachConnectHandle(page, node, handle);
 
+    nodeEl.addEventListener("mouseenter", function () { setMindmapHighlight(node.id, true); });
+    nodeEl.addEventListener("mouseleave", function () { setMindmapHighlight(node.id, false); });
+
     return nodeEl;
+  }
+
+  // Obsidian-style hover feedback: highlight a node's connections (and the
+  // nodes at the other end of them) so it's easy to see how ideas relate.
+  function setMindmapHighlight(nodeId, on) {
+    el.mmEdges.querySelectorAll(".mm-edge-line").forEach(function (line) {
+      if (line.dataset.from === nodeId || line.dataset.to === nodeId) {
+        line.classList.toggle("connected-highlight", on);
+        var otherId = line.dataset.from === nodeId ? line.dataset.to : line.dataset.from;
+        var otherNodeEl = el.mindmapCanvas.querySelector('.mm-node[data-node-id="' + otherId + '"]');
+        if (otherNodeEl) otherNodeEl.classList.toggle("connected-highlight", on);
+      }
+    });
   }
 
   function renderMindmap(page) {
@@ -2734,6 +2761,7 @@
 
   function applyRemoteState(remote) {
     state = migrateLegacyState(remote) || remote;
+    hasLocalEditsThisSession = false;
     if (!state.theme) state.theme = "light";
     applyTheme(state.theme);
     renderAll();
@@ -2744,6 +2772,7 @@
     status: "signed-out",
     pushTimer: null,
     lastError: null,
+    reconciling: false,
 
     setStatus: function (status, message) {
       this.status = status;
@@ -2753,9 +2782,14 @@
     },
 
     reconcile: function () {
+      // A flaky connection can fire 'online' repeatedly; never let
+      // overlapping reconciles race each other or spam the conflict modal.
+      if (this.reconciling || el.conflictModal.style.display === "flex") return;
+      this.reconciling = true;
       var self = this;
       self.setStatus("syncing");
       rtdbRequest(authSession, "GET").then(function (result) {
+        self.reconciling = false;
         if (!result.ok) { self.setStatus(result.offline ? "offline" : "error", result.message); return; }
         var remote = result.data;
         var acct = authSession.uid;
@@ -2769,7 +2803,12 @@
         var localUpdatedAt = state.updatedAt || 0;
 
         if (lastSynced === null) {
-          if (localUpdatedAt <= (state.seedCreatedAt || 0)) {
+          // Only silently adopt the cloud version if this device is truly
+          // untouched — never if anything changed locally this session,
+          // even if the seedCreatedAt/updatedAt timestamps look pristine
+          // (that comparison alone isn't trustworthy enough to risk
+          // discarding someone's work without asking).
+          if (localUpdatedAt <= (state.seedCreatedAt || 0) && !hasLocalEditsThisSession) {
             applyRemoteState(remote);
             setLastSyncedAt(acct, remoteUpdatedAt);
             self.setStatus("synced");
@@ -2780,7 +2819,7 @@
           return;
         }
 
-        var localChanged = localUpdatedAt > lastSynced;
+        var localChanged = localUpdatedAt > lastSynced || hasLocalEditsThisSession;
         var remoteChanged = remoteUpdatedAt > lastSynced;
 
         if (localChanged && remoteChanged) {
