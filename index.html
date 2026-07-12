@@ -195,9 +195,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .tree-row.notebook-row .label { font-weight: 700; font-family: var(--font-display); }
-  .tree-row.page-row { padding-left: 30px; }
-  .tree-row.section-row { padding-left: 20px; }
+  .tree-row.folder-row .label { font-weight: 700; font-family: var(--font-display); }
 
   .notebook-dot {
     width: 9px;
@@ -229,6 +227,35 @@
 
   .children { margin-left: 6px; }
   .children.collapsed { display: none; }
+
+  .row-menu {
+    position: fixed;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 4px;
+    min-width: 170px;
+    z-index: 50;
+    animation: row-menu-in 0.12s ease;
+  }
+  @keyframes row-menu-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .row-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 10px;
+    border: none;
+    background: none;
+    border-radius: 5px;
+    font-size: 13px;
+  }
+  .row-menu button:hover { background: var(--hover); }
+  .row-menu button.danger { color: var(--danger); }
+  .row-menu-sep { height: 1px; background: var(--border); margin: 4px 2px; }
 
   .sidebar-footer {
     border-top: 1px solid var(--border);
@@ -879,7 +906,7 @@
     </div>
 
     <div class="new-notebook-row">
-      <button id="newNotebookBtn">+ New notebook</button>
+      <button id="newItemBtn" type="button">+ New</button>
     </div>
 
     <div class="tree" id="tree"></div>
@@ -1198,35 +1225,41 @@
 
   var NOTEBOOK_COLORS = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#7c6cff", "#c86bfa", "#ff8fab"];
   var MINDMAP_COLORS = ["#ffe5ec", "#fff3cd", "#d8f3dc", "#d0ebff", "#e5d8ff", "#ffe8d6", "#d0f4de", "#ffd6e8"];
-  function getNotebookColor(notebook, index) {
-    return notebook.color || NOTEBOOK_COLORS[index % NOTEBOOK_COLORS.length];
+  function getFolderColor(folder, index) {
+    return folder.color || NOTEBOOK_COLORS[index % NOTEBOOK_COLORS.length];
   }
 
+  // Items form a tree: a folder has .children (more folders or files), a
+  // file is a leaf holding either rich-text .content or mind map .nodes/.edges.
+  // This replaces the older fixed Notebook > Section > Page shape.
   function makeDefaultState() {
     var pageId = uid();
-    var sectionId = uid();
-    var notebookId = uid();
+    var folderId = uid();
+    var rootId = uid();
     var now = Date.now();
     return {
-      version: 1,
+      version: 2,
       theme: "light",
       activePageId: pageId,
       updatedAt: now,
       seedCreatedAt: now,
-      notebooks: [
+      items: [
         {
-          id: notebookId,
+          id: rootId,
+          kind: "folder",
           name: "My Notebook",
           color: NOTEBOOK_COLORS[0],
           expanded: true,
-          sections: [
+          children: [
             {
-              id: sectionId,
+              id: folderId,
+              kind: "folder",
               name: "Getting Started",
               expanded: true,
-              pages: [
+              children: [
                 {
                   id: pageId,
+                  kind: "file",
                   type: "doc",
                   title: "Welcome!",
                   content:
@@ -1234,8 +1267,8 @@
                     "<p>A few tips:</p>" +
                     "<ul>" +
                     "<li>Use the toolbar above to add headings, <b>bold</b>, <i>italic</i>, lists, checklists, quotes, tables, highlights and colors.</li>" +
-                    "<li>Click <b>+ New notebook</b>, then add sections and pages from the sidebar to organize your writing.</li>" +
-                    "<li>Add a <b>Mind Map</b> page from a section for brainstorming with connected idea bubbles.</li>" +
+                    "<li>Click <b>+ New</b>, then choose a file, folder, or mind map — folders can hold more folders or files, nested as deep as you like.</li>" +
+                    "<li>A <b>Mind Map</b> file gives you draggable, connectable idea bubbles for brainstorming.</li>" +
                     "<li>Sign in from the sidebar to sync your writing between devices automatically. You can also always use <b>Export</b> / <b>Import</b> to move a backup file by hand.</li>" +
                     "</ul>" +
                     "<p>Happy writing!</p>",
@@ -1246,6 +1279,60 @@
           ]
         }
       ]
+    };
+  }
+
+  // Converts a save from the old Notebook > Section > Page shape (version 1)
+  // into the current folder/file tree. Returns null if `parsed` isn't a
+  // recognizable Obsition save at all (new or old shape).
+  function migrateLegacyState(parsed) {
+    if (!parsed || typeof parsed !== "object") return null;
+    if (Array.isArray(parsed.items)) return parsed;
+    if (!Array.isArray(parsed.notebooks)) return null;
+
+    function migratePage(pg) {
+      var file = {
+        id: pg.id || uid(),
+        kind: "file",
+        type: pg.type === "mindmap" ? "mindmap" : "doc",
+        title: pg.title || "Untitled",
+        updatedAt: pg.updatedAt || Date.now()
+      };
+      if (file.type === "mindmap") {
+        file.nodes = Array.isArray(pg.nodes) ? pg.nodes : [];
+        file.edges = Array.isArray(pg.edges) ? pg.edges : [];
+      } else {
+        file.content = pg.content || "";
+      }
+      return file;
+    }
+
+    var items = parsed.notebooks.map(function (nb, i) {
+      return {
+        id: nb.id || uid(),
+        kind: "folder",
+        name: nb.name || "Notebook",
+        color: nb.color || NOTEBOOK_COLORS[i % NOTEBOOK_COLORS.length],
+        expanded: nb.expanded !== false,
+        children: (nb.sections || []).map(function (sec) {
+          return {
+            id: sec.id || uid(),
+            kind: "folder",
+            name: sec.name || "Section",
+            expanded: sec.expanded !== false,
+            children: (sec.pages || []).map(migratePage)
+          };
+        })
+      };
+    });
+
+    return {
+      version: 2,
+      theme: parsed.theme || "light",
+      activePageId: parsed.activePageId || null,
+      updatedAt: parsed.updatedAt || Date.now(),
+      seedCreatedAt: parsed.seedCreatedAt || 0,
+      items: items
     };
   }
 
@@ -1261,9 +1348,10 @@
       if (raw) {
         try {
           var parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.notebooks)) {
-            if (!parsed.updatedAt) parsed.updatedAt = Date.now();
-            return parsed;
+          var migrated = migrateLegacyState(parsed);
+          if (migrated) {
+            if (!migrated.updatedAt) migrated.updatedAt = Date.now();
+            return migrated;
           }
         } catch (e) {
           /* Corrupt saved data: fall through to defaults, keep app usable. */
@@ -1301,25 +1389,31 @@
   /* =========================================================
      DATA HELPERS
      ========================================================= */
-  function findPageLocation(pageId) {
-    for (var i = 0; i < state.notebooks.length; i++) {
-      var nb = state.notebooks[i];
-      for (var j = 0; j < nb.sections.length; j++) {
-        var sec = nb.sections[j];
-        for (var k = 0; k < sec.pages.length; k++) {
-          if (sec.pages[k].id === pageId) {
-            return { notebook: nb, section: sec, page: sec.pages[k] };
-          }
+  // Returns the array of ancestor items (folders) followed by the item
+  // itself, e.g. [rootFolder, subFolder, file]. Used both to locate an
+  // item's parent array (for mutations) and to render the breadcrumb.
+  function findItemPath(itemId) {
+    function walk(items, path) {
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var nextPath = path.concat([item]);
+        if (item.id === itemId) return nextPath;
+        if (item.kind === "folder") {
+          var found = walk(item.children, nextPath);
+          if (found) return found;
         }
       }
+      return null;
     }
-    return null;
+    return walk(state.items, []);
   }
 
   function getActivePage() {
     if (!state.activePageId) return null;
-    var loc = findPageLocation(state.activePageId);
-    return loc ? loc.page : null;
+    var path = findItemPath(state.activePageId);
+    if (!path) return null;
+    var item = path[path.length - 1];
+    return item.kind === "file" ? item : null;
   }
 
   /* =========================================================
@@ -1330,7 +1424,7 @@
     sidebar: document.getElementById("sidebar"),
     sidebarBackdrop: document.getElementById("sidebarBackdrop"),
     tree: document.getElementById("tree"),
-    newNotebookBtn: document.getElementById("newNotebookBtn"),
+    newItemBtn: document.getElementById("newItemBtn"),
     storageStatus: document.getElementById("storageStatus"),
     exportBtn: document.getElementById("exportBtn"),
     importBtn: document.getElementById("importBtn"),
@@ -1413,131 +1507,129 @@
     b.textContent = symbol;
     b.addEventListener("click", function (e) {
       e.stopPropagation();
-      onClick();
+      onClick(e);
     });
     return b;
   }
 
+  // A small dropdown used for both "+" (add file/folder/mind map) and
+  // "⋯" (rename/delete) actions on a tree row. Built on demand rather
+  // than living in static HTML, since there can be one per row.
+  var activeRowMenu = null;
+  function closeRowMenu() {
+    if (activeRowMenu) { activeRowMenu.remove(); activeRowMenu = null; }
+    document.removeEventListener("click", closeRowMenu);
+  }
+  function showRowMenu(anchorEl, items) {
+    closeRowMenu();
+    var menu = document.createElement("div");
+    menu.className = "row-menu";
+    items.forEach(function (item) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = item.label;
+      if (item.danger) btn.className = "danger";
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeRowMenu();
+        item.onClick();
+      });
+      menu.appendChild(btn);
+    });
+    document.body.appendChild(menu);
+    var rect = anchorEl.getBoundingClientRect();
+    var menuWidth = menu.offsetWidth || 170;
+    var left = Math.min(rect.left, window.innerWidth - menuWidth - 8);
+    menu.style.top = (rect.bottom + 4) + "px";
+    menu.style.left = Math.max(8, left) + "px";
+    activeRowMenu = menu;
+    setTimeout(function () { document.addEventListener("click", closeRowMenu); }, 0);
+  }
+
+  function addMenuItemsFor(folderItem) {
+    return [
+      { label: "📄  New file", onClick: function () { addFile(folderItem, "doc"); } },
+      { label: "🧠  New mind map", onClick: function () { addFile(folderItem, "mindmap"); } },
+      { label: "📁  New folder", onClick: function () { addFolder(folderItem); } }
+    ];
+  }
+
   function renderTree() {
     clearChildren(el.tree);
+    renderItemList(state.items, el.tree, 0);
+  }
 
-    state.notebooks.forEach(function (notebook, notebookIndex) {
-      var nbNode = document.createElement("div");
-      nbNode.className = "tree-node";
+  function renderItemList(items, container, depth) {
+    items.forEach(function (item, index) {
+      container.appendChild(renderItemNode(item, index, depth));
+    });
+  }
 
-      var nbRow = document.createElement("div");
-      nbRow.className = "tree-row notebook-row" + (notebook.expanded ? "" : " collapsed");
-      nbRow.tabIndex = 0;
+  function renderItemNode(item, index, depth) {
+    var node = document.createElement("div");
+    node.className = "tree-node";
 
+    var isFolder = item.kind === "folder";
+    var row = document.createElement("div");
+    row.className = "tree-row " + (isFolder ? "folder-row" : "file-row") +
+      (isFolder && !item.expanded ? " collapsed" : "") +
+      (!isFolder && item.id === state.activePageId ? " active" : "");
+    row.style.paddingLeft = (8 + depth * 16 + (isFolder ? 0 : 6)) + "px";
+    row.tabIndex = 0;
+
+    if (isFolder) {
       var caret = document.createElement("span");
       caret.className = "caret";
       caret.textContent = "▼";
-      nbRow.appendChild(caret);
+      row.appendChild(caret);
 
       var dot = document.createElement("span");
       dot.className = "notebook-dot";
-      dot.style.background = getNotebookColor(notebook, notebookIndex);
-      nbRow.appendChild(dot);
+      dot.style.background = getFolderColor(item, index);
+      row.appendChild(dot);
+    } else {
+      var icon = document.createElement("span");
+      icon.className = "page-type-icon";
+      icon.textContent = item.type === "mindmap" ? "🧠" : "📄";
+      row.appendChild(icon);
+    }
 
-      var label = document.createElement("span");
-      label.className = "label";
-      label.textContent = notebook.name;
-      nbRow.appendChild(label);
+    var label = document.createElement("span");
+    label.className = "label";
+    label.textContent = isFolder ? item.name : (item.title || "Untitled");
+    row.appendChild(label);
 
-      nbRow.appendChild(makeIconButton("+", "Add section", function () {
-        addSection(notebook.id);
+    if (isFolder) {
+      row.appendChild(makeIconButton("+", "Add", function (e) {
+        showRowMenu(e.currentTarget, addMenuItemsFor(item));
       }));
-      nbRow.appendChild(makeIconButton("✎", "Rename notebook", function () {
-        renameNotebook(notebook.id);
-      }));
-      nbRow.appendChild(makeIconButton("✕", "Delete notebook", function () {
-        deleteNotebook(notebook.id);
-      }));
+    }
+    row.appendChild(makeIconButton("⋯", isFolder ? "Folder options" : "File options", function (e) {
+      showRowMenu(e.currentTarget, [
+        { label: "Rename", onClick: function () { renameItem(item); } },
+        { label: "Delete", danger: true, onClick: function () { deleteItem(item); } }
+      ]);
+    }));
 
-      nbRow.addEventListener("click", function () {
-        notebook.expanded = !notebook.expanded;
+    row.addEventListener("click", function () {
+      if (isFolder) {
+        item.expanded = !item.expanded;
         renderTree();
-      });
-
-      nbNode.appendChild(nbRow);
-
-      var secWrap = document.createElement("div");
-      secWrap.className = "children" + (notebook.expanded ? "" : " collapsed");
-
-      notebook.sections.forEach(function (section) {
-        var secNode = document.createElement("div");
-        secNode.className = "tree-node";
-
-        var secRow = document.createElement("div");
-        secRow.className = "tree-row section-row" + (section.expanded ? "" : " collapsed");
-        secRow.tabIndex = 0;
-
-        var secCaret = document.createElement("span");
-        secCaret.className = "caret";
-        secCaret.textContent = "▼";
-        secRow.appendChild(secCaret);
-
-        var secLabel = document.createElement("span");
-        secLabel.className = "label";
-        secLabel.textContent = section.name;
-        secRow.appendChild(secLabel);
-
-        secRow.appendChild(makeIconButton("📄+", "Add page", function () {
-          addPage(notebook.id, section.id);
-        }));
-        secRow.appendChild(makeIconButton("🧠+", "Add mind map", function () {
-          addMindmapPage(notebook.id, section.id);
-        }));
-        secRow.appendChild(makeIconButton("✎", "Rename section", function () {
-          renameSection(notebook.id, section.id);
-        }));
-        secRow.appendChild(makeIconButton("✕", "Delete section", function () {
-          deleteSection(notebook.id, section.id);
-        }));
-
-        secRow.addEventListener("click", function () {
-          section.expanded = !section.expanded;
-          renderTree();
-        });
-
-        secNode.appendChild(secRow);
-
-        var pageWrap = document.createElement("div");
-        pageWrap.className = "children" + (section.expanded ? "" : " collapsed");
-
-        section.pages.forEach(function (page) {
-          var pageRow = document.createElement("div");
-          pageRow.className = "tree-row page-row" + (page.id === state.activePageId ? " active" : "");
-          pageRow.tabIndex = 0;
-
-          var pageIcon = document.createElement("span");
-          pageIcon.className = "page-type-icon";
-          pageIcon.textContent = page.type === "mindmap" ? "🧠" : "📄";
-          pageRow.appendChild(pageIcon);
-
-          var pageLabel = document.createElement("span");
-          pageLabel.className = "label";
-          pageLabel.textContent = page.title || "Untitled page";
-          pageRow.appendChild(pageLabel);
-
-          pageRow.appendChild(makeIconButton("✕", "Delete page", function () {
-            deletePage(notebook.id, section.id, page.id);
-          }));
-
-          pageRow.addEventListener("click", function () {
-            openPage(page.id);
-          });
-
-          pageWrap.appendChild(pageRow);
-        });
-
-        secNode.appendChild(pageWrap);
-        secWrap.appendChild(secNode);
-      });
-
-      nbNode.appendChild(secWrap);
-      el.tree.appendChild(nbNode);
+      } else {
+        openPage(item.id);
+      }
     });
+
+    node.appendChild(row);
+
+    if (isFolder) {
+      var childWrap = document.createElement("div");
+      childWrap.className = "children" + (item.expanded ? "" : " collapsed");
+      renderItemList(item.children, childWrap, depth + 1);
+      node.appendChild(childWrap);
+    }
+
+    return node;
   }
 
   function renderEditor() {
@@ -1552,8 +1644,7 @@
       return;
     }
 
-    var loc = findPageLocation(page.id);
-    renderBreadcrumb(loc);
+    renderBreadcrumb(findItemPath(page.id));
 
     el.editorHeader.style.display = "block";
     el.emptyState.style.display = "none";
@@ -1583,19 +1674,22 @@
     }
   }
 
-  function renderBreadcrumb(loc) {
+  // path is the array from findItemPath: ancestor folders followed by the
+  // open file itself. Shows every ancestor folder name, however deep.
+  function renderBreadcrumb(path) {
     clearChildren(el.breadcrumb);
-    if (!loc) return;
-    var nbSpan = document.createElement("span");
-    nbSpan.textContent = loc.notebook.name;
-    var sep = document.createElement("span");
-    sep.className = "crumb-sep";
-    sep.textContent = "›";
-    var secSpan = document.createElement("span");
-    secSpan.textContent = loc.section.name;
-    el.breadcrumb.appendChild(nbSpan);
-    el.breadcrumb.appendChild(sep);
-    el.breadcrumb.appendChild(secSpan);
+    if (!path || path.length <= 1) return;
+    for (var i = 0; i < path.length - 1; i++) {
+      if (i > 0) {
+        var sep = document.createElement("span");
+        sep.className = "crumb-sep";
+        sep.textContent = "›";
+        el.breadcrumb.appendChild(sep);
+      }
+      var span = document.createElement("span");
+      span.textContent = path[i].name;
+      el.breadcrumb.appendChild(span);
+    }
   }
 
   function formatDate(ts) {
@@ -1616,123 +1710,87 @@
   /* =========================================================
      MUTATIONS
      ========================================================= */
-  function addNotebook() {
-    var name = prompt("Name this notebook:", "New Notebook");
+  // parentItem is null for root-level items, or a folder item otherwise.
+  function childArrayOf(parentItem) {
+    return parentItem ? parentItem.children : state.items;
+  }
+
+  function addFolder(parentItem) {
+    var name = prompt("Name this folder:", "New Folder");
     if (name === null) return;
-    name = name.trim() || "New Notebook";
-    var color = NOTEBOOK_COLORS[state.notebooks.length % NOTEBOOK_COLORS.length];
-    state.notebooks.push({ id: uid(), name: name, color: color, expanded: true, sections: [] });
+    name = name.trim() || "New Folder";
+    var siblings = childArrayOf(parentItem);
+    var color = NOTEBOOK_COLORS[siblings.length % NOTEBOOK_COLORS.length];
+    siblings.push({ id: uid(), kind: "folder", name: name, color: color, expanded: true, children: [] });
+    if (parentItem) parentItem.expanded = true;
     renderTree();
     scheduleSave();
   }
 
-  function renameNotebook(notebookId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var name = prompt("Rename notebook:", nb.name);
-    if (name === null) return;
-    nb.name = name.trim() || nb.name;
-    renderTree();
-    scheduleSave();
-  }
-
-  function deleteNotebook(notebookId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    if (!confirm("Delete notebook \"" + nb.name + "\" and everything inside it? This cannot be undone.")) return;
-    var wasActiveInside = nb.sections.some(function (s) {
-      return s.pages.some(function (p) { return p.id === state.activePageId; });
-    });
-    state.notebooks = state.notebooks.filter(function (n) { return n.id !== notebookId; });
-    if (wasActiveInside) state.activePageId = null;
-    renderAll();
-    scheduleSave();
-  }
-
-  function addSection(notebookId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var name = prompt("Name this section:", "New Section");
-    if (name === null) return;
-    name = name.trim() || "New Section";
-    nb.sections.push({ id: uid(), name: name, expanded: true, pages: [] });
-    nb.expanded = true;
-    renderTree();
-    scheduleSave();
-  }
-
-  function renameSection(notebookId, sectionId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
-    if (!sec) return;
-    var name = prompt("Rename section:", sec.name);
-    if (name === null) return;
-    sec.name = name.trim() || sec.name;
-    renderTree();
-    scheduleSave();
-  }
-
-  function deleteSection(notebookId, sectionId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
-    if (!sec) return;
-    if (!confirm("Delete section \"" + sec.name + "\" and all its pages? This cannot be undone.")) return;
-    var wasActiveInside = sec.pages.some(function (p) { return p.id === state.activePageId; });
-    nb.sections = nb.sections.filter(function (s) { return s.id !== sectionId; });
-    if (wasActiveInside) state.activePageId = null;
-    renderAll();
-    scheduleSave();
-  }
-
-  function addPage(notebookId, sectionId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
-    if (!sec) return;
-    var page = { id: uid(), type: "doc", title: "Untitled page", content: "", updatedAt: Date.now() };
-    sec.pages.push(page);
-    sec.expanded = true;
-    nb.expanded = true;
-    state.activePageId = page.id;
+  function addFile(parentItem, fileType) {
+    var siblings = childArrayOf(parentItem);
+    var file;
+    if (fileType === "mindmap") {
+      file = {
+        id: uid(),
+        kind: "file",
+        type: "mindmap",
+        title: "Untitled mind map",
+        nodes: [{ id: uid(), x: 620, y: 420, text: "Main idea", color: MINDMAP_COLORS[0] }],
+        edges: [],
+        updatedAt: Date.now()
+      };
+    } else {
+      file = { id: uid(), kind: "file", type: "doc", title: "Untitled file", content: "", updatedAt: Date.now() };
+    }
+    siblings.push(file);
+    if (parentItem) parentItem.expanded = true;
+    state.activePageId = file.id;
     renderAll();
     scheduleSave();
     setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
   }
 
-  function addMindmapPage(notebookId, sectionId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
-    if (!sec) return;
-    var page = {
-      id: uid(),
-      type: "mindmap",
-      title: "Untitled mind map",
-      nodes: [{ id: uid(), x: 620, y: 420, text: "Main idea", color: MINDMAP_COLORS[0] }],
-      edges: [],
-      updatedAt: Date.now()
-    };
-    sec.pages.push(page);
-    sec.expanded = true;
-    nb.expanded = true;
-    state.activePageId = page.id;
+  function renameItem(item) {
+    var isFolder = item.kind === "folder";
+    var current = isFolder ? item.name : item.title;
+    var name = prompt("Rename " + (isFolder ? "folder" : "file") + ":", current);
+    if (name === null) return;
+    name = name.trim() || current;
+    if (isFolder) item.name = name; else item.title = name;
+    item.updatedAt = Date.now();
+    if (!isFolder && item.id === state.activePageId) el.pageTitle.value = name;
     renderAll();
     scheduleSave();
-    setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
   }
 
-  function deletePage(notebookId, sectionId, pageId) {
-    var nb = state.notebooks.find(function (n) { return n.id === notebookId; });
-    if (!nb) return;
-    var sec = nb.sections.find(function (s) { return s.id === sectionId; });
-    if (!sec) return;
-    var page = sec.pages.find(function (p) { return p.id === pageId; });
-    if (!page) return;
-    if (!confirm("Delete page \"" + (page.title || "Untitled page") + "\"? This cannot be undone.")) return;
-    sec.pages = sec.pages.filter(function (p) { return p.id !== pageId; });
-    if (state.activePageId === pageId) state.activePageId = null;
+  function itemContainsId(item, id) {
+    if (item.id === id) return true;
+    if (item.kind !== "folder") return false;
+    return item.children.some(function (child) { return itemContainsId(child, id); });
+  }
+
+  function removeItemFromTree(items, itemId) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === itemId) {
+        items.splice(i, 1);
+        return true;
+      }
+      if (items[i].kind === "folder" && removeItemFromTree(items[i].children, itemId)) return true;
+    }
+    return false;
+  }
+
+  function deleteItem(item) {
+    var isFolder = item.kind === "folder";
+    var name = isFolder ? item.name : (item.title || "Untitled");
+    var msg = isFolder
+      ? "Delete folder \"" + name + "\" and everything inside it? This cannot be undone."
+      : "Delete \"" + name + "\"? This cannot be undone.";
+    if (!confirm(msg)) return;
+    var wasActiveInside = state.activePageId ? itemContainsId(item, state.activePageId) : false;
+    removeItemFromTree(state.items, item.id);
+    if (wasActiveInside) state.activePageId = null;
     renderAll();
     scheduleSave();
   }
@@ -1984,9 +2042,9 @@
   });
 
   el.deletePageBtn.addEventListener("click", function () {
-    var loc = findPageLocation(state.activePageId);
-    if (!loc) return;
-    deletePage(loc.notebook.id, loc.section.id, loc.page.id);
+    var page = getActivePage();
+    if (!page) return;
+    deleteItem(page);
   });
 
   /* =========================================================
@@ -2299,12 +2357,13 @@
     reader.onload = function () {
       try {
         var parsed = JSON.parse(String(reader.result));
-        if (!parsed || !Array.isArray(parsed.notebooks)) {
+        var migrated = migrateLegacyState(parsed);
+        if (!migrated) {
           alert("This file doesn't look like an Obsition export.");
           return;
         }
         if (!confirm("Import this file? It will replace everything currently in the app.")) return;
-        state = parsed;
+        state = migrated;
         if (!state.theme) state.theme = "light";
         if (!state.updatedAt) state.updatedAt = Date.now();
         applyTheme(state.theme);
@@ -2511,7 +2570,7 @@
   }
 
   function applyRemoteState(remote) {
-    state = remote;
+    state = migrateLegacyState(remote) || remote;
     if (!state.theme) state.theme = "light";
     applyTheme(state.theme);
     renderAll();
@@ -2785,7 +2844,10 @@
   /* =========================================================
      MISC
      ========================================================= */
-  el.newNotebookBtn.addEventListener("click", addNotebook);
+  el.newItemBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    showRowMenu(el.newItemBtn, addMenuItemsFor(null));
+  });
 
   document.addEventListener("keydown", function (e) {
     var mod = e.ctrlKey || e.metaKey;
