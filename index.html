@@ -357,6 +357,12 @@
   .sync-status.offline .sync-dot { background: #e8590c; }
   .sync-status.error .sync-dot { background: var(--danger); }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .sync-error-detail {
+    font-size: 10px;
+    color: var(--danger);
+    margin-top: 2px;
+    overflow-wrap: break-word;
+  }
   .signout-btn {
     background: none;
     border: none;
@@ -2575,7 +2581,14 @@
   }
 
   function parseRtdbResponse(res) {
-    if (!res.ok) return Promise.resolve({ ok: false, message: "Sync failed (" + res.status + ")." });
+    if (!res.ok) {
+      return res.json().then(function (body) {
+        var reason = body && body.error ? body.error : ("HTTP " + res.status);
+        return { ok: false, message: "Sync failed: " + reason };
+      }).catch(function () {
+        return { ok: false, message: "Sync failed (" + res.status + ")." };
+      });
+    }
     return res.json().then(function (data) { return { ok: true, data: data }; }).catch(function () {
       return { ok: true, data: null };
     });
@@ -2617,9 +2630,12 @@
   var Sync = {
     status: "signed-out",
     pushTimer: null,
+    lastError: null,
 
-    setStatus: function (status) {
+    setStatus: function (status, message) {
       this.status = status;
+      this.lastError = (status === "error" || status === "offline") ? (message || null) : null;
+      if (message) console.error("[Obsition sync] " + message);
       renderAccountSection();
     },
 
@@ -2627,7 +2643,7 @@
       var self = this;
       self.setStatus("syncing");
       rtdbRequest(authSession, "GET").then(function (result) {
-        if (!result.ok) { self.setStatus(result.offline ? "offline" : "error"); return; }
+        if (!result.ok) { self.setStatus(result.offline ? "offline" : "error", result.message); return; }
         var remote = result.data;
         var acct = authSession.uid;
         var lastSynced = getLastSyncedAt(acct);
@@ -2681,7 +2697,7 @@
       var self = this;
       self.setStatus("syncing");
       rtdbRequest(authSession, "PUT", state).then(function (result) {
-        if (!result.ok) { self.setStatus(result.offline ? "offline" : "error"); return; }
+        if (!result.ok) { self.setStatus(result.offline ? "offline" : "error", result.message); return; }
         setLastSyncedAt(authSession.uid, state.updatedAt);
         self.setStatus("synced");
       });
@@ -2728,6 +2744,13 @@
 
       info.appendChild(emailEl);
       info.appendChild(statusEl);
+
+      if (Sync.lastError) {
+        var errEl = document.createElement("div");
+        errEl.className = "sync-error-detail";
+        errEl.textContent = Sync.lastError;
+        info.appendChild(errEl);
+      }
 
       var signOutBtn = document.createElement("button");
       signOutBtn.className = "signout-btn";
