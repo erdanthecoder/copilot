@@ -252,12 +252,6 @@
     border-radius: 50%;
     flex: none;
   }
-  .page-type-icon {
-    flex: none;
-    font-size: 12px;
-    opacity: 0.85;
-  }
-
   .icon-btn {
     background: none;
     border: none;
@@ -403,6 +397,89 @@
   .trash-item button:hover { background: var(--hover); }
   .trash-item button.danger { color: var(--danger); border-color: var(--danger); }
   .trash-empty-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
+
+  .graph-view-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .graph-view-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    flex: none;
+  }
+  .graph-view-hint { color: var(--text-muted); font-size: 12.5px; flex: 1; }
+  .graph-view-topbar button {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+  .graph-view-topbar button:hover { background: var(--hover); }
+  .graph-view-canvas-wrap { position: relative; flex: 1; overflow: hidden; }
+  .graph-view-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .graph-view-edge-line { stroke: #9a9aa2; stroke-width: 1.6; transition: stroke 0.12s ease, stroke-width 0.12s ease; }
+  .graph-view-edge-line.connected-highlight { stroke: var(--accent); stroke-width: 2.6; }
+  .graph-view-nodes { position: absolute; inset: 0; }
+  .graph-view-node {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    transform: translate(-50%, -50%);
+  }
+  .graph-view-node.dragging { cursor: grabbing; z-index: 3; }
+  .graph-view-node-dot {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    box-shadow: var(--shadow);
+    border: 2px solid var(--bg);
+  }
+  .graph-view-node-dot.avatar-doc { border-radius: 50%; }
+  .graph-view-node-dot.avatar-mindmap { border-radius: 10px; }
+  .graph-view-node.connected-highlight .graph-view-node-dot { box-shadow: 0 0 0 3px var(--accent); }
+  .graph-view-node-label {
+    font-size: 11.5px;
+    color: var(--text);
+    background: var(--bg);
+    padding: 1px 6px;
+    border-radius: 5px;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .graph-view-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    padding: 0 40px;
+  }
   .link-modal-card { max-width: 480px; }
   .link-picker-results { max-height: 260px; overflow-y: auto; margin: 10px 0 16px; border: 1px solid var(--border); border-radius: 8px; }
   .link-picker-item {
@@ -421,6 +498,24 @@
   .link-picker-item .link-picker-path { flex: none; font-size: 11px; color: var(--text-muted); max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .link-picker-empty { padding: 16px 10px; text-align: center; color: var(--text-muted); font-size: 13px; }
   .link-picker-url-item { color: var(--accent); }
+  .template-modal-card { max-width: 480px; }
+  .template-picker-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; }
+  .template-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    background: none;
+    font-family: inherit;
+  }
+  .template-picker-item:hover { background: var(--hover); border-color: var(--accent); }
+  .template-picker-icon { font-size: 20px; flex: none; }
+  .template-picker-name { font-weight: 600; font-size: 13.5px; }
+  .template-picker-desc { font-size: 12px; color: var(--text-muted); }
   .editor a.page-link {
     display: inline-flex;
     align-items: center;
@@ -576,6 +671,7 @@
     flex-wrap: wrap;
   }
   .breadcrumb .crumb-sep { opacity: 0.6; }
+  .page-title-row { display: flex; align-items: center; gap: 12px; }
   .page-title {
     width: 100%;
     border: none;
@@ -588,6 +684,25 @@
     padding: 4px 0 12px;
   }
   .page-title::placeholder { color: var(--text-muted); }
+
+  .page-avatar {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    user-select: none;
+  }
+  .page-avatar.avatar-doc { border-radius: 50%; }
+  .page-avatar.avatar-mindmap { border-radius: 11px; }
+  .page-avatar.avatar-sm { width: 22px; height: 22px; font-size: 11px; border-radius: 50%; }
+  .page-avatar.avatar-sm.avatar-mindmap { border-radius: 6px; }
 
   .page-meta-row {
     display: flex;
@@ -608,6 +723,40 @@
     font-size: 12px;
   }
   .delete-page-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  .page-tags-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 10px; }
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--hover);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 3px 6px 3px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .tag-chip:hover { border-color: var(--accent); }
+  .tag-chip .tag-chip-remove {
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 50%;
+  }
+  .tag-chip .tag-chip-remove:hover { background: var(--border); color: var(--text); }
+  .add-tag-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+  .add-tag-btn:hover { color: var(--text); border-color: var(--accent); }
 
   .toolbar {
     display: flex;
@@ -740,6 +889,28 @@
   .editor .checklist-item input[type="checkbox"] {
     margin-top: 4px;
     flex: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    cursor: pointer;
+    position: relative;
+  }
+  .editor .checklist-item input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .editor .checklist-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
   .editor .checklist-item .chk-text { flex: 1; outline: none; }
   .editor .checklist-item.checked .chk-text {
@@ -846,6 +1017,36 @@
     cursor: crosshair;
     touch-action: none;
   }
+
+  .backlinks-panel {
+    max-width: 760px;
+    margin: 32px auto 40px;
+    padding: 16px 4px 0;
+    border-top: 1px solid var(--border);
+  }
+  .backlinks-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .backlinks-count { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 4px; }
+  .backlinks-list { display: flex; flex-direction: column; gap: 6px; }
+  .backlinks-empty { font-size: 13px; color: var(--text-muted); }
+  .backlink-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+  }
+  .backlink-item:hover { background: var(--hover); border-color: var(--accent); }
+  .backlink-item .backlink-path { font-size: 11px; color: var(--text-muted); margin-left: auto; }
 
   .empty-state {
     display: flex;
@@ -1188,6 +1389,7 @@
     <div class="search-empty" id="searchEmpty" style="display:none;">No pages match "<span id="searchEmptyQuery"></span>"</div>
 
     <div class="sidebar-footer">
+      <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">🕸️ Graph view</button>
       <button type="button" id="trashBtn" class="trash-btn" style="display:none;">🗑️ Trash <span id="trashCount"></span></button>
       <div id="accountSection"></div>
       <div class="storage-status" id="storageStatus">Checking storage…</div>
@@ -1215,7 +1417,11 @@
         <button type="button" id="navForwardBtn" class="nav-history-btn" title="Forward" disabled>&rarr;</button>
       </div>
       <div class="breadcrumb" id="breadcrumb"></div>
-      <input type="text" id="pageTitle" class="page-title" placeholder="Untitled page">
+      <div class="page-title-row">
+        <span class="page-avatar" id="pageTitleAvatar"></span>
+        <input type="text" id="pageTitle" class="page-title" placeholder="Untitled page">
+      </div>
+      <div class="page-tags-row" id="pageTagsRow"></div>
       <div class="page-meta-row">
         <span class="page-meta" id="pageMeta"></span>
         <button class="delete-page-btn" id="deletePageBtn">Delete page</button>
@@ -1272,6 +1478,10 @@
         <div class="mindmap-canvas" id="mindmapCanvas">
           <svg class="mm-edges" id="mmEdges"></svg>
         </div>
+      </div>
+      <div class="backlinks-panel" id="backlinksPanel" style="display:none;">
+        <div class="backlinks-title">Linked mentions<span class="backlinks-count" id="backlinksCount"></span></div>
+        <div class="backlinks-list" id="backlinksList"></div>
       </div>
       <div class="empty-state" id="emptyState">
         <svg viewBox="0 0 120 90" aria-hidden="true">
@@ -1369,6 +1579,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="templateModal">
+  <div class="modal-card template-modal-card">
+    <h3>📋 New page</h3>
+    <p>Start blank, or pick a template to fill in a starting layout.</p>
+    <div class="template-picker-list" id="templatePickerList"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="templateModalCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="trashModal">
   <div class="modal-card trash-modal-card">
     <h3>🗑️ Trash</h3>
@@ -1380,6 +1601,19 @@
   </div>
 </div>
 
+<div class="graph-view-overlay" id="graphViewOverlay" style="display:none;">
+  <div class="graph-view-topbar">
+    <strong>🕸️ Notebook Graph</strong>
+    <span class="graph-view-hint">Click a page to open it &bull; drag a dot to move it around</span>
+    <button type="button" id="graphViewCloseBtn">Close</button>
+  </div>
+  <div class="graph-view-canvas-wrap" id="graphViewCanvasWrap">
+    <svg class="graph-view-edges" id="graphViewEdges"></svg>
+    <div class="graph-view-nodes" id="graphViewNodes"></div>
+    <div class="graph-view-empty" id="graphViewEmpty" style="display:none;">Add a couple of pages and link them together to see your graph grow.</div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -1387,7 +1621,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-12.10";
+  var BUILD_ID = "2026-07-13.1";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -1503,8 +1737,81 @@
 
   var NOTEBOOK_COLORS = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#7c6cff", "#c86bfa", "#ff8fab"];
   var MINDMAP_COLORS = ["#ffe5ec", "#fff3cd", "#d8f3dc", "#d0ebff", "#e5d8ff", "#ffe8d6", "#d0f4de", "#ffd6e8"];
+
+  // Starter templates offered when making a new page, instead of always
+  // starting blank — each one just pre-fills a title and some editor HTML.
+  var PAGE_TEMPLATES = [
+    {
+      id: "journal",
+      icon: "📔",
+      label: "Journal entry",
+      description: "Write about your day",
+      title: function () { return "Journal — " + new Date().toLocaleDateString(); },
+      content:
+        "<h2>Today I feel...</h2><p><br></p>" +
+        "<h2>Something good that happened</h2><p><br></p>" +
+        "<h2>Something I want to remember</h2><p><br></p>"
+    },
+    {
+      id: "story",
+      icon: "📖",
+      label: "Story starter",
+      description: "Characters, setting, and what happens",
+      title: function () { return "New Story"; },
+      content:
+        "<h2>Characters</h2><p><br></p>" +
+        "<h2>Setting</h2><p><br></p>" +
+        "<h2>What happens</h2><p><br></p>"
+    },
+    {
+      id: "todo",
+      icon: "✅",
+      label: "To-do list",
+      description: "A simple checklist",
+      title: function () { return "To-do List"; },
+      content:
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div>' +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div>' +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div>'
+    },
+    {
+      id: "homework",
+      icon: "🎒",
+      label: "Homework tracker",
+      description: "Track assignments by subject",
+      title: function () { return "Homework Tracker"; },
+      content:
+        "<h2>Subjects</h2>" +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text">Math</span></div>' +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text">Reading</span></div>' +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text">Science</span></div>' +
+        "<p><br></p><h2>Notes</h2><p><br></p>"
+    }
+  ];
   function getFolderColor(folder, index) {
     return folder.color || NOTEBOOK_COLORS[index % NOTEBOOK_COLORS.length];
+  }
+
+  // A page's avatar color is derived from its own id, so it stays the same
+  // color forever no matter where it's moved or how many other pages exist
+  // — no emoji, just an initial on a stable color, like a Slack/Notion
+  // fallback avatar.
+  function avatarColorForId(id) {
+    var hash = 0;
+    for (var i = 0; i < id.length; i++) { hash = (hash * 31 + id.charCodeAt(i)) | 0; }
+    var index = Math.abs(hash) % NOTEBOOK_COLORS.length;
+    return NOTEBOOK_COLORS[index];
+  }
+
+  function avatarInitial(title) {
+    var trimmed = (title || "").trim();
+    return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
+  }
+
+  function applyAvatar(avatarEl, item, small) {
+    avatarEl.className = "page-avatar " + (item.type === "mindmap" ? "avatar-mindmap" : "avatar-doc") + (small ? " avatar-sm" : "");
+    avatarEl.style.background = avatarColorForId(item.id);
+    avatarEl.textContent = avatarInitial(item.title);
   }
 
   // Items form a tree: a folder has .children (more folders or files), a
@@ -1559,6 +1866,33 @@
         }
       ]
     };
+  }
+
+  // Every notebook — brand new or years old — gets one permanent "Ideas &
+  // Wishlist" page, marked with special:"wishlist" so it survives renames
+  // and can't be deleted by accident. Safe to call repeatedly: it only
+  // creates the page if one doesn't already exist somewhere in the tree.
+  function ensureWishlistPage(targetState) {
+    var found = false;
+    function walk(items) {
+      items.forEach(function (item) {
+        if (item.kind === "folder") walk(item.children);
+        else if (item.special === "wishlist") found = true;
+      });
+    }
+    walk(targetState.items);
+    if (found) return;
+    targetState.items.push({
+      id: uid(),
+      kind: "file",
+      type: "doc",
+      special: "wishlist",
+      title: "Ideas & Wishlist",
+      content:
+        "<p>Write down anything you wish this app could do — new features, things that feel confusing, or ideas you want to try. Dad reads this and tells Claude what to build next.</p>" +
+        '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div>',
+      updatedAt: Date.now()
+    });
   }
 
   // Converts a save from the old Notebook > Section > Page shape (version 1)
@@ -1648,6 +1982,7 @@
   }
 
   state = loadInitialState();
+  ensureWishlistPage(state);
 
   var saveTimer = null;
   function scheduleSave() {
@@ -1726,15 +2061,27 @@
     trashModal: document.getElementById("trashModal"),
     trashList: document.getElementById("trashList"),
     trashModalCloseBtn: document.getElementById("trashModalCloseBtn"),
+    graphViewBtn: document.getElementById("graphViewBtn"),
+    graphViewOverlay: document.getElementById("graphViewOverlay"),
+    graphViewCloseBtn: document.getElementById("graphViewCloseBtn"),
+    graphViewCanvasWrap: document.getElementById("graphViewCanvasWrap"),
+    graphViewEdges: document.getElementById("graphViewEdges"),
+    graphViewNodes: document.getElementById("graphViewNodes"),
+    graphViewEmpty: document.getElementById("graphViewEmpty"),
     linkModal: document.getElementById("linkModal"),
     linkModalInput: document.getElementById("linkModalInput"),
     linkPickerResults: document.getElementById("linkPickerResults"),
     linkModalCancel: document.getElementById("linkModalCancel"),
+    templateModal: document.getElementById("templateModal"),
+    templatePickerList: document.getElementById("templatePickerList"),
+    templateModalCancel: document.getElementById("templateModalCancel"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     themeToggle: document.getElementById("themeToggle"),
     editorHeader: document.getElementById("editorHeader"),
     pageTitle: document.getElementById("pageTitle"),
+    pageTitleAvatar: document.getElementById("pageTitleAvatar"),
+    pageTagsRow: document.getElementById("pageTagsRow"),
     pageMeta: document.getElementById("pageMeta"),
     deletePageBtn: document.getElementById("deletePageBtn"),
     toolbar: document.getElementById("toolbar"),
@@ -1779,6 +2126,9 @@
     navForwardBtn: document.getElementById("navForwardBtn"),
     mindmapToolbar: document.getElementById("mindmapToolbar"),
     mindmapWrap: document.getElementById("mindmapWrap"),
+    backlinksPanel: document.getElementById("backlinksPanel"),
+    backlinksCount: document.getElementById("backlinksCount"),
+    backlinksList: document.getElementById("backlinksList"),
     mindmapCanvas: document.getElementById("mindmapCanvas"),
     mmEdges: document.getElementById("mmEdges"),
     addNodeBtn: document.getElementById("addNodeBtn"),
@@ -1968,12 +2318,24 @@
   function addMenuItemsFor(folderItem) {
     return [
       { label: "📄  New page", onClick: function () { addFile(folderItem, "doc"); } },
+      { label: "📋  New from template", onClick: function () { openTemplateModal(folderItem); } },
       { label: "🧠  New mind map", onClick: function () { addFile(folderItem, "mindmap"); } },
       { label: "📁  New folder", onClick: function () { addFolder(folderItem); } }
     ];
   }
 
+  // A search box query starting with "#" filters by tag instead of title,
+  // e.g. "#school" finds every page tagged "school" (case-insensitive,
+  // partial match, same as a normal title search).
   function itemMatchesSearch(item, query) {
+    if (query.charAt(0) === "#") {
+      var tagQuery = query.slice(1);
+      if (item.kind === "folder") {
+        return item.children.some(function (child) { return itemMatchesSearch(child, query); });
+      }
+      if (!tagQuery) return false;
+      return (item.tags || []).some(function (t) { return t.toLowerCase().indexOf(tagQuery) !== -1; });
+    }
     var name = item.kind === "folder" ? item.name : (item.title || "Untitled");
     if (name.toLowerCase().indexOf(query) !== -1) return true;
     if (item.kind !== "folder") return false;
@@ -2098,10 +2460,9 @@
       dot.style.background = getFolderColor(item, index);
       row.appendChild(dot);
     } else {
-      var icon = document.createElement("span");
-      icon.className = "page-type-icon";
-      icon.textContent = item.type === "mindmap" ? "🧠" : "📄";
-      row.appendChild(icon);
+      var avatar = document.createElement("span");
+      applyAvatar(avatar, item, true);
+      row.appendChild(avatar);
     }
 
     var label = document.createElement("span");
@@ -2115,10 +2476,11 @@
       }));
     }
     row.appendChild(makeIconButton("⋯", isFolder ? "Folder options" : "Page options", function (e) {
-      showRowMenu(e.currentTarget, [
-        { label: "✏️  Rename", onClick: function () { renameItem(item); } },
-        { label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } }
-      ]);
+      var menuItems = [{ label: "✏️  Rename", onClick: function () { renameItem(item); } }];
+      if (item.special !== "wishlist") {
+        menuItems.push({ label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } });
+      }
+      showRowMenu(e.currentTarget, menuItems);
     }));
 
     row.addEventListener("click", function () {
@@ -2154,6 +2516,7 @@
         el.mindmapToolbar.style.display = "none";
         el.editor.style.display = "none";
         el.mindmapWrap.style.display = "none";
+        el.backlinksPanel.style.display = "none";
         el.emptyState.style.display = "flex";
         return;
       }
@@ -2164,6 +2527,11 @@
       el.emptyState.style.display = "none";
       el.pageTitle.value = page.title || "";
       el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
+      el.deletePageBtn.style.display = page.special === "wishlist" ? "none" : "inline-block";
+      applyAvatar(el.pageTitleAvatar, page, false);
+      renderPageTags(page);
+      el.backlinksPanel.style.display = "block";
+      renderBacklinksPanel(page);
 
       if (page.type === "mindmap") {
         el.toolbar.style.display = "none";
@@ -2248,8 +2616,20 @@
     });
   }
 
-  function addFile(parentItem, fileType) {
+  function insertNewFile(parentItem, file) {
     var siblings = childArrayOf(parentItem);
+    siblings.push(file);
+    if (parentItem) parentItem.expanded = true;
+    state.activePageId = file.id;
+    pushNavHistory(file.id);
+    pendingHighlightId = file.id;
+    renderAll();
+    clearHighlightSoon();
+    scheduleSave();
+    setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
+  }
+
+  function addFile(parentItem, fileType) {
     var file;
     if (fileType === "mindmap") {
       file = {
@@ -2264,16 +2644,47 @@
     } else {
       file = { id: uid(), kind: "file", type: "doc", title: "Untitled page", content: "", updatedAt: Date.now() };
     }
-    siblings.push(file);
-    if (parentItem) parentItem.expanded = true;
-    state.activePageId = file.id;
-    pushNavHistory(file.id);
-    pendingHighlightId = file.id;
-    renderAll();
-    clearHighlightSoon();
-    scheduleSave();
-    setTimeout(function () { el.pageTitle.focus(); el.pageTitle.select(); }, 0);
+    insertNewFile(parentItem, file);
   }
+
+  function createFromTemplate(parentItem, template) {
+    var file = {
+      id: uid(),
+      kind: "file",
+      type: "doc",
+      title: template.title(),
+      content: template.content,
+      updatedAt: Date.now()
+    };
+    insertNewFile(parentItem, file);
+  }
+
+  function openTemplateModal(parentItem) {
+    clearChildren(el.templatePickerList);
+
+    var blankBtn = document.createElement("button");
+    blankBtn.type = "button";
+    blankBtn.className = "template-picker-item";
+    blankBtn.innerHTML = '<span class="template-picker-icon">📄</span>' +
+      '<span><span class="template-picker-name">Blank page</span><br><span class="template-picker-desc">Start with nothing</span></span>';
+    blankBtn.addEventListener("click", function () { el.templateModal.style.display = "none"; addFile(parentItem, "doc"); });
+    el.templatePickerList.appendChild(blankBtn);
+
+    PAGE_TEMPLATES.forEach(function (tpl) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "template-picker-item";
+      btn.innerHTML = '<span class="template-picker-icon">' + tpl.icon + '</span>' +
+        '<span><span class="template-picker-name">' + escapeHtml(tpl.label) + '</span><br>' +
+        '<span class="template-picker-desc">' + escapeHtml(tpl.description) + '</span></span>';
+      btn.addEventListener("click", function () { el.templateModal.style.display = "none"; createFromTemplate(parentItem, tpl); });
+      el.templatePickerList.appendChild(btn);
+    });
+
+    el.templateModal.style.display = "flex";
+  }
+
+  el.templateModalCancel.addEventListener("click", function () { el.templateModal.style.display = "none"; });
 
   function renameItem(item) {
     var isFolder = item.kind === "folder";
@@ -2312,6 +2723,10 @@
   }
 
   function deleteItem(item) {
+    if (item.special === "wishlist") {
+      showAlertModal("💡 Ideas & Wishlist is protected", "This page can't be deleted so you always have a place to jot down ideas for the app.");
+      return;
+    }
     var isFolder = item.kind === "folder";
     var name = isFolder ? item.name : (item.title || "Untitled");
     var msg = isFolder
@@ -2599,6 +3014,52 @@
     return out;
   }
 
+  // Every page whose content contains an internal link (a.page-link)
+  // pointing at pageId, i.e. the Obsidian-style "what links here" list.
+  function findBacklinksFor(pageId) {
+    var out = [];
+    var needle = 'data-page-id="' + pageId + '"';
+    function walk(items, path) {
+      items.forEach(function (item) {
+        if (item.kind === "folder") {
+          walk(item.children, path.concat([item.name]));
+        } else if (item.id !== pageId && item.type !== "mindmap" && typeof item.content === "string" && item.content.indexOf(needle) !== -1) {
+          out.push({ id: item.id, title: item.title || "Untitled", path: path.join(" / ") });
+        }
+      });
+    }
+    walk(state.items, []);
+    return out;
+  }
+
+  function renderBacklinksPanel(page) {
+    var backlinks = findBacklinksFor(page.id);
+    el.backlinksCount.textContent = backlinks.length ? "(" + backlinks.length + ")" : "";
+    clearChildren(el.backlinksList);
+    if (!backlinks.length) {
+      var empty = document.createElement("div");
+      empty.className = "backlinks-empty";
+      empty.textContent = "No pages link here yet.";
+      el.backlinksList.appendChild(empty);
+      return;
+    }
+    backlinks.forEach(function (b) {
+      var row = document.createElement("div");
+      row.className = "backlink-item";
+      var name = document.createElement("span");
+      name.textContent = b.title;
+      row.appendChild(name);
+      if (b.path) {
+        var pathEl = document.createElement("span");
+        pathEl.className = "backlink-path";
+        pathEl.textContent = b.path;
+        row.appendChild(pathEl);
+      }
+      row.addEventListener("click", function () { openPage(b.id); });
+      el.backlinksList.appendChild(row);
+    });
+  }
+
   var linkModalResolve = null;
   var linkModalKeydown = null;
 
@@ -2827,6 +3288,74 @@
   }
 
   /* =========================================================
+     TAGS
+     Lightweight, free-form labels on a page. Unlike folders, a page can
+     carry several tags at once, so they're a way to group pages across
+     the folder tree — search the sidebar for "#tagname" to find them all.
+     ========================================================= */
+  function renderPageTags(page) {
+    clearChildren(el.pageTagsRow);
+    (page.tags || []).forEach(function (tag) {
+      var chip = document.createElement("span");
+      chip.className = "tag-chip";
+      var label = document.createElement("span");
+      label.textContent = "#" + tag;
+      chip.appendChild(label);
+      chip.addEventListener("click", function (e) {
+        if (e.target === removeBtn) return;
+        el.searchInput.value = "#" + tag;
+        searchQuery = el.searchInput.value;
+        el.searchClearBtn.style.display = "inline-block";
+        renderTree();
+        if (window.innerWidth <= 860) el.sidebar.classList.add("open");
+      });
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "tag-chip-remove";
+      removeBtn.title = "Remove tag";
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        removeTagFromPage(page, tag);
+      });
+      chip.appendChild(removeBtn);
+      el.pageTagsRow.appendChild(chip);
+    });
+
+    var addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "add-tag-btn";
+    addBtn.textContent = "+ tag";
+    addBtn.addEventListener("click", function () { promptAddTag(page); });
+    el.pageTagsRow.appendChild(addBtn);
+  }
+
+  function addTagToPage(page, rawTag) {
+    var tag = rawTag.trim().replace(/^#+/, "");
+    if (!tag) return;
+    if (!page.tags) page.tags = [];
+    var exists = page.tags.some(function (t) { return t.toLowerCase() === tag.toLowerCase(); });
+    if (!exists) page.tags.push(tag);
+    page.updatedAt = Date.now();
+    renderPageTags(page);
+    scheduleSave();
+  }
+
+  function removeTagFromPage(page, tag) {
+    page.tags = (page.tags || []).filter(function (t) { return t !== tag; });
+    page.updatedAt = Date.now();
+    renderPageTags(page);
+    scheduleSave();
+  }
+
+  function promptAddTag(page) {
+    showPromptModal("🏷️ Add tag", "", "e.g. school, story-ideas").then(function (value) {
+      if (value === null) return;
+      addTagToPage(page, value);
+    });
+  }
+
+  /* =========================================================
      EDITOR CONTENT / TITLE SYNC
      ========================================================= */
   function onEditorChanged() {
@@ -2845,6 +3374,7 @@
     if (!page) return;
     page.title = el.pageTitle.value;
     page.updatedAt = Date.now();
+    applyAvatar(el.pageTitleAvatar, page, false);
     renderTree();
     scheduleSave();
   });
@@ -3015,6 +3545,268 @@
   }
 
   el.physicsBtn.addEventListener("click", toggleMindmapPhysics);
+
+  /* =========================================================
+     WHOLE-NOTEBOOK GRAPH VIEW
+     Every page in the notebook as one node, and every internal
+     page-link as an edge — Obsidian's graph view, but for the whole
+     notebook at once instead of one mind map page. Read-only aside
+     from dragging nodes around; clicking a node opens that page.
+     ========================================================= */
+  var graphView = { active: false, rafId: null, nodes: [], edges: [], hoverId: null };
+
+  function buildGraphData() {
+    var nodes = [];
+    function collectNodes(items) {
+      items.forEach(function (item) {
+        if (item.kind === "folder") { collectNodes(item.children); return; }
+        nodes.push({ id: item.id, title: item.title || "Untitled", type: item.type, x: 0, y: 0, vx: 0, vy: 0 });
+      });
+    }
+    collectNodes(state.items);
+
+    var nodeIds = {};
+    nodes.forEach(function (n) { nodeIds[n.id] = true; });
+
+    var edgeSeen = {};
+    var edges = [];
+    function collectEdges(items) {
+      items.forEach(function (item) {
+        if (item.kind === "folder") { collectEdges(item.children); return; }
+        if (item.type === "mindmap" || typeof item.content !== "string") return;
+        var re = /data-page-id="([^"]+)"/g;
+        var m;
+        while ((m = re.exec(item.content))) {
+          var targetId = m[1];
+          if (!nodeIds[targetId] || targetId === item.id) continue;
+          var key = [item.id, targetId].sort().join("::");
+          if (edgeSeen[key]) continue;
+          edgeSeen[key] = true;
+          edges.push({ from: item.id, to: targetId });
+        }
+      });
+    }
+    collectEdges(state.items);
+
+    return { nodes: nodes, edges: edges };
+  }
+
+  function layoutGraphInitialPositions(nodes, width, height) {
+    var cx = width / 2, cy = height / 2;
+    var radius = Math.max(60, Math.min(width, height) * 0.35);
+    nodes.forEach(function (n, i) {
+      var angle = (i / Math.max(1, nodes.length)) * Math.PI * 2;
+      n.x = cx + Math.cos(angle) * radius + (Math.random() - 0.5) * 15;
+      n.y = cy + Math.sin(angle) * radius + (Math.random() - 0.5) * 15;
+    });
+  }
+
+  function renderGraphView() {
+    clearChildren(el.graphViewNodes);
+    clearChildren(el.graphViewEdges);
+
+    graphView.edges.forEach(function (edge) {
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("class", "graph-view-edge-line");
+      line.dataset.from = edge.from;
+      line.dataset.to = edge.to;
+      el.graphViewEdges.appendChild(line);
+    });
+
+    graphView.nodes.forEach(function (node) {
+      var nodeEl = document.createElement("div");
+      nodeEl.className = "graph-view-node";
+      nodeEl.dataset.nodeId = node.id;
+
+      var dot = document.createElement("div");
+      dot.className = "graph-view-node-dot " + (node.type === "mindmap" ? "avatar-mindmap" : "avatar-doc");
+      dot.style.background = avatarColorForId(node.id);
+      dot.textContent = avatarInitial(node.title);
+      nodeEl.appendChild(dot);
+
+      var label = document.createElement("div");
+      label.className = "graph-view-node-label";
+      label.textContent = node.title;
+      nodeEl.appendChild(label);
+
+      nodeEl.addEventListener("mouseenter", function () { setGraphHighlight(node.id, true); });
+      nodeEl.addEventListener("mouseleave", function () { setGraphHighlight(node.id, false); });
+      attachGraphNodeDrag(node, nodeEl);
+
+      el.graphViewNodes.appendChild(nodeEl);
+    });
+
+    updateGraphPositions();
+  }
+
+  function setGraphHighlight(nodeId, on) {
+    el.graphViewEdges.querySelectorAll(".graph-view-edge-line").forEach(function (line) {
+      if (line.dataset.from === nodeId || line.dataset.to === nodeId) {
+        line.classList.toggle("connected-highlight", on);
+        var otherId = line.dataset.from === nodeId ? line.dataset.to : line.dataset.from;
+        var otherEl = el.graphViewNodes.querySelector('.graph-view-node[data-node-id="' + otherId + '"]');
+        if (otherEl) otherEl.classList.toggle("connected-highlight", on);
+      }
+    });
+  }
+
+  function updateGraphPositions() {
+    graphView.nodes.forEach(function (n) {
+      var nodeEl = el.graphViewNodes.querySelector('.graph-view-node[data-node-id="' + n.id + '"]');
+      if (nodeEl) { nodeEl.style.left = n.x + "px"; nodeEl.style.top = n.y + "px"; }
+    });
+    el.graphViewEdges.querySelectorAll(".graph-view-edge-line").forEach(function (line) {
+      var a = graphView.nodes.find(function (n) { return n.id === line.dataset.from; });
+      var b = graphView.nodes.find(function (n) { return n.id === line.dataset.to; });
+      if (!a || !b) return;
+      line.setAttribute("x1", a.x);
+      line.setAttribute("y1", a.y);
+      line.setAttribute("x2", b.x);
+      line.setAttribute("y2", b.y);
+    });
+  }
+
+  function attachGraphNodeDrag(node, nodeEl) {
+    var pointerId = null;
+    var dragging = false;
+    var moved = false;
+    var startClientX, startClientY, startX, startY;
+
+    nodeEl.addEventListener("pointerdown", function (e) {
+      pointerId = e.pointerId;
+      startClientX = e.clientX;
+      startClientY = e.clientY;
+      startX = node.x;
+      startY = node.y;
+      dragging = false;
+      moved = false;
+      try { nodeEl.setPointerCapture(pointerId); } catch (err) { /* ignore */ }
+    });
+
+    nodeEl.addEventListener("pointermove", function (e) {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      var dx = e.clientX - startClientX;
+      var dy = e.clientY - startClientY;
+      if (!dragging && Math.hypot(dx, dy) < 5) return;
+      dragging = true;
+      moved = true;
+      node._dragging = true;
+      node.vx = 0; node.vy = 0;
+      nodeEl.classList.add("dragging");
+      node.x = startX + dx;
+      node.y = startY + dy;
+      updateGraphPositions();
+    });
+
+    function endDrag(e) {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      nodeEl.classList.remove("dragging");
+      node._dragging = false;
+      pointerId = null;
+      if (!moved) { closeGraphView(); openPage(node.id); }
+      dragging = false;
+    }
+    nodeEl.addEventListener("pointerup", endDrag);
+    nodeEl.addEventListener("pointercancel", endDrag);
+  }
+
+  function graphPhysicsStep() {
+    var nodes = graphView.nodes;
+    var edges = graphView.edges;
+    var REPULSION = 9000;
+    var REPULSION_RANGE = 260;
+    var SPRING_LEN = 150;
+    var SPRING_K = 0.02;
+    var DAMPING = 0.85;
+    var rect = el.graphViewCanvasWrap.getBoundingClientRect();
+    var w = rect.width || 900;
+    var h = rect.height || 600;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var a = nodes[i];
+      var fx = 0, fy = 0;
+      for (var j = 0; j < nodes.length; j++) {
+        if (i === j) continue;
+        var b = nodes[j];
+        var dx = a.x - b.x, dy = a.y - b.y;
+        var distSq = dx * dx + dy * dy || 1;
+        var dist = Math.sqrt(distSq);
+        if (dist < REPULSION_RANGE) {
+          var force = REPULSION / distSq;
+          fx += (dx / dist) * force;
+          fy += (dy / dist) * force;
+        }
+      }
+      a._fx = fx;
+      a._fy = fy;
+    }
+
+    edges.forEach(function (edge) {
+      var a = nodes.find(function (n) { return n.id === edge.from; });
+      var b = nodes.find(function (n) { return n.id === edge.to; });
+      if (!a || !b) return;
+      var dx = b.x - a.x, dy = b.y - a.y;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var force = SPRING_K * (dist - SPRING_LEN);
+      var fx = (dx / dist) * force;
+      var fy = (dy / dist) * force;
+      a._fx += fx;
+      a._fy += fy;
+      b._fx -= fx;
+      b._fy -= fy;
+    });
+
+    nodes.forEach(function (n) {
+      if (n._dragging) return;
+      n.vx = (n.vx + n._fx) * DAMPING;
+      n.vy = (n.vy + n._fy) * DAMPING;
+      n.x = Math.max(24, Math.min(w - 24, n.x + n.vx));
+      n.y = Math.max(24, Math.min(h - 24, n.y + n.vy));
+    });
+
+    updateGraphPositions();
+  }
+
+  function startGraphPhysics() {
+    graphView.active = true;
+    function tick() {
+      if (!graphView.active) return;
+      graphPhysicsStep();
+      graphView.rafId = requestAnimationFrame(tick);
+    }
+    graphView.rafId = requestAnimationFrame(tick);
+  }
+
+  function stopGraphPhysics() {
+    graphView.active = false;
+    if (graphView.rafId) cancelAnimationFrame(graphView.rafId);
+    graphView.rafId = null;
+  }
+
+  function openGraphView() {
+    var data = buildGraphData();
+    graphView.nodes = data.nodes;
+    graphView.edges = data.edges;
+    el.graphViewOverlay.style.display = "flex";
+    el.graphViewEmpty.style.display = data.nodes.length === 0 ? "flex" : "none";
+    requestAnimationFrame(function () {
+      var rect = el.graphViewCanvasWrap.getBoundingClientRect();
+      layoutGraphInitialPositions(graphView.nodes, rect.width || 900, rect.height || 600);
+      renderGraphView();
+      startGraphPhysics();
+    });
+  }
+
+  function closeGraphView() {
+    stopGraphPhysics();
+    el.graphViewOverlay.style.display = "none";
+  }
+
+  el.graphViewBtn.addEventListener("click", function () { openGraphView(); closeSidebarOnMobile(); });
+  el.graphViewCloseBtn.addEventListener("click", closeGraphView);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && el.graphViewOverlay.style.display !== "none") closeGraphView();
+  });
 
   function attachNodeDrag(page, node, nodeEl) {
     var dragging = false;
@@ -3331,6 +4123,7 @@
           if (!state.theme) state.theme = "light";
           if (!state.updatedAt) state.updatedAt = Date.now();
           if (!state.trash) state.trash = [];
+          ensureWishlistPage(state);
           applyTheme(state.theme);
           renderAll();
           renderTrashButton();
@@ -3548,6 +4341,7 @@
     hasLocalEditsThisSession = false;
     if (!state.trash) state.trash = [];
     if (!state.theme) state.theme = "light";
+    ensureWishlistPage(state);
     applyTheme(state.theme);
     renderAll();
     renderTrashButton();
