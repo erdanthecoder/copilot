@@ -608,6 +608,109 @@
     font-size: 13px;
   }
 
+  .share-page-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+  .share-page-btn:hover { color: var(--text); border-color: var(--accent); }
+  .share-page-btn.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+
+  .shared-with-you-section { padding: 4px 8px 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .shared-with-you-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 8px 4px 6px; }
+  .shared-with-you-list { display: flex; flex-direction: column; gap: 2px; }
+  .shared-with-you-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12.5px;
+  }
+  .shared-with-you-item:hover { background: var(--hover); }
+  .shared-with-you-item .swy-avatar { flex: none; width: 18px; height: 18px; }
+  .shared-with-you-item .swy-avatar svg { display: block; border-radius: 50%; }
+  .shared-with-you-item .swy-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .shared-with-you-item .swy-owner { flex: none; font-size: 10.5px; color: var(--text-muted); }
+
+  .shared-view-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .shared-view-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    flex: none;
+  }
+  .shared-view-owner { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .shared-view-badge { font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 2px 8px; }
+  .shared-view-topbar button {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+  .shared-view-topbar button:hover { background: var(--hover); }
+  .shared-view-body { flex: 1; overflow-y: auto; padding: 24px 24px 8px; }
+  .shared-view-title { max-width: 760px; margin: 0 auto 14px; font-family: var(--font-display); font-size: 26px; }
+  .shared-view-doc { max-width: 760px; margin: 0 auto; pointer-events: none; user-select: text; }
+  .shared-view-mindmap { position: relative; height: 60vh; max-width: 100%; }
+  .shared-view-mindmap .mm-node { cursor: default; touch-action: auto; }
+  .shared-view-comments {
+    flex: none;
+    max-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+    background: var(--bg-elevated);
+  }
+  .shared-comments-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 10px 18px 6px; flex: none; }
+  .shared-comments-list { flex: 1; overflow-y: auto; padding: 0 18px; min-height: 30px; }
+  .shared-comments-empty { font-size: 12.5px; color: var(--text-muted); padding: 6px 0 10px; }
+  .shared-comment-row { display: flex; gap: 8px; padding: 6px 0; }
+  .shared-comment-row .shared-comment-avatar { flex: none; width: 24px; height: 24px; margin-top: 1px; }
+  .shared-comment-row .shared-comment-avatar svg { display: block; border-radius: 50%; }
+  .shared-comment-row .shared-comment-body { min-width: 0; flex: 1; }
+  .shared-comment-row .shared-comment-meta { display: flex; align-items: baseline; gap: 7px; }
+  .shared-comment-row .shared-comment-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .shared-comment-row .shared-comment-time { font-size: 10.5px; color: var(--text-muted); }
+  .shared-comment-row .shared-comment-text { font-size: 12.5px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; color: var(--text); }
+  .shared-comments-signed-out { font-size: 12px; color: var(--text-muted); padding: 8px 18px; }
+  .shared-comments-composer { flex: none; display: flex; gap: 8px; padding: 10px 18px 14px; }
+  .shared-comments-composer input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .shared-comments-composer input:focus { outline: none; border-color: var(--accent); }
+  .shared-comments-composer button {
+    border-radius: 999px;
+    padding: 7px 16px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .shared-comments-composer button.primary { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); font-weight: 600; }
+  .shared-comments-composer button:disabled { opacity: 0.5; }
+
   .link-modal-card { max-width: 480px; }
   .link-picker-results { max-height: 260px; overflow-y: auto; margin: 10px 0 16px; border: 1px solid var(--border); border-radius: 8px; }
   .link-picker-item {
@@ -648,6 +751,7 @@
   .settings-modal-card { max-width: 480px; }
   .settings-section { margin-bottom: 18px; }
   .settings-label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 8px; }
+  .settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
   .avatar-builder { display: flex; gap: 18px; align-items: flex-start; }
   .avatar-builder-preview-col { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .avatar-builder-preview { width: 84px; height: 84px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18)); }
@@ -700,6 +804,45 @@
   }
   .settings-theme-row button:hover { background: var(--hover); }
   .settings-theme-row button.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .members-modal-card { max-width: 480px; }
+  .members-list { max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 10px 0 16px; }
+  .member-card { display: flex; align-items: center; gap: 12px; padding: 9px 6px; border-radius: 10px; }
+  .member-card:hover { background: var(--hover); }
+  .member-card .member-avatar { flex: none; width: 40px; height: 40px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
+  .member-card .member-avatar svg { display: block; border-radius: 50%; }
+  .member-card .member-info { min-width: 0; flex: 1; }
+  .member-card .member-name { font-size: 13.5px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .member-card .member-you-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 6px; }
+  .member-card .member-email { font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .member-card .member-last-seen { flex: none; font-size: 11px; color: var(--text-muted); }
+  .members-empty-msg { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+  #notificationsCount:not(:empty) {
+    display: inline-block;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 1px 6px;
+    margin-left: 3px;
+  }
+  .notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .notification-item:hover { background: var(--hover); }
+  .notification-item.unread { background: rgba(124, 108, 255, 0.08); }
+  .notification-item .notif-avatar { flex: none; width: 30px; height: 30px; margin-top: 1px; }
+  .notification-item .notif-avatar svg { display: block; border-radius: 50%; }
+  .notification-item .notif-body { min-width: 0; flex: 1; }
+  .notification-item .notif-text { font-size: 12.5px; color: var(--text); line-height: 1.4; }
+  .notification-item .notif-text b { font-weight: 700; }
+  .notification-item .notif-time { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
   .workspace-update-card { max-width: 420px; text-align: center; }
   .wu-scene {
@@ -771,6 +914,27 @@
   }
   .editor a.page-link:hover { background: var(--border); }
   .editor a.page-link.broken-link { opacity: 0.6; font-style: italic; }
+  .mention-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(124, 108, 255, 0.16);
+    color: var(--accent) !important;
+    font-weight: 600;
+    text-decoration: none !important;
+  }
+  #commentMentionBtn {
+    flex: none;
+    width: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  #commentMentionBtn:hover { color: var(--accent); border-color: var(--accent); }
   .build-version {
     text-align: center;
     font-size: 9px;
@@ -1460,6 +1624,9 @@
      be triggered while another modal (like Trash) is already open behind
      it, so it must always paint above every other .modal-overlay. */
   #promptModal { z-index: 130; }
+  /* mentionModal can be opened from inside the full-screen shared-page
+     viewer (z-index 140), so it needs to paint above that too. */
+  #mentionModal { z-index: 150; }
   .modal-card {
     max-width: 420px;
     width: 100%;
@@ -1629,6 +1796,11 @@
     <div class="tree" id="tree"></div>
     <div class="search-empty" id="searchEmpty" style="display:none;">No pages match "<span id="searchEmptyQuery"></span>"</div>
 
+    <div class="shared-with-you-section" id="sharedWithYouSection" style="display:none;">
+      <div class="shared-with-you-title">Shared with you</div>
+      <div class="shared-with-you-list" id="sharedWithYouList"></div>
+    </div>
+
     <div class="sidebar-footer">
       <button type="button" class="profile-row" id="profileRow" title="Settings">
         <span class="profile-row-avatar" id="profileRowAvatar"></span>
@@ -1640,6 +1812,8 @@
       </button>
       <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">🕸️ Graph view</button>
       <button type="button" id="chatBtn" class="trash-btn" title="Chat with everyone signed in to this notebook" style="display:none;">💬 Chat</button>
+      <button type="button" id="membersBtn" class="trash-btn" title="See everyone in this workspace" style="display:none;">👥 Members</button>
+      <button type="button" id="notificationsBtn" class="trash-btn" title="Mentions and comments on your shared pages" style="display:none;">🔔 Notifications <span id="notificationsCount"></span></button>
       <button type="button" id="trashBtn" class="trash-btn" style="display:none;">🗑️ Trash <span id="trashCount"></span></button>
       <div class="storage-status" id="storageStatus">Checking storage…</div>
       <div class="footer-buttons">
@@ -1673,6 +1847,8 @@
       <div class="page-tags-row" id="pageTagsRow"></div>
       <div class="page-meta-row">
         <span class="page-meta" id="pageMeta"></span>
+        <button type="button" class="share-page-btn" id="sharePageBtn" style="display:none;" title="Share this page with everyone in the workspace">🌐 Share</button>
+        <button type="button" class="share-page-btn" id="viewCommentsBtn" style="display:none;" title="See how this page looks to others, and read comments">💬 Comments</button>
         <button class="delete-page-btn" id="deletePageBtn">Delete page</button>
       </div>
     </div>
@@ -1712,6 +1888,7 @@
       <div class="sep"></div>
 
       <button id="linkBtn" title="Add link (Ctrl+K)">🔗 Link</button>
+      <button id="mentionBtn" title="Mention someone (only on shared pages)" style="display:none;">@ Mention</button>
       <button id="tableBtn" title="Insert table">&#9638; Table</button>
     </div>
 
@@ -1828,6 +2005,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="mentionModal">
+  <div class="modal-card link-modal-card">
+    <h3>@ Mention someone</h3>
+    <input type="text" id="mentionModalInput" class="modal-input" placeholder="Search workspace members...">
+    <div class="link-picker-results" id="mentionPickerResults"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="mentionModalCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="templateModal">
   <div class="modal-card template-modal-card">
     <h3>📋 New page</h3>
@@ -1846,6 +2034,12 @@
     <div class="settings-section" id="settingsAccountWrap">
       <label class="settings-label">Account</label>
       <div id="accountSection"></div>
+    </div>
+
+    <div class="settings-section" id="settingsWorkspaceNameWrap" style="display:none;">
+      <label class="settings-label" for="settingsWorkspaceNameInput">Workspace name</label>
+      <input type="text" id="settingsWorkspaceNameInput" class="modal-input" placeholder="Family Workspace" maxlength="60">
+      <div class="settings-hint">Shown to everyone in the workspace</div>
     </div>
 
     <div class="settings-section">
@@ -1895,6 +2089,28 @@
 
     <div class="modal-actions modal-actions-row">
       <button type="button" id="settingsModalClose" class="primary">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="membersModal">
+  <div class="modal-card members-modal-card">
+    <h3 id="membersModalTitle">Members</h3>
+    <p>Everyone who has signed in to this workspace.</p>
+    <div class="members-list" id="membersList"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="membersModalClose" class="primary">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="notificationsModal">
+  <div class="modal-card members-modal-card">
+    <h3>Notifications</h3>
+    <p>Mentions and comments on pages you've shared.</p>
+    <div class="members-list" id="notificationsList"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="notificationsModalClose" class="primary">Close</button>
     </div>
   </div>
 </div>
@@ -1960,6 +2176,34 @@
   </form>
 </div>
 
+<div class="shared-view-overlay" id="sharedViewOverlay" style="display:none;">
+  <div class="shared-view-topbar">
+    <span class="shared-view-owner" id="sharedViewOwner"></span>
+    <span class="shared-view-badge">View only</span>
+    <span class="chat-hint" style="flex:1;"></span>
+    <button type="button" id="sharedViewCloseBtn">Close</button>
+  </div>
+  <div class="shared-view-body" id="sharedViewBody">
+    <h2 class="shared-view-title" id="sharedViewTitle"></h2>
+    <div class="editor shared-view-doc" id="sharedViewDoc" style="display:none;"></div>
+    <div class="mindmap-canvas-wrap shared-view-mindmap" id="sharedViewMindmapWrap" style="display:none;">
+      <div class="mindmap-canvas" id="sharedViewMindmapCanvas">
+        <svg class="mm-edges" id="sharedViewMindmapEdges"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="shared-view-comments" id="sharedViewComments">
+    <div class="shared-comments-title" id="sharedCommentsTitle">Comments</div>
+    <div class="shared-comments-list" id="sharedCommentsList"></div>
+    <div class="shared-comments-signed-out" id="sharedCommentsSignedOut" style="display:none;">Sign in to join the discussion.</div>
+    <form class="shared-comments-composer" id="sharedCommentsComposer">
+      <button type="button" id="commentMentionBtn" title="Mention someone">@</button>
+      <input type="text" id="sharedCommentsInput" placeholder="Add a comment..." autocomplete="off" maxlength="600">
+      <button type="submit" class="primary" id="sharedCommentsSendBtn">Post</button>
+    </form>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -1967,7 +2211,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.4";
+  var BUILD_ID = "2026-07-13.5";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2524,6 +2768,16 @@
     graphViewNodes: document.getElementById("graphViewNodes"),
     graphViewEmpty: document.getElementById("graphViewEmpty"),
     chatBtn: document.getElementById("chatBtn"),
+    membersBtn: document.getElementById("membersBtn"),
+    membersModal: document.getElementById("membersModal"),
+    membersModalTitle: document.getElementById("membersModalTitle"),
+    membersList: document.getElementById("membersList"),
+    membersModalClose: document.getElementById("membersModalClose"),
+    notificationsBtn: document.getElementById("notificationsBtn"),
+    notificationsCount: document.getElementById("notificationsCount"),
+    notificationsModal: document.getElementById("notificationsModal"),
+    notificationsList: document.getElementById("notificationsList"),
+    notificationsModalClose: document.getElementById("notificationsModalClose"),
     chatOverlay: document.getElementById("chatOverlay"),
     chatCloseBtn: document.getElementById("chatCloseBtn"),
     chatMessages: document.getElementById("chatMessages"),
@@ -2533,6 +2787,31 @@
     chatComposer: document.getElementById("chatComposer"),
     chatInput: document.getElementById("chatInput"),
     chatSendBtn: document.getElementById("chatSendBtn"),
+    sharePageBtn: document.getElementById("sharePageBtn"),
+    viewCommentsBtn: document.getElementById("viewCommentsBtn"),
+    sharedWithYouSection: document.getElementById("sharedWithYouSection"),
+    sharedWithYouList: document.getElementById("sharedWithYouList"),
+    sharedViewOverlay: document.getElementById("sharedViewOverlay"),
+    sharedViewOwner: document.getElementById("sharedViewOwner"),
+    sharedViewCloseBtn: document.getElementById("sharedViewCloseBtn"),
+    sharedViewTitle: document.getElementById("sharedViewTitle"),
+    sharedViewDoc: document.getElementById("sharedViewDoc"),
+    sharedViewMindmapWrap: document.getElementById("sharedViewMindmapWrap"),
+    sharedViewMindmapCanvas: document.getElementById("sharedViewMindmapCanvas"),
+    sharedViewMindmapEdges: document.getElementById("sharedViewMindmapEdges"),
+    sharedViewComments: document.getElementById("sharedViewComments"),
+    sharedCommentsTitle: document.getElementById("sharedCommentsTitle"),
+    sharedCommentsList: document.getElementById("sharedCommentsList"),
+    sharedCommentsSignedOut: document.getElementById("sharedCommentsSignedOut"),
+    sharedCommentsComposer: document.getElementById("sharedCommentsComposer"),
+    sharedCommentsInput: document.getElementById("sharedCommentsInput"),
+    sharedCommentsSendBtn: document.getElementById("sharedCommentsSendBtn"),
+    commentMentionBtn: document.getElementById("commentMentionBtn"),
+    mentionBtn: document.getElementById("mentionBtn"),
+    mentionModal: document.getElementById("mentionModal"),
+    mentionModalInput: document.getElementById("mentionModalInput"),
+    mentionPickerResults: document.getElementById("mentionPickerResults"),
+    mentionModalCancel: document.getElementById("mentionModalCancel"),
     linkModal: document.getElementById("linkModal"),
     linkModalInput: document.getElementById("linkModalInput"),
     linkPickerResults: document.getElementById("linkPickerResults"),
@@ -2547,6 +2826,8 @@
     settingsModal: document.getElementById("settingsModal"),
     settingsAccountWrap: document.getElementById("settingsAccountWrap"),
     settingsNameInput: document.getElementById("settingsNameInput"),
+    settingsWorkspaceNameWrap: document.getElementById("settingsWorkspaceNameWrap"),
+    settingsWorkspaceNameInput: document.getElementById("settingsWorkspaceNameInput"),
     avatarBuilderPreview: document.getElementById("avatarBuilderPreview"),
     avatarRandomizeBtn: document.getElementById("avatarRandomizeBtn"),
     avatarColorSwatches: document.getElementById("avatarColorSwatches"),
@@ -2972,6 +3253,7 @@
     renderAvatarBuilder();
     renderProfileRow();
     scheduleSave();
+    scheduleMemberRosterSync();
   }
 
   el.avatarRandomizeBtn.addEventListener("click", function () {
@@ -2992,11 +3274,28 @@
     renderAvatarBuilder();
     renderSettingsTheme();
     renderAccountSection();
+    if (isFirebaseConfigured() && authSession) {
+      el.settingsWorkspaceNameWrap.style.display = "block";
+      el.settingsWorkspaceNameInput.value = workspaceName;
+    } else {
+      el.settingsWorkspaceNameWrap.style.display = "none";
+    }
     el.settingsModal.style.display = "flex";
     setTimeout(function () { el.settingsNameInput.focus(); }, 30);
   }
 
   function hideSettingsModal() { el.settingsModal.style.display = "none"; }
+
+  function saveWorkspaceName() {
+    var name = el.settingsWorkspaceNameInput.value.trim();
+    if (name === workspaceName) return;
+    applyWorkspaceName(name);
+    pushWorkspaceName(name);
+  }
+  el.settingsWorkspaceNameInput.addEventListener("blur", saveWorkspaceName);
+  el.settingsWorkspaceNameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); el.settingsWorkspaceNameInput.blur(); }
+  });
 
   el.profileRow.addEventListener("click", showSettingsModal);
   el.settingsModalClose.addEventListener("click", hideSettingsModal);
@@ -3005,6 +3304,7 @@
     state.profile.name = el.settingsNameInput.value;
     renderProfileRow();
     scheduleSave();
+    scheduleMemberRosterSync();
   });
 
   el.settingsThemeLight.addEventListener("click", function () {
@@ -3212,6 +3512,7 @@
       el.deletePageBtn.style.display = page.special === "wishlist" ? "none" : "inline-block";
       applyAvatar(el.pageTitleAvatar, page, false);
       renderPageTags(page);
+      renderSharePageButton(page);
       el.backlinksPanel.style.display = "block";
       renderBacklinksPanel(page);
 
@@ -3421,6 +3722,7 @@
       if (removed) {
         if (!state.trash) state.trash = [];
         state.trash.push({ item: removed, deletedAt: Date.now() });
+        unshareAllInSubtree(removed);
       }
       if (wasActiveInside) state.activePageId = null;
       renderAll();
@@ -3886,6 +4188,255 @@
 
   el.linkBtn.addEventListener("click", insertLink);
 
+  /* =========================================================
+     @MENTIONS
+     Tag a workspace member by name, in the editor (only on pages
+     you've shared — mentioning someone in a page they can't see would
+     be a broken promise) or in a page's comments (always fine, since
+     comments only exist on shared pages in the first place).
+     ========================================================= */
+  var mentionModalResolve = null;
+  var mentionModalKeydown = null;
+
+  function closeMentionModal(result) {
+    el.mentionModal.style.display = "none";
+    if (mentionModalKeydown) { document.removeEventListener("keydown", mentionModalKeydown); mentionModalKeydown = null; }
+    if (mentionModalResolve) { var resolve = mentionModalResolve; mentionModalResolve = null; resolve(result); }
+  }
+
+  function renderMentionPickerResults(query) {
+    clearChildren(el.mentionPickerResults);
+    var lower = query.trim().toLowerCase();
+    var uids = Object.keys(memberRoster).filter(function (uid) {
+      return !lower || (memberRoster[uid].name || "").toLowerCase().indexOf(lower) !== -1;
+    });
+    var firstItem = null;
+    uids.forEach(function (uid) {
+      var m = memberRoster[uid];
+      var row = document.createElement("div");
+      row.className = "link-picker-item";
+      var icon = document.createElement("span");
+      icon.className = "link-picker-icon";
+      icon.innerHTML = personAvatarSVG({ avatarBg: m.avatarBg, eyes: m.eyes, accessory: m.accessory }, 20);
+      var name = document.createElement("span");
+      name.className = "link-picker-name";
+      name.textContent = m.name || "Someone";
+      row.appendChild(icon);
+      row.appendChild(name);
+      var result = { uid: uid, name: m.name, avatarBg: m.avatarBg, eyes: m.eyes, accessory: m.accessory };
+      row.addEventListener("click", function () { closeMentionModal(result); });
+      el.mentionPickerResults.appendChild(row);
+      if (!firstItem) firstItem = result;
+    });
+    if (!uids.length) {
+      var empty = document.createElement("div");
+      empty.className = "link-picker-empty";
+      empty.textContent = "No workspace members found yet.";
+      el.mentionPickerResults.appendChild(empty);
+    }
+    return firstItem;
+  }
+
+  // Resolves to { uid, name, avatarBg, eyes, accessory } | null.
+  function showMentionPickerModal() {
+    return new Promise(function (resolve) {
+      el.mentionModalInput.value = "";
+      var pendingFirst = renderMentionPickerResults("");
+      fetchMemberRoster().then(function (result) {
+        if (result.ok) { memberRoster = result.data || {}; pendingFirst = renderMentionPickerResults(el.mentionModalInput.value); }
+      });
+
+      el.mentionModalInput.oninput = function () {
+        pendingFirst = renderMentionPickerResults(el.mentionModalInput.value);
+      };
+      mentionModalKeydown = function (e) {
+        if (e.key === "Escape") { e.preventDefault(); closeMentionModal(null); }
+        else if (e.key === "Enter") { e.preventDefault(); if (pendingFirst) closeMentionModal(pendingFirst); }
+      };
+      document.addEventListener("keydown", mentionModalKeydown);
+      el.mentionModalCancel.onclick = function () { closeMentionModal(null); };
+
+      mentionModalResolve = resolve;
+      el.mentionModal.style.display = "flex";
+      setTimeout(function () { el.mentionModalInput.focus(); }, 30);
+    });
+  }
+
+  function pushWorkspaceNotification(toUid, type, pageId, pageTitle) {
+    if (!authSession || toUid === authSession.uid) return;
+    var profile = state.profile || {};
+    var notif = {
+      type: type,
+      fromUid: authSession.uid,
+      fromName: profile.name || (authSession.email ? authSession.email.split("@")[0] : "Someone"),
+      fromAvatarBg: profile.avatarBg || NOTEBOOK_COLORS[0],
+      fromEyes: profile.eyes || "dot",
+      fromAccessory: profile.accessory || "none",
+      pageId: pageId,
+      pageTitle: pageTitle || "Untitled",
+      ts: Date.now(),
+      read: false
+    };
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + toUid, "POST", notif);
+  }
+
+  function pushMentionNotification(member, pageId, pageTitle) {
+    pushWorkspaceNotification(member.uid, "mention", pageId, pageTitle);
+  }
+
+  el.mentionBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || !page.shared) return;
+    el.editor.focus();
+    ensureEditorSelection();
+    var sel = window.getSelection();
+    var savedRange = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+
+    showMentionPickerModal().then(function (member) {
+      if (!member) return;
+      el.editor.focus();
+      if (savedRange) {
+        var sel2 = window.getSelection();
+        sel2.removeAllRanges();
+        sel2.addRange(savedRange);
+      }
+      document.execCommand(
+        "insertHTML",
+        false,
+        '<span class="mention-chip" contenteditable="false">@' + escapeHtml(member.name || "Someone") + '</span>&nbsp;'
+      );
+      onEditorChanged();
+      pushMentionNotification(member, page.id, page.title);
+    });
+  });
+
+  el.commentMentionBtn.addEventListener("click", function () {
+    showMentionPickerModal().then(function (member) {
+      if (!member) return;
+      var current = el.sharedCommentsInput.value;
+      var prefix = current && !/\s$/.test(current) ? current + " " : current;
+      el.sharedCommentsInput.value = prefix + "@" + (member.name || "Someone") + " ";
+      el.sharedCommentsInput.focus();
+      if (currentCommentsPageId) {
+        pushMentionNotification(member, currentCommentsPageId, el.sharedViewTitle.textContent);
+      }
+    });
+  });
+
+  /* =========================================================
+     NOTIFICATIONS INBOX
+     Mentions, and comments left on pages you own — the two things
+     that genuinely need your attention across the workspace.
+     ========================================================= */
+  var notificationsPollTimer = null;
+
+  function fetchNotifications() {
+    if (!authSession) return Promise.resolve({ ok: false });
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + authSession.uid, "GET");
+  }
+
+  function markNotificationRead(notifId) {
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + authSession.uid + "/" + notifId + "/read", "PUT", true);
+  }
+
+  function refreshNotificationsBadge() {
+    fetchNotifications().then(function (result) {
+      if (!result.ok) return;
+      var data = result.data || {};
+      var unread = Object.keys(data).filter(function (id) { return !data[id].read; }).length;
+      el.notificationsCount.textContent = unread > 0 ? String(unread) : "";
+    });
+  }
+
+  function notificationText(n) {
+    var who = escapeHtml(n.fromName || "Someone");
+    var title = escapeHtml(n.pageTitle || "Untitled");
+    if (n.type === "comment") return "<b>" + who + "</b> commented on “" + title + "”";
+    return "<b>" + who + "</b> mentioned you in “" + title + "”";
+  }
+
+  function renderNotificationsList(data) {
+    clearChildren(el.notificationsList);
+    var ids = Object.keys(data || {});
+    if (!ids.length) {
+      var empty = document.createElement("div");
+      empty.className = "members-empty-msg";
+      empty.textContent = "No notifications yet.";
+      el.notificationsList.appendChild(empty);
+      return;
+    }
+    ids.sort(function (a, b) { return (data[b].ts || 0) - (data[a].ts || 0); });
+    ids.forEach(function (id) {
+      var n = data[id];
+      var row = document.createElement("div");
+      row.className = "notification-item" + (n.read ? "" : " unread");
+
+      var avatar = document.createElement("span");
+      avatar.className = "notif-avatar";
+      avatar.innerHTML = personAvatarSVG({ avatarBg: n.fromAvatarBg, eyes: n.fromEyes, accessory: n.fromAccessory }, 30);
+      row.appendChild(avatar);
+
+      var body = document.createElement("div");
+      body.className = "notif-body";
+      var text = document.createElement("div");
+      text.className = "notif-text";
+      text.innerHTML = notificationText(n);
+      body.appendChild(text);
+      var time = document.createElement("div");
+      time.className = "notif-time";
+      time.textContent = formatLastSeen(n.ts);
+      body.appendChild(time);
+      row.appendChild(body);
+
+      row.addEventListener("click", function () {
+        if (!n.read) markNotificationRead(id);
+        hideNotificationsModal();
+        if (n.pageId) {
+          fetchAllSharedPages().then(function (result) {
+            if (result.ok && result.data && result.data[n.pageId]) {
+              openSharedPageView(n.pageId, result.data[n.pageId]);
+            } else {
+              showAlertModal("Page not found", "This page may no longer be shared.");
+            }
+          });
+        }
+      });
+
+      el.notificationsList.appendChild(row);
+    });
+  }
+
+  function showNotificationsModal() {
+    el.notificationsModal.style.display = "flex";
+    clearChildren(el.notificationsList);
+    var loading = document.createElement("div");
+    loading.className = "members-empty-msg";
+    loading.textContent = "Loading…";
+    el.notificationsList.appendChild(loading);
+    fetchNotifications().then(function (result) {
+      if (!result.ok) {
+        clearChildren(el.notificationsList);
+        var err = document.createElement("div");
+        err.className = "members-empty-msg";
+        err.textContent = "Couldn't load notifications.";
+        el.notificationsList.appendChild(err);
+        return;
+      }
+      renderNotificationsList(result.data);
+      el.notificationsCount.textContent = "";
+      // Mark everything read now that it's been shown, so the badge count
+      // doesn't reappear with the same number on the next poll.
+      var data = result.data || {};
+      Object.keys(data).forEach(function (id) {
+        if (!data[id].read) markNotificationRead(id);
+      });
+    });
+  }
+  function hideNotificationsModal() { el.notificationsModal.style.display = "none"; }
+
+  el.notificationsBtn.addEventListener("click", function () { showNotificationsModal(); closeSidebarOnMobile(); });
+  el.notificationsModalClose.addEventListener("click", hideNotificationsModal);
+
   // Clicking a page-link chip inside the editor navigates there directly,
   // the same way clicking a sidebar page does — no modifier key needed,
   // since the chip isn't meant to be edited inline like plain text.
@@ -4021,6 +4572,7 @@
     page.updatedAt = Date.now();
     renderPageTags(page);
     scheduleSave();
+    maybeSyncSharedPage(page);
   }
 
   function removeTagFromPage(page, tag) {
@@ -4028,6 +4580,7 @@
     page.updatedAt = Date.now();
     renderPageTags(page);
     scheduleSave();
+    maybeSyncSharedPage(page);
   }
 
   function promptAddTag(page) {
@@ -4047,6 +4600,7 @@
     page.updatedAt = Date.now();
     el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
     scheduleSave();
+    maybeSyncSharedPage(page);
   }
 
   el.editor.addEventListener("input", onEditorChanged);
@@ -4059,6 +4613,7 @@
     applyAvatar(el.pageTitleAvatar, page, false);
     renderTree();
     scheduleSave();
+    maybeSyncSharedPage(page);
   });
 
   el.deletePageBtn.addEventListener("click", function () {
@@ -4080,6 +4635,7 @@
     page.updatedAt = Date.now();
     el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
     scheduleSave();
+    maybeSyncSharedPage(page);
   }
 
   function mindmapNodeCenter(node) {
@@ -4671,6 +5227,515 @@
       el.chatInput.value = "";
       refreshChatMessages();
     });
+  });
+
+  /* =========================================================
+     FAMILY WORKSPACE — identity + member roster
+     A real workspace needs to know who's actually in it. Everything
+     workspace-related (members, shared pages, comments, notifications)
+     lives under one Firebase path so it only needs one security rule.
+     ========================================================= */
+  var FAMILY_WORKSPACE_PATH = "familyWorkspace";
+  var WORKSPACE_NAME_CACHE_KEY = "obsitionWorkspaceNameCache";
+  var workspaceName = "";
+  var memberRoster = {};
+  var memberRosterSyncTimer = null;
+
+  function loadCachedWorkspaceName() {
+    try { return window.localStorage.getItem(WORKSPACE_NAME_CACHE_KEY) || ""; } catch (e) { return ""; }
+  }
+  function cacheWorkspaceName(name) {
+    try { window.localStorage.setItem(WORKSPACE_NAME_CACHE_KEY, name); } catch (e) { /* ignore */ }
+  }
+
+  function pushMemberRoster() {
+    if (!authSession) return;
+    var profile = state.profile || {};
+    var payload = {
+      name: profile.name || (authSession.email ? authSession.email.split("@")[0] : "Someone"),
+      email: authSession.email || "",
+      avatarBg: profile.avatarBg || NOTEBOOK_COLORS[0],
+      eyes: profile.eyes || "dot",
+      accessory: profile.accessory || "none",
+      updatedAt: Date.now()
+    };
+    memberRoster[authSession.uid] = payload;
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/members/" + authSession.uid, "PUT", payload);
+  }
+
+  // Debounced so typing your name doesn't fire a request per keystroke.
+  function scheduleMemberRosterSync() {
+    if (!authSession) return;
+    if (memberRosterSyncTimer) clearTimeout(memberRosterSyncTimer);
+    memberRosterSyncTimer = setTimeout(pushMemberRoster, 800);
+  }
+
+  function fetchMemberRoster() {
+    if (!authSession) return Promise.resolve({ ok: false, message: "Sign in to see workspace members." });
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/members", "GET");
+  }
+
+  function fetchWorkspaceName() {
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/name", "GET");
+  }
+
+  function pushWorkspaceName(name) {
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/name", "PUT", name);
+  }
+
+  function applyWorkspaceName(name) {
+    workspaceName = name || "";
+    cacheWorkspaceName(workspaceName);
+    el.sidebarSubtitle.textContent = workspaceName ? workspaceName + " workspace" : "Private writing, synced to your account";
+    if (el.settingsWorkspaceNameInput && document.activeElement !== el.settingsWorkspaceNameInput) {
+      el.settingsWorkspaceNameInput.value = workspaceName;
+    }
+  }
+
+  function loadWorkspaceInfo() {
+    if (!authSession) return;
+    workspaceName = loadCachedWorkspaceName();
+    if (workspaceName) el.sidebarSubtitle.textContent = workspaceName + " workspace";
+    pushMemberRoster();
+    fetchWorkspaceName().then(function (result) {
+      if (result.ok && result.data) applyWorkspaceName(result.data);
+    });
+    refreshSharedWithYou();
+    refreshNotificationsBadge();
+    if (!notificationsPollTimer) notificationsPollTimer = setInterval(refreshNotificationsBadge, 30000);
+  }
+
+  /* =========================================================
+     MEMBERS PANEL
+     ========================================================= */
+  function formatLastSeen(ts) {
+    if (!ts) return "";
+    var mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 2) return "just now";
+    if (mins < 60) return mins + "m ago";
+    var hours = Math.round(mins / 60);
+    if (hours < 24) return hours + "h ago";
+    var days = Math.round(hours / 24);
+    return days + "d ago";
+  }
+
+  function renderMembersList(roster) {
+    memberRoster = roster || {};
+    clearChildren(el.membersList);
+    var uids = Object.keys(memberRoster);
+    el.membersModalTitle.textContent = "Members (" + uids.length + ")";
+    if (!uids.length) {
+      var empty = document.createElement("div");
+      empty.className = "members-empty-msg";
+      empty.textContent = "No one has joined this workspace yet.";
+      el.membersList.appendChild(empty);
+      return;
+    }
+    uids.sort(function (a, b) { return (memberRoster[b].updatedAt || 0) - (memberRoster[a].updatedAt || 0); });
+    uids.forEach(function (uid) {
+      var m = memberRoster[uid];
+      var card = document.createElement("div");
+      card.className = "member-card";
+
+      var avatar = document.createElement("span");
+      avatar.className = "member-avatar";
+      avatar.innerHTML = personAvatarSVG({ avatarBg: m.avatarBg, eyes: m.eyes, accessory: m.accessory }, 40);
+      card.appendChild(avatar);
+
+      var info = document.createElement("div");
+      info.className = "member-info";
+      var nameRow = document.createElement("div");
+      nameRow.className = "member-name";
+      var nameText = document.createElement("span");
+      nameText.textContent = m.name || "Someone";
+      nameRow.appendChild(nameText);
+      if (authSession && uid === authSession.uid) {
+        var youBadge = document.createElement("span");
+        youBadge.className = "member-you-badge";
+        youBadge.textContent = "You";
+        nameRow.appendChild(youBadge);
+      }
+      info.appendChild(nameRow);
+      var emailRow = document.createElement("div");
+      emailRow.className = "member-email";
+      emailRow.textContent = m.email || "";
+      info.appendChild(emailRow);
+      card.appendChild(info);
+
+      var lastSeen = document.createElement("span");
+      lastSeen.className = "member-last-seen";
+      lastSeen.textContent = formatLastSeen(m.updatedAt);
+      card.appendChild(lastSeen);
+
+      el.membersList.appendChild(card);
+    });
+  }
+
+  function showMembersModal() {
+    el.membersModal.style.display = "flex";
+    el.membersModalTitle.textContent = "Members";
+    clearChildren(el.membersList);
+    var loading = document.createElement("div");
+    loading.className = "members-empty-msg";
+    loading.textContent = "Loading…";
+    el.membersList.appendChild(loading);
+    fetchMemberRoster().then(function (result) {
+      if (!result.ok) {
+        clearChildren(el.membersList);
+        var err = document.createElement("div");
+        err.className = "members-empty-msg";
+        err.textContent = "Couldn't load the member list.";
+        el.membersList.appendChild(err);
+        return;
+      }
+      renderMembersList(result.data);
+    });
+  }
+  function hideMembersModal() { el.membersModal.style.display = "none"; }
+
+  el.membersBtn.addEventListener("click", function () { showMembersModal(); closeSidebarOnMobile(); });
+  el.membersModalClose.addEventListener("click", hideMembersModal);
+
+  /* =========================================================
+     PAGE SHARING (view-only)
+     Sharing a page mirrors it to a shared Firebase location that
+     everyone in the workspace can read. Deliberately one-way and
+     owner-writes-only: the owner's edits are what get mirrored, and
+     everyone else only ever reads that mirror — never edits it. That
+     sidesteps the much harder problem of two people editing the same
+     page at once, while still making work genuinely visible to others.
+     ========================================================= */
+  var sharedPagePushTimers = {};
+
+  function sharedPagePayload(item) {
+    var payload = {
+      ownerUid: authSession.uid,
+      ownerName: (state.profile && state.profile.name) || (authSession.email ? authSession.email.split("@")[0] : "Someone"),
+      ownerAvatarBg: (state.profile && state.profile.avatarBg) || NOTEBOOK_COLORS[0],
+      ownerEyes: (state.profile && state.profile.eyes) || "dot",
+      ownerAccessory: (state.profile && state.profile.accessory) || "none",
+      title: item.title || "Untitled",
+      type: item.type,
+      tags: item.tags || [],
+      updatedAt: item.updatedAt || Date.now()
+    };
+    if (item.type === "mindmap") {
+      payload.nodes = item.nodes || [];
+      payload.edges = item.edges || [];
+    } else {
+      payload.content = item.content || "";
+    }
+    return payload;
+  }
+
+  function pushSharedPage(item) {
+    if (!authSession) return;
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + item.id, "PUT", sharedPagePayload(item));
+  }
+
+  function unshareSharedPage(itemId) {
+    if (!authSession) return;
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + itemId, "DELETE");
+  }
+
+  // Deleting a folder can delete several shared pages at once — a shared
+  // page moved to Trash should stop being visible to everyone else too.
+  function unshareAllInSubtree(item) {
+    if (item.kind === "folder") {
+      (item.children || []).forEach(unshareAllInSubtree);
+    } else if (item.shared) {
+      unshareSharedPage(item.id);
+      item.shared = false;
+    }
+  }
+
+  // Debounced per-page so rapid typing doesn't fire a request per keystroke.
+  function maybeSyncSharedPage(item) {
+    if (!item || !item.shared || !authSession) return;
+    if (sharedPagePushTimers[item.id]) clearTimeout(sharedPagePushTimers[item.id]);
+    sharedPagePushTimers[item.id] = setTimeout(function () { pushSharedPage(item); }, 800);
+  }
+
+  function toggleShareForPage(item) {
+    item.shared = !item.shared;
+    if (item.shared) {
+      pushSharedPage(item);
+    } else {
+      unshareSharedPage(item.id);
+    }
+    renderSharePageButton(item);
+    scheduleSave();
+  }
+
+  function renderSharePageButton(item) {
+    if (!isFirebaseConfigured() || !authSession) {
+      el.sharePageBtn.style.display = "none";
+      el.viewCommentsBtn.style.display = "none";
+      el.mentionBtn.style.display = "none";
+      return;
+    }
+    el.sharePageBtn.style.display = "inline-block";
+    el.sharePageBtn.classList.toggle("active", !!item.shared);
+    el.sharePageBtn.textContent = item.shared ? "🌐 Shared" : "🌐 Share";
+    el.sharePageBtn.title = item.shared
+      ? "Visible to everyone in the workspace — click to stop sharing"
+      : "Share this page with everyone in the workspace";
+    el.viewCommentsBtn.style.display = item.shared ? "inline-block" : "none";
+    el.mentionBtn.style.display = (item.shared && item.type !== "mindmap") ? "inline-block" : "none";
+  }
+
+  el.sharePageBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page) return;
+    toggleShareForPage(page);
+  });
+
+  function fetchAllSharedPages() {
+    if (!authSession) return Promise.resolve({ ok: false });
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages", "GET");
+  }
+
+  function renderSharedWithYouSection(allShared) {
+    clearChildren(el.sharedWithYouList);
+    var ids = Object.keys(allShared || {}).filter(function (id) {
+      return allShared[id].ownerUid !== (authSession && authSession.uid);
+    });
+    if (!ids.length) { el.sharedWithYouSection.style.display = "none"; return; }
+    el.sharedWithYouSection.style.display = "block";
+    ids.sort(function (a, b) { return (allShared[b].updatedAt || 0) - (allShared[a].updatedAt || 0); });
+    ids.forEach(function (id) {
+      var p = allShared[id];
+      var row = document.createElement("div");
+      row.className = "shared-with-you-item";
+
+      var avatar = document.createElement("span");
+      avatar.className = "swy-avatar";
+      avatar.innerHTML = personAvatarSVG({ avatarBg: p.ownerAvatarBg, eyes: p.ownerEyes, accessory: p.ownerAccessory }, 18);
+      row.appendChild(avatar);
+
+      var title = document.createElement("span");
+      title.className = "swy-title";
+      title.textContent = p.title || "Untitled";
+      row.appendChild(title);
+
+      var owner = document.createElement("span");
+      owner.className = "swy-owner";
+      owner.textContent = p.ownerName || "";
+      row.appendChild(owner);
+
+      row.addEventListener("click", function () { openSharedPageView(id, p); });
+      el.sharedWithYouList.appendChild(row);
+    });
+  }
+
+  function refreshSharedWithYou() {
+    fetchAllSharedPages().then(function (result) {
+      if (result.ok) renderSharedWithYouSection(result.data);
+    });
+  }
+
+  function renderSharedMindmapReadOnly(page) {
+    clearChildren(el.sharedViewMindmapCanvas);
+    var edgesSvg = el.sharedViewMindmapEdges;
+    el.sharedViewMindmapCanvas.appendChild(edgesSvg);
+    clearChildren(edgesSvg);
+
+    var nodes = page.nodes || [];
+    var edges = page.edges || [];
+    nodes.forEach(function (node) {
+      var nodeEl = document.createElement("div");
+      nodeEl.className = "mm-node";
+      nodeEl.style.left = node.x + "px";
+      nodeEl.style.top = node.y + "px";
+      nodeEl.style.background = node.color || MINDMAP_COLORS[0];
+      var textEl = document.createElement("div");
+      textEl.className = "mm-node-text";
+      textEl.textContent = node.text || "";
+      nodeEl.appendChild(textEl);
+      el.sharedViewMindmapCanvas.appendChild(nodeEl);
+    });
+
+    edges.forEach(function (edge) {
+      var from = nodes.find(function (n) { return n.id === edge.from; });
+      var to = nodes.find(function (n) { return n.id === edge.to; });
+      if (!from || !to) return;
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("stroke", "#9a9aa2");
+      line.setAttribute("stroke-width", "2.4");
+      line.setAttribute("x1", from.x + 60);
+      line.setAttribute("y1", from.y + 30);
+      line.setAttribute("x2", to.x + 60);
+      line.setAttribute("y2", to.y + 30);
+      edgesSvg.appendChild(line);
+    });
+  }
+
+  var currentViewedPageOwnerUid = null;
+
+  function openSharedPageView(pageId, cachedData) {
+    currentViewedPageOwnerUid = cachedData.ownerUid || null;
+    el.sharedViewOverlay.style.display = "flex";
+    el.sharedViewOwner.innerHTML = "";
+    var avatar = document.createElement("span");
+    avatar.innerHTML = personAvatarSVG({ avatarBg: cachedData.ownerAvatarBg, eyes: cachedData.ownerEyes, accessory: cachedData.ownerAccessory }, 22);
+    avatar.style.display = "inline-flex";
+    var label = document.createElement("span");
+    label.textContent = (cachedData.ownerName || "Someone") + "'s page";
+    el.sharedViewOwner.appendChild(avatar);
+    el.sharedViewOwner.appendChild(label);
+
+    el.sharedViewTitle.textContent = cachedData.title || "Untitled";
+
+    if (cachedData.type === "mindmap") {
+      el.sharedViewDoc.style.display = "none";
+      el.sharedViewMindmapWrap.style.display = "block";
+      renderSharedMindmapReadOnly(cachedData);
+    } else {
+      el.sharedViewMindmapWrap.style.display = "none";
+      el.sharedViewDoc.style.display = "block";
+      el.sharedViewDoc.innerHTML = cachedData.content || "";
+    }
+
+    openSharedPageComments(pageId, cachedData);
+  }
+
+  function closeSharedPageView() {
+    el.sharedViewOverlay.style.display = "none";
+    stopCommentsPolling();
+  }
+
+  el.sharedViewCloseBtn.addEventListener("click", closeSharedPageView);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && el.sharedViewOverlay.style.display !== "none") closeSharedPageView();
+  });
+
+  /* =========================================================
+     PAGE COMMENTS
+     A threaded discussion per shared page, separate from the global
+     family chat — this is Notion's actual core collaboration primitive
+     (comments on a document), scoped to whichever page you're looking
+     at. Both the owner (previewing their own shared page) and viewers
+     can read and post.
+     ========================================================= */
+  var commentsPollTimer = null;
+  var currentCommentsPageId = null;
+
+  function fetchPageComments(pageId) {
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/comments/" + pageId, "GET");
+  }
+
+  function postPageComment(pageId, text) {
+    var profile = state.profile || {};
+    var payload = {
+      text: text,
+      ts: Date.now(),
+      authorUid: authSession.uid,
+      authorName: profile.name || (authSession.email ? authSession.email.split("@")[0] : "Someone"),
+      avatarBg: profile.avatarBg || NOTEBOOK_COLORS[0],
+      eyes: profile.eyes || "dot",
+      accessory: profile.accessory || "none"
+    };
+    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/comments/" + pageId, "POST", payload);
+  }
+
+  function renderPageComments(data) {
+    clearChildren(el.sharedCommentsList);
+    var ids = data ? Object.keys(data) : [];
+    if (!ids.length) {
+      var empty = document.createElement("div");
+      empty.className = "shared-comments-empty";
+      empty.textContent = "No comments yet.";
+      el.sharedCommentsList.appendChild(empty);
+      return;
+    }
+    var comments = ids.map(function (id) { return data[id]; }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+    comments.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "shared-comment-row";
+
+      var avatar = document.createElement("span");
+      avatar.className = "shared-comment-avatar";
+      avatar.innerHTML = personAvatarSVG({ avatarBg: c.avatarBg, eyes: c.eyes, accessory: c.accessory }, 24);
+      row.appendChild(avatar);
+
+      var body = document.createElement("div");
+      body.className = "shared-comment-body";
+      var meta = document.createElement("div");
+      meta.className = "shared-comment-meta";
+      var name = document.createElement("span");
+      name.className = "shared-comment-name";
+      name.textContent = c.authorName || "Someone";
+      var time = document.createElement("span");
+      time.className = "shared-comment-time";
+      time.textContent = formatChatTime(c.ts);
+      meta.appendChild(name);
+      meta.appendChild(time);
+      body.appendChild(meta);
+      var text = document.createElement("div");
+      text.className = "shared-comment-text";
+      text.textContent = c.text || "";
+      body.appendChild(text);
+      row.appendChild(body);
+
+      el.sharedCommentsList.appendChild(row);
+    });
+    el.sharedCommentsList.scrollTop = el.sharedCommentsList.scrollHeight;
+  }
+
+  function refreshComments() {
+    if (!currentCommentsPageId) return;
+    fetchPageComments(currentCommentsPageId).then(function (result) {
+      if (result.ok) renderPageComments(result.data);
+    });
+  }
+
+  function startCommentsPolling(pageId) {
+    stopCommentsPolling();
+    currentCommentsPageId = pageId;
+    refreshComments();
+    commentsPollTimer = setInterval(refreshComments, 4000);
+  }
+  function stopCommentsPolling() {
+    if (commentsPollTimer) clearInterval(commentsPollTimer);
+    commentsPollTimer = null;
+    currentCommentsPageId = null;
+  }
+
+  function openSharedPageComments(pageId) {
+    if (!isFirebaseConfigured() || !authSession) {
+      el.sharedCommentsSignedOut.style.display = "block";
+      el.sharedCommentsList.style.display = "none";
+      el.sharedCommentsComposer.style.display = "none";
+      return;
+    }
+    el.sharedCommentsSignedOut.style.display = "none";
+    el.sharedCommentsList.style.display = "block";
+    el.sharedCommentsComposer.style.display = "flex";
+    startCommentsPolling(pageId);
+  }
+
+  el.sharedCommentsComposer.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = el.sharedCommentsInput.value.trim();
+    if (!text || !currentCommentsPageId || !authSession) return;
+    el.sharedCommentsSendBtn.disabled = true;
+    postPageComment(currentCommentsPageId, text).then(function (result) {
+      el.sharedCommentsSendBtn.disabled = false;
+      if (!result.ok) return;
+      el.sharedCommentsInput.value = "";
+      refreshComments();
+      if (currentViewedPageOwnerUid) {
+        pushWorkspaceNotification(currentViewedPageOwnerUid, "comment", currentCommentsPageId, el.sharedViewTitle.textContent);
+      }
+    });
+  });
+
+  // The owner can preview their own shared page (as others see it) and
+  // read/join its comments, reusing the exact same read-only viewer.
+  el.viewCommentsBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || !page.shared) return;
+    openSharedPageView(page.id, sharedPagePayload(page));
   });
 
   function attachNodeDrag(page, node, nodeEl) {
@@ -5395,6 +6460,7 @@
     hideAuthOverlay();
     renderAccountSection();
     Sync.reconcile();
+    loadWorkspaceInfo();
   }
 
   function signOut() {
@@ -5605,6 +6671,8 @@
     renderAccountSection();
   } else {
     el.chatBtn.style.display = "block";
+    el.membersBtn.style.display = "block";
+    el.notificationsBtn.style.display = "block";
     el.sidebarSubtitle.textContent = "Private writing, synced to your account";
     if (!isGoogleConfigured() || window.location.protocol === "file:") {
       el.googleSignInBtn.style.display = "none";
@@ -5620,6 +6688,7 @@
         hideAuthOverlay();
         renderAccountSection();
         Sync.reconcile();
+        loadWorkspaceInfo();
       } else if (AuthSession.loadGuestFlag()) {
         hideAuthOverlay();
         renderAccountSection();
