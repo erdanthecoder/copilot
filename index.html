@@ -403,6 +403,38 @@
   .trash-item button:hover { background: var(--hover); }
   .trash-item button.danger { color: var(--danger); border-color: var(--danger); }
   .trash-empty-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
+  .link-modal-card { max-width: 480px; }
+  .link-picker-results { max-height: 260px; overflow-y: auto; margin: 10px 0 16px; border: 1px solid var(--border); border-radius: 8px; }
+  .link-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    cursor: pointer;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .link-picker-item:last-child { border-bottom: none; }
+  .link-picker-item:hover, .link-picker-item.active { background: var(--hover); }
+  .link-picker-item .link-picker-icon { flex: none; }
+  .link-picker-item .link-picker-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .link-picker-item .link-picker-path { flex: none; font-size: 11px; color: var(--text-muted); max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .link-picker-empty { padding: 16px 10px; text-align: center; color: var(--text-muted); font-size: 13px; }
+  .link-picker-url-item { color: var(--accent); }
+  .editor a.page-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 7px 1px 5px;
+    border-radius: 5px;
+    background: var(--hover);
+    color: var(--text) !important;
+    text-decoration: none !important;
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .editor a.page-link:hover { background: var(--border); }
+  .editor a.page-link.broken-link { opacity: 0.6; font-style: italic; }
   .build-version {
     text-align: center;
     font-size: 9px;
@@ -782,6 +814,10 @@
     color: #222;
     line-height: 1.35;
     min-width: 20px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    max-height: 220px;
+    overflow-y: auto;
   }
   .mm-node-delete {
     position: absolute;
@@ -1322,6 +1358,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="linkModal">
+  <div class="modal-card link-modal-card">
+    <h3>🔗 Add link</h3>
+    <input type="text" id="linkModalInput" class="modal-input" placeholder="Search pages, or paste a URL...">
+    <div class="link-picker-results" id="linkPickerResults"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="linkModalCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="trashModal">
   <div class="modal-card trash-modal-card">
     <h3>🗑️ Trash</h3>
@@ -1340,7 +1387,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-12.9";
+  var BUILD_ID = "2026-07-12.10";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -1679,6 +1726,10 @@
     trashModal: document.getElementById("trashModal"),
     trashList: document.getElementById("trashList"),
     trashModalCloseBtn: document.getElementById("trashModalCloseBtn"),
+    linkModal: document.getElementById("linkModal"),
+    linkModalInput: document.getElementById("linkModalInput"),
+    linkPickerResults: document.getElementById("linkPickerResults"),
+    linkModalCancel: document.getElementById("linkModalCancel"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     themeToggle: document.getElementById("themeToggle"),
@@ -2525,6 +2576,120 @@
     return url;
   }
 
+  // Every page in the notebook (excluding Trash), flattened for the link
+  // picker, with a breadcrumb-style path so pages with the same name in
+  // different folders can still be told apart.
+  function getAllPagesFlat() {
+    var out = [];
+    function walk(items, path) {
+      items.forEach(function (item) {
+        if (item.kind === "folder") {
+          walk(item.children, path.concat([item.name]));
+        } else {
+          out.push({
+            id: item.id,
+            title: item.title || "Untitled",
+            type: item.type,
+            path: path.join(" / ")
+          });
+        }
+      });
+    }
+    walk(state.items, []);
+    return out;
+  }
+
+  var linkModalResolve = null;
+  var linkModalKeydown = null;
+
+  function closeLinkModal(result) {
+    el.linkModal.style.display = "none";
+    if (linkModalKeydown) { document.removeEventListener("keydown", linkModalKeydown); linkModalKeydown = null; }
+    if (linkModalResolve) { var resolve = linkModalResolve; linkModalResolve = null; resolve(result); }
+  }
+
+  function renderLinkPickerResults(query) {
+    clearChildren(el.linkPickerResults);
+    var trimmed = query.trim();
+    var lower = trimmed.toLowerCase();
+    var pages = getAllPagesFlat();
+    var matches = lower ? pages.filter(function (p) { return p.title.toLowerCase().indexOf(lower) !== -1; }) : pages;
+    matches = matches.slice(0, 30);
+
+    var firstItem = null;
+
+    matches.forEach(function (p) {
+      var row = document.createElement("div");
+      row.className = "link-picker-item";
+      var icon = document.createElement("span");
+      icon.className = "link-picker-icon";
+      icon.textContent = p.type === "mindmap" ? "🧠" : "📄";
+      var name = document.createElement("span");
+      name.className = "link-picker-name";
+      name.textContent = p.title;
+      row.appendChild(icon);
+      row.appendChild(name);
+      if (p.path) {
+        var pathEl = document.createElement("span");
+        pathEl.className = "link-picker-path";
+        pathEl.textContent = p.path;
+        row.appendChild(pathEl);
+      }
+      row.addEventListener("click", function () { closeLinkModal({ type: "page", id: p.id, title: p.title }); });
+      el.linkPickerResults.appendChild(row);
+      if (!firstItem) firstItem = { type: "page", id: p.id, title: p.title };
+    });
+
+    if (trimmed) {
+      var urlRow = document.createElement("div");
+      urlRow.className = "link-picker-item link-picker-url-item";
+      var urlIcon = document.createElement("span");
+      urlIcon.className = "link-picker-icon";
+      urlIcon.textContent = "🌐";
+      var urlName = document.createElement("span");
+      urlName.className = "link-picker-name";
+      urlName.textContent = 'Link to "' + trimmed + '" as a web address';
+      urlRow.appendChild(urlIcon);
+      urlRow.appendChild(urlName);
+      urlRow.addEventListener("click", function () { closeLinkModal({ type: "url", url: trimmed }); });
+      el.linkPickerResults.appendChild(urlRow);
+      if (!firstItem) firstItem = { type: "url", url: trimmed };
+    }
+
+    if (!matches.length && !trimmed) {
+      var empty = document.createElement("div");
+      empty.className = "link-picker-empty";
+      empty.textContent = "No other pages yet — type to link to a web address instead.";
+      el.linkPickerResults.appendChild(empty);
+    }
+
+    return firstItem;
+  }
+
+  // Resolves to { type: "page", id, title } | { type: "url", url } | null.
+  function showLinkPickerModal(selectedText) {
+    return new Promise(function (resolve) {
+      el.linkModalInput.value = "";
+      el.linkModalInput.placeholder = selectedText ? 'Search pages to link "' + selectedText + '"...' : "Search pages, or paste a URL...";
+      var pendingFirst = renderLinkPickerResults("");
+
+      el.linkModalInput.oninput = function () {
+        pendingFirst = renderLinkPickerResults(el.linkModalInput.value);
+      };
+
+      linkModalKeydown = function (e) {
+        if (e.key === "Escape") { e.preventDefault(); closeLinkModal(null); }
+        else if (e.key === "Enter") { e.preventDefault(); if (pendingFirst) closeLinkModal(pendingFirst); }
+      };
+      document.addEventListener("keydown", linkModalKeydown);
+      el.linkModalCancel.onclick = function () { closeLinkModal(null); };
+
+      linkModalResolve = resolve;
+      el.linkModal.style.display = "flex";
+      setTimeout(function () { el.linkModalInput.focus(); }, 30);
+    });
+  }
+
   function insertLink() {
     el.editor.focus();
     ensureEditorSelection();
@@ -2532,15 +2697,8 @@
     var savedRange = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
     var selectedText = savedRange ? savedRange.toString() : "";
 
-    showPromptModal(
-      "🔗 Add link",
-      "https://",
-      selectedText ? 'Link for "' + selectedText + '"' : "URL"
-    ).then(function (rawUrl) {
-      if (rawUrl === null) return;
-      var trimmed = rawUrl.trim();
-      if (!trimmed) return;
-      var url = sanitizeLinkUrl(trimmed);
+    showLinkPickerModal(selectedText).then(function (result) {
+      if (!result) return;
 
       el.editor.focus();
       if (savedRange) {
@@ -2548,20 +2706,59 @@
         sel2.removeAllRanges();
         sel2.addRange(savedRange);
       }
-      if (selectedText) {
-        document.execCommand("createLink", false, url);
+
+      if (result.type === "page") {
+        var href = "#page/" + result.id;
+        if (selectedText) {
+          document.execCommand("createLink", false, href);
+          // execCommand can't set a class directly; tag whichever anchor(s)
+          // it just created with href so clicks are treated as internal nav.
+          el.editor.querySelectorAll('a[href="' + href + '"]').forEach(function (a) {
+            a.classList.add("page-link");
+            a.dataset.pageId = result.id;
+            a.removeAttribute("target");
+          });
+        } else {
+          document.execCommand(
+            "insertHTML",
+            false,
+            '<a href="' + href + '" class="page-link" data-page-id="' + result.id + '">📄 ' + escapeHtml(result.title) + "</a>&nbsp;"
+          );
+        }
       } else {
-        document.execCommand(
-          "insertHTML",
-          false,
-          '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + "</a>"
-        );
+        var url = sanitizeLinkUrl(result.url);
+        if (selectedText) {
+          document.execCommand("createLink", false, url);
+        } else {
+          document.execCommand(
+            "insertHTML",
+            false,
+            '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + "</a>"
+          );
+        }
       }
       onEditorChanged();
     });
   }
 
   el.linkBtn.addEventListener("click", insertLink);
+
+  // Clicking a page-link chip inside the editor navigates there directly,
+  // the same way clicking a sidebar page does — no modifier key needed,
+  // since the chip isn't meant to be edited inline like plain text.
+  el.editor.addEventListener("click", function (e) {
+    var link = e.target.closest && e.target.closest("a.page-link");
+    if (!link) return;
+    e.preventDefault();
+    var pageId = link.dataset.pageId;
+    var path = findItemPath(pageId);
+    if (path && path[path.length - 1].kind === "file") {
+      openPage(pageId);
+    } else {
+      link.classList.add("broken-link");
+      showAlertModal("Page not found", "This page may have been deleted or moved to Trash.");
+    }
+  });
 
   function insertTable(rows, cols) {
     var html = "<table>";
@@ -2925,13 +3122,25 @@
     var textEl = document.createElement("div");
     textEl.className = "mm-node-text";
     textEl.contentEditable = "true";
-    textEl.textContent = node.text || "";
+    textEl.innerText = node.text || "";
     textEl.addEventListener("input", function () {
-      node.text = textEl.textContent;
+      node.text = textEl.innerText;
+      updateMindmapEdgePositions(page);
       onMindmapChanged(page);
     });
+    // Enter writes a new line in the box (like an Obsidian canvas card)
+    // instead of exiting it; Escape is how you're done writing.
     textEl.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); textEl.blur(); }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.execCommand("insertLineBreak");
+        node.text = textEl.innerText;
+        updateMindmapEdgePositions(page);
+        onMindmapChanged(page);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        textEl.blur();
+      }
     });
 
     var delBtn = document.createElement("button");
