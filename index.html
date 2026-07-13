@@ -500,6 +500,114 @@
     font-size: 14px;
     padding: 0 40px;
   }
+  .chat-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    flex: none;
+  }
+  .chat-hint { color: var(--text-muted); font-size: 12.5px; flex: 1; }
+  .chat-topbar button {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+  .chat-topbar button:hover { background: var(--hover); }
+  .chat-body { flex: 1; overflow-y: auto; position: relative; }
+  .chat-messages { max-width: 640px; margin: 0 auto; padding: 18px 16px 8px; }
+  .chat-empty-msg { text-align: center; color: var(--text-muted); font-size: 13.5px; padding: 40px 20px; }
+  .chat-msg-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .chat-msg-avatar { flex: none; width: 32px; height: 32px; margin-top: 2px; }
+  .chat-msg-avatar svg { display: block; border-radius: 50%; }
+  .chat-msg-body { min-width: 0; max-width: 78%; }
+  .chat-msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+  .chat-msg-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .chat-msg-time { font-size: 11px; color: var(--text-muted); }
+  .chat-msg-text {
+    display: inline-block;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chat-msg-row.own .chat-msg-text { background: var(--hover); border-color: var(--accent); }
+  .chat-signed-out {
+    max-width: 340px;
+    margin: 60px auto;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+  .chat-error {
+    max-width: 640px;
+    margin: 0 auto 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(239, 71, 111, 0.1);
+    color: var(--danger);
+    font-size: 12.5px;
+  }
+  .chat-composer {
+    flex: none;
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    max-width: 672px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .chat-composer input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+  .chat-composer input:focus { outline: none; border-color: var(--accent); }
+  .chat-composer button {
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+  .chat-composer button:disabled { opacity: 0.5; }
+  .chat-composer button.primary,
+  .chat-signed-out button.primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+  }
+
   .link-modal-card { max-width: 480px; }
   .link-picker-results { max-height: 260px; overflow-y: auto; margin: 10px 0 16px; border: 1px solid var(--border); border-radius: 8px; }
   .link-picker-item {
@@ -1531,6 +1639,7 @@
         <span class="profile-row-gear">&#9881;</span>
       </button>
       <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">🕸️ Graph view</button>
+      <button type="button" id="chatBtn" class="trash-btn" title="Chat with everyone signed in to this notebook" style="display:none;">💬 Chat</button>
       <button type="button" id="trashBtn" class="trash-btn" style="display:none;">🗑️ Trash <span id="trashCount"></span></button>
       <div class="storage-status" id="storageStatus">Checking storage…</div>
       <div class="footer-buttons">
@@ -1831,6 +1940,26 @@
   </div>
 </div>
 
+<div class="chat-overlay" id="chatOverlay" style="display:none;">
+  <div class="chat-topbar">
+    <strong>Family Chat</strong>
+    <span class="chat-hint">Shared with anyone signed in to sync with this notebook</span>
+    <button type="button" id="chatCloseBtn">Close</button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-signed-out" id="chatSignedOut" style="display:none;">
+      <p>Sign in to chat with everyone who has access to this notebook.</p>
+      <button type="button" class="primary" id="chatSignInBtn">Sign in</button>
+    </div>
+    <div class="chat-error" id="chatError" style="display:none;"></div>
+  </div>
+  <form class="chat-composer" id="chatComposer">
+    <input type="text" id="chatInput" placeholder="Message..." autocomplete="off" maxlength="1000">
+    <button type="submit" class="primary" id="chatSendBtn">Send</button>
+  </form>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -1838,7 +1967,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.3";
+  var BUILD_ID = "2026-07-13.4";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2394,6 +2523,16 @@
     graphViewEdges: document.getElementById("graphViewEdges"),
     graphViewNodes: document.getElementById("graphViewNodes"),
     graphViewEmpty: document.getElementById("graphViewEmpty"),
+    chatBtn: document.getElementById("chatBtn"),
+    chatOverlay: document.getElementById("chatOverlay"),
+    chatCloseBtn: document.getElementById("chatCloseBtn"),
+    chatMessages: document.getElementById("chatMessages"),
+    chatSignedOut: document.getElementById("chatSignedOut"),
+    chatSignInBtn: document.getElementById("chatSignInBtn"),
+    chatError: document.getElementById("chatError"),
+    chatComposer: document.getElementById("chatComposer"),
+    chatInput: document.getElementById("chatInput"),
+    chatSendBtn: document.getElementById("chatSendBtn"),
     linkModal: document.getElementById("linkModal"),
     linkModalInput: document.getElementById("linkModalInput"),
     linkPickerResults: document.getElementById("linkPickerResults"),
@@ -4351,6 +4490,189 @@
     if (e.key === "Escape" && el.graphViewOverlay.style.display !== "none") closeGraphView();
   });
 
+  /* =========================================================
+     FAMILY CHAT
+     Real messages, not just the teaser popup — stored in the same
+     Firebase Realtime Database already used for notebook sync, at a
+     shared path every signed-in account can read/write (not scoped to
+     one uid like the notebook itself). Updates are polled rather than
+     pushed live, since this app talks to Firebase over plain REST
+     rather than the SDK's WebSocket connection.
+     ========================================================= */
+  var FAMILY_CHAT_PATH = "familyChat/messages";
+  var chatPollTimer = null;
+  var chatOpen = false;
+  var chatSending = false;
+
+  function fetchChatMessages() {
+    return rtdbRequestAtPath(authSession, FAMILY_CHAT_PATH, "GET");
+  }
+
+  function sendChatMessageRaw(text) {
+    var profile = state.profile || {};
+    var payload = {
+      text: text,
+      ts: Date.now(),
+      authorUid: authSession.uid,
+      authorEmail: authSession.email || "",
+      authorName: profile.name || (authSession.email ? authSession.email.split("@")[0] : "Someone"),
+      avatarBg: profile.avatarBg || NOTEBOOK_COLORS[0],
+      eyes: profile.eyes || "dot",
+      accessory: profile.accessory || "none"
+    };
+    return rtdbRequestAtPath(authSession, FAMILY_CHAT_PATH, "POST", payload);
+  }
+
+  function formatChatTime(ts) {
+    try { return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+    catch (e) { return ""; }
+  }
+
+  function chatIsScrolledToBottom() {
+    var el2 = el.chatMessages.parentElement;
+    return el2.scrollTop + el2.clientHeight >= el2.scrollHeight - 60;
+  }
+
+  function renderChatMessages(data) {
+    var wasAtBottom = chatIsScrolledToBottom();
+    var ids = data ? Object.keys(data) : [];
+    var messages = ids.map(function (id) {
+      var m = data[id];
+      m._id = id;
+      return m;
+    }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+
+    clearChildren(el.chatMessages);
+    if (!messages.length) {
+      var empty = document.createElement("div");
+      empty.className = "chat-empty-msg";
+      empty.textContent = "No messages yet — say hello!";
+      el.chatMessages.appendChild(empty);
+    } else {
+      messages.forEach(function (m) {
+        var row = document.createElement("div");
+        row.className = "chat-msg-row" + (authSession && m.authorUid === authSession.uid ? " own" : "");
+
+        var avatar = document.createElement("span");
+        avatar.className = "chat-msg-avatar";
+        avatar.innerHTML = personAvatarSVG({ avatarBg: m.avatarBg, eyes: m.eyes, accessory: m.accessory }, 32);
+        row.appendChild(avatar);
+
+        var body = document.createElement("div");
+        body.className = "chat-msg-body";
+
+        var meta = document.createElement("div");
+        meta.className = "chat-msg-meta";
+        var name = document.createElement("span");
+        name.className = "chat-msg-name";
+        name.textContent = m.authorName || "Someone";
+        var time = document.createElement("span");
+        time.className = "chat-msg-time";
+        time.textContent = formatChatTime(m.ts);
+        meta.appendChild(name);
+        meta.appendChild(time);
+        body.appendChild(meta);
+
+        var text = document.createElement("div");
+        text.className = "chat-msg-text";
+        text.textContent = m.text || "";
+        body.appendChild(text);
+
+        row.appendChild(body);
+        el.chatMessages.appendChild(row);
+      });
+    }
+
+    if (wasAtBottom) {
+      var scrollEl = el.chatMessages.parentElement;
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    }
+  }
+
+  function showChatError(message) {
+    el.chatError.textContent = message;
+    el.chatError.style.display = "block";
+  }
+  function hideChatError() { el.chatError.style.display = "none"; }
+
+  function refreshChatMessages() {
+    fetchChatMessages().then(function (result) {
+      if (!chatOpen) return;
+      if (!result.ok) {
+        var msg = result.message || "Couldn't load chat.";
+        if (result.status === 401 || result.status === 403 || /permission/i.test(msg)) {
+          msg = "Chat isn't turned on for this notebook yet — ask whoever set up the account to allow the \"familyChat\" path in the Firebase Database rules.";
+        }
+        showChatError(msg);
+        return;
+      }
+      hideChatError();
+      renderChatMessages(result.data);
+    });
+  }
+
+  function startChatPolling() {
+    stopChatPolling();
+    refreshChatMessages();
+    chatPollTimer = setInterval(refreshChatMessages, 4000);
+  }
+  function stopChatPolling() {
+    if (chatPollTimer) clearInterval(chatPollTimer);
+    chatPollTimer = null;
+  }
+
+  function openChatPanel() {
+    chatOpen = true;
+    el.chatOverlay.style.display = "flex";
+    hideChatError();
+    if (!isFirebaseConfigured() || !authSession) {
+      el.chatSignedOut.style.display = "flex";
+      el.chatMessages.style.display = "none";
+      el.chatComposer.style.display = "none";
+      return;
+    }
+    el.chatSignedOut.style.display = "none";
+    el.chatMessages.style.display = "block";
+    el.chatComposer.style.display = "flex";
+    startChatPolling();
+    setTimeout(function () { el.chatInput.focus(); }, 30);
+  }
+
+  function closeChatPanel() {
+    chatOpen = false;
+    stopChatPolling();
+    el.chatOverlay.style.display = "none";
+  }
+
+  el.chatBtn.addEventListener("click", function () { openChatPanel(); closeSidebarOnMobile(); });
+  el.chatCloseBtn.addEventListener("click", closeChatPanel);
+  el.chatSignInBtn.addEventListener("click", function () { closeChatPanel(); showAuthOverlay(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && el.chatOverlay.style.display !== "none") closeChatPanel();
+  });
+
+  el.chatComposer.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = el.chatInput.value.trim();
+    if (!text || chatSending || !authSession) return;
+    chatSending = true;
+    el.chatSendBtn.disabled = true;
+    sendChatMessageRaw(text).then(function (result) {
+      chatSending = false;
+      el.chatSendBtn.disabled = false;
+      if (!result.ok) {
+        var msg = result.message || "Couldn't send that message.";
+        if (result.status === 401 || result.status === 403 || /permission/i.test(msg)) {
+          msg = "Chat isn't turned on for this notebook yet — ask whoever set up the account to allow the \"familyChat\" path in the Firebase Database rules.";
+        }
+        showChatError(msg);
+        return;
+      }
+      el.chatInput.value = "";
+      refreshChatMessages();
+    });
+  });
+
   function attachNodeDrag(page, node, nodeEl) {
     var dragging = false;
     var pointerId = null;
@@ -4838,17 +5160,17 @@
     return refreshPromise;
   }
 
-  function rtdbUrl(uid) {
-    return FIREBASE_CONFIG.databaseURL.replace(/\/$/, "") + "/users/" + uid + ".json";
+  function rtdbUrlForPath(path) {
+    return FIREBASE_CONFIG.databaseURL.replace(/\/$/, "") + "/" + path.replace(/^\//, "") + ".json";
   }
 
   function parseRtdbResponse(res) {
     if (!res.ok) {
       return res.json().then(function (body) {
         var reason = body && body.error ? body.error : ("HTTP " + res.status);
-        return { ok: false, message: "Sync failed: " + reason };
+        return { ok: false, status: res.status, message: "Sync failed: " + reason };
       }).catch(function () {
-        return { ok: false, message: "Sync failed (" + res.status + ")." };
+        return { ok: false, status: res.status, message: "Sync failed (" + res.status + ")." };
       });
     }
     return res.json().then(function (data) { return { ok: true, data: data }; }).catch(function () {
@@ -4856,7 +5178,10 @@
     });
   }
 
-  function rtdbRequest(session, method, body) {
+  // Generic authenticated RTDB call at an arbitrary path (not just this
+  // account's own /users/$uid document) — shares the same token-refresh /
+  // 401-retry behavior as the notebook sync request below.
+  function rtdbRequestAtPath(session, path, method, body) {
     return getValidIdToken(session).then(function (token) {
       if (!token) return { ok: false, message: "Session expired. Please sign in again." };
       var opts = { method: method };
@@ -4864,13 +5189,13 @@
         opts.headers = { "Content-Type": "application/json" };
         opts.body = JSON.stringify(body);
       }
-      var url = rtdbUrl(session.uid) + "?auth=" + encodeURIComponent(token);
+      var url = rtdbUrlForPath(path) + "?auth=" + encodeURIComponent(token);
       return fetch(url, opts).then(function (res) {
         if (res.status === 401) {
           session.expiresAt = 0; // force a refresh, then one retry
           return getValidIdToken(session).then(function (freshToken) {
             if (!freshToken) return { ok: false, message: "Session expired. Please sign in again." };
-            var retryUrl = rtdbUrl(session.uid) + "?auth=" + encodeURIComponent(freshToken);
+            var retryUrl = rtdbUrlForPath(path) + "?auth=" + encodeURIComponent(freshToken);
             return fetch(retryUrl, opts).then(parseRtdbResponse);
           });
         }
@@ -4879,6 +5204,10 @@
         return { ok: false, offline: true, message: "You're offline. Changes will sync once you're back online." };
       });
     });
+  }
+
+  function rtdbRequest(session, method, body) {
+    return rtdbRequestAtPath(session, "users/" + session.uid, method, body);
   }
 
   function applyRemoteState(remote) {
@@ -5275,6 +5604,7 @@
     // original local-only app, with no login screen at all.
     renderAccountSection();
   } else {
+    el.chatBtn.style.display = "block";
     el.sidebarSubtitle.textContent = "Private writing, synced to your account";
     if (!isGoogleConfigured() || window.location.protocol === "file:") {
       el.googleSignInBtn.style.display = "none";
