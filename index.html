@@ -1624,6 +1624,94 @@
     touch-action: none;
   }
 
+  .canvas-toolbar { display: flex; align-items: center; gap: 8px; }
+  .canvas-toolbar button {
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .canvas-toolbar button:hover { background: var(--hover); }
+  #canvasZoomLabel { font-size: 12px; color: var(--text-muted); min-width: 38px; text-align: center; }
+
+  .canvas-wrap {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 22px 22px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .canvas-wrap.panning { cursor: grabbing; }
+  .canvas-surface { position: absolute; top: 0; left: 0; width: 3000px; height: 2000px; transform-origin: 0 0; }
+  .canvas-edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .canvas-edges line.canvas-edge-hit { pointer-events: stroke; cursor: pointer; }
+  .canvas-card {
+    position: absolute;
+    width: 220px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    cursor: grab;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: mm-pop 0.18s ease;
+  }
+  .canvas-card.dragging { cursor: grabbing; box-shadow: var(--shadow-lg); z-index: 5; }
+  .canvas-card.connected-highlight { box-shadow: 0 0 0 2.5px var(--accent), var(--shadow); }
+  .canvas-card-header { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: var(--text); cursor: pointer; }
+  .canvas-card-header .page-avatar { flex: none; }
+  .canvas-card-header span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .canvas-card-preview { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; max-height: 48px; overflow: hidden; }
+  .canvas-card-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.12);
+    color: #333;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+  }
+  .canvas-card-delete:hover { background: rgba(0,0,0,0.25); }
+  .canvas-card-handle {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg-elevated);
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .canvas-edge-line { transition: stroke 0.12s ease, stroke-width 0.12s ease; }
+  .canvas-edge-line.connected-highlight { stroke: var(--accent); stroke-width: 3.2; }
+  .canvas-empty-hint {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
   .backlinks-panel {
     max-width: 760px;
     margin: 32px auto 40px;
@@ -2214,6 +2302,15 @@
       <span class="mindmap-hint">Double-click the canvas to add a node &bull; drag a node to move it &bull; drag the blue dot to connect ideas</span>
     </div>
 
+    <div class="canvas-toolbar" id="canvasToolbar" style="display:none;">
+      <button id="canvasAddPageBtn" type="button">+ Add page</button>
+      <button id="canvasZoomOutBtn" type="button" title="Zoom out">−</button>
+      <span id="canvasZoomLabel">100%</span>
+      <button id="canvasZoomInBtn" type="button" title="Zoom in">+</button>
+      <button id="canvasZoomResetBtn" type="button">Reset view</button>
+      <span class="mindmap-hint">Drag the background to pan &bull; scroll to zoom &bull; drag a card to move it &bull; drag its dot to connect cards</span>
+    </div>
+
     <div class="slash-menu" id="slashMenu" style="display:none;"></div>
 
     <div class="editor-scroll" id="editorScroll">
@@ -2222,6 +2319,12 @@
         <div class="mindmap-canvas" id="mindmapCanvas">
           <svg class="mm-edges" id="mmEdges"></svg>
         </div>
+      </div>
+      <div class="canvas-wrap" id="canvasWrap" style="display:none;">
+        <div class="canvas-surface" id="canvasSurface">
+          <svg class="canvas-edges" id="canvasEdges"></svg>
+        </div>
+        <div class="canvas-empty-hint" id="canvasEmptyHint" style="display:none;">Click "+ Add page" to bring a page onto the board.</div>
       </div>
       <div class="backlinks-panel" id="backlinksPanel" style="display:none;">
         <div class="backlinks-title">Linked mentions<span class="backlinks-count" id="backlinksCount"></span></div>
@@ -2589,7 +2692,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.15";
+  var BUILD_ID = "2026-07-13.16";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2807,7 +2910,7 @@
   }
 
   function applyAvatar(avatarEl, item, small) {
-    avatarEl.className = "page-avatar " + (item.type === "mindmap" ? "avatar-mindmap" : "avatar-doc") +
+    avatarEl.className = "page-avatar " + ((item.type === "mindmap" || item.type === "canvas") ? "avatar-mindmap" : "avatar-doc") +
       (small ? " avatar-sm" : "") + (item.icon ? " has-icon" : "");
     if (item.icon) {
       avatarEl.style.background = "transparent";
@@ -3398,6 +3501,16 @@
     backlinksCount: document.getElementById("backlinksCount"),
     backlinksList: document.getElementById("backlinksList"),
     mindmapCanvas: document.getElementById("mindmapCanvas"),
+    canvasToolbar: document.getElementById("canvasToolbar"),
+    canvasAddPageBtn: document.getElementById("canvasAddPageBtn"),
+    canvasZoomOutBtn: document.getElementById("canvasZoomOutBtn"),
+    canvasZoomInBtn: document.getElementById("canvasZoomInBtn"),
+    canvasZoomLabel: document.getElementById("canvasZoomLabel"),
+    canvasZoomResetBtn: document.getElementById("canvasZoomResetBtn"),
+    canvasWrap: document.getElementById("canvasWrap"),
+    canvasSurface: document.getElementById("canvasSurface"),
+    canvasEdges: document.getElementById("canvasEdges"),
+    canvasEmptyHint: document.getElementById("canvasEmptyHint"),
     mmEdges: document.getElementById("mmEdges"),
     addNodeBtn: document.getElementById("addNodeBtn"),
     physicsBtn: document.getElementById("physicsBtn"),
@@ -3717,6 +3830,7 @@
       { label: "📄  New page", onClick: function () { addFile(folderItem, "doc"); } },
       { label: "📋  New from template", onClick: function () { openTemplateModal(folderItem); } },
       { label: "🧠  New mind map", onClick: function () { addFile(folderItem, "mindmap"); } },
+      { label: "🗺️  New canvas", onClick: function () { addFile(folderItem, "canvas"); } },
       { label: "📁  New folder", onClick: function () { addFolder(folderItem); } }
     ];
   }
@@ -4102,6 +4216,8 @@
         el.mindmapToolbar.style.display = "none";
         el.editor.style.display = "none";
         el.mindmapWrap.style.display = "none";
+        el.canvasToolbar.style.display = "none";
+        el.canvasWrap.style.display = "none";
         el.backlinksPanel.style.display = "none";
         el.emptyState.style.display = "flex";
         return;
@@ -4125,15 +4241,30 @@
       if (page.type === "mindmap") {
         el.toolbar.style.display = "none";
         el.editor.style.display = "none";
+        el.canvasToolbar.style.display = "none";
+        el.canvasWrap.style.display = "none";
         el.mindmapToolbar.style.display = "flex";
         el.mindmapWrap.style.display = "block";
         el.mindmapWrap.classList.remove("page-fade-in");
         void el.mindmapWrap.offsetWidth;
         el.mindmapWrap.classList.add("page-fade-in");
         renderMindmap(page);
+      } else if (page.type === "canvas") {
+        el.toolbar.style.display = "none";
+        el.editor.style.display = "none";
+        el.mindmapToolbar.style.display = "none";
+        el.mindmapWrap.style.display = "none";
+        el.canvasToolbar.style.display = "flex";
+        el.canvasWrap.style.display = "block";
+        el.canvasWrap.classList.remove("page-fade-in");
+        void el.canvasWrap.offsetWidth;
+        el.canvasWrap.classList.add("page-fade-in");
+        renderCanvas(page);
       } else {
         el.mindmapToolbar.style.display = "none";
         el.mindmapWrap.style.display = "none";
+        el.canvasToolbar.style.display = "none";
+        el.canvasWrap.style.display = "none";
         el.toolbar.style.display = "flex";
         el.editor.style.display = "block";
         el.editor.classList.remove("page-fade-in");
@@ -4228,6 +4359,19 @@
         title: "Untitled mind map",
         nodes: [{ id: uid(), x: 620, y: 420, text: "Main idea", color: MINDMAP_COLORS[0] }],
         edges: [],
+        updatedAt: Date.now()
+      };
+    } else if (fileType === "canvas") {
+      file = {
+        id: uid(),
+        kind: "file",
+        type: "canvas",
+        title: "Untitled canvas",
+        cards: [],
+        canvasEdges: [],
+        zoom: 1,
+        panX: 0,
+        panY: 0,
         updatedAt: Date.now()
       };
     } else {
@@ -7161,6 +7305,399 @@
     var y = Math.max(0, e.clientY - rect.top - 20);
     addMindmapNode(page, x, y);
   });
+
+  /* =========================================================
+     CANVAS
+     An infinite pannable/zoomable board where whole pages get dragged
+     in as cards and arranged/connected — bigger and freer-form than
+     the mind map, closer to Obsidian's Canvas plugin. A card just
+     stores a reference (pageId + position); the title/icon/preview
+     shown on it is always read live off the real page, so editing
+     that page elsewhere keeps the card up to date automatically.
+     ========================================================= */
+  var CANVAS_ZOOM_MIN = 0.3;
+  var CANVAS_ZOOM_MAX = 2.5;
+
+  function onCanvasChanged(page) {
+    page.updatedAt = Date.now();
+    el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
+    scheduleSave();
+  }
+
+  function canvasCardPreviewText(sourcePage) {
+    if (!sourcePage) return "";
+    if (sourcePage.type === "mindmap") {
+      var n = (sourcePage.nodes || []).length;
+      return "Mind map · " + n + (n === 1 ? " node" : " nodes");
+    }
+    if (sourcePage.type === "canvas") return "Canvas";
+    var div = document.createElement("div");
+    div.innerHTML = sourcePage.content || "";
+    var text = (div.textContent || "").replace(/\s+/g, " ").trim();
+    return text.length > 90 ? text.slice(0, 90).trim() + "…" : text;
+  }
+
+  function applyCanvasTransform() {
+    var page = getActivePage();
+    if (!page) return;
+    el.canvasSurface.style.transform = "translate(" + page.panX + "px, " + page.panY + "px) scale(" + page.zoom + ")";
+    el.canvasZoomLabel.textContent = Math.round(page.zoom * 100) + "%";
+  }
+
+  function canvasCardCenter(card) {
+    var cardEl = el.canvasSurface.querySelector('.canvas-card[data-card-id="' + card.id + '"]');
+    if (!cardEl) return { x: card.x, y: card.y };
+    return { x: card.x + cardEl.offsetWidth / 2, y: card.y + cardEl.offsetHeight / 2 };
+  }
+
+  function setCanvasHighlight(cardId, on) {
+    el.canvasEdges.querySelectorAll(".canvas-edge-line").forEach(function (line) {
+      if (line.dataset.from === cardId || line.dataset.to === cardId) {
+        line.classList.toggle("connected-highlight", on);
+        var otherId = line.dataset.from === cardId ? line.dataset.to : line.dataset.from;
+        var otherEl = el.canvasSurface.querySelector('.canvas-card[data-card-id="' + otherId + '"]');
+        if (otherEl) otherEl.classList.toggle("connected-highlight", on);
+      }
+    });
+  }
+
+  function updateCanvasEdgePositions(page) {
+    el.canvasEdges.querySelectorAll("line.canvas-edge-line").forEach(function (line) {
+      var fromCard = page.cards.find(function (c) { return c.id === line.dataset.from; });
+      var toCard = page.cards.find(function (c) { return c.id === line.dataset.to; });
+      if (!fromCard || !toCard) return;
+      var c1 = canvasCardCenter(fromCard);
+      var c2 = canvasCardCenter(toCard);
+      line.setAttribute("x1", c1.x);
+      line.setAttribute("y1", c1.y);
+      line.setAttribute("x2", c2.x);
+      line.setAttribute("y2", c2.y);
+      var hit = el.canvasEdges.querySelector('line.canvas-edge-hit[data-edge-id="' + line.dataset.edgeId + '"]');
+      if (hit) {
+        hit.setAttribute("x1", c1.x);
+        hit.setAttribute("y1", c1.y);
+        hit.setAttribute("x2", c2.x);
+        hit.setAttribute("y2", c2.y);
+      }
+    });
+  }
+
+  function createCanvasEdge(page, fromId, toId) {
+    var exists = page.canvasEdges.some(function (e) {
+      return (e.from === fromId && e.to === toId) || (e.from === toId && e.to === fromId);
+    });
+    if (exists || fromId === toId) return;
+    page.canvasEdges.push({ id: uid(), from: fromId, to: toId });
+    renderCanvas(page);
+    onCanvasChanged(page);
+  }
+
+  function deleteCanvasEdge(page, edgeId) {
+    page.canvasEdges = page.canvasEdges.filter(function (e) { return e.id !== edgeId; });
+    renderCanvas(page);
+    onCanvasChanged(page);
+  }
+
+  function deleteCanvasCard(page, cardId) {
+    page.cards = page.cards.filter(function (c) { return c.id !== cardId; });
+    page.canvasEdges = page.canvasEdges.filter(function (e) { return e.from !== cardId && e.to !== cardId; });
+    renderCanvas(page);
+    onCanvasChanged(page);
+  }
+
+  function attachCanvasCardDrag(page, card, cardEl, headerEl) {
+    var dragging = false;
+    var pointerId = null;
+    var startClientX, startClientY, startX, startY;
+
+    cardEl.addEventListener("pointerdown", function (e) {
+      if (e.target === headerEl || headerEl.contains(e.target)) return;
+      if (e.target.classList.contains("canvas-card-delete") || e.target.classList.contains("canvas-card-handle")) return;
+      pointerId = e.pointerId;
+      startClientX = e.clientX;
+      startClientY = e.clientY;
+      startX = card.x;
+      startY = card.y;
+      dragging = false;
+      try { cardEl.setPointerCapture(pointerId); } catch (err) { /* ignore */ }
+    });
+
+    cardEl.addEventListener("pointermove", function (e) {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      var zoom = getActivePage().zoom || 1;
+      var dx = (e.clientX - startClientX) / zoom;
+      var dy = (e.clientY - startClientY) / zoom;
+      if (!dragging && Math.hypot(dx, dy) < 4) return;
+      dragging = true;
+      cardEl.classList.add("dragging");
+      card.x = Math.max(0, startX + dx);
+      card.y = Math.max(0, startY + dy);
+      cardEl.style.left = card.x + "px";
+      cardEl.style.top = card.y + "px";
+      updateCanvasEdgePositions(page);
+    });
+
+    function endDrag(e) {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      if (dragging) {
+        cardEl.classList.remove("dragging");
+        onCanvasChanged(page);
+      }
+      dragging = false;
+      pointerId = null;
+    }
+    cardEl.addEventListener("pointerup", endDrag);
+    cardEl.addEventListener("pointercancel", endDrag);
+  }
+
+  function attachCanvasConnectHandle(page, card, handle) {
+    var active = false;
+    var pointerId = null;
+    var tempLine = null;
+
+    handle.addEventListener("pointerdown", function (e) {
+      e.stopPropagation();
+      active = true;
+      pointerId = e.pointerId;
+      try { handle.setPointerCapture(pointerId); } catch (err) { /* ignore */ }
+      tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      tempLine.setAttribute("stroke", "#9a9aa2");
+      tempLine.setAttribute("stroke-width", "2");
+      tempLine.setAttribute("stroke-dasharray", "5,4");
+      var start = canvasCardCenter(card);
+      tempLine.setAttribute("x1", start.x);
+      tempLine.setAttribute("y1", start.y);
+      tempLine.setAttribute("x2", start.x);
+      tempLine.setAttribute("y2", start.y);
+      el.canvasEdges.appendChild(tempLine);
+    });
+
+    handle.addEventListener("pointermove", function (e) {
+      if (!active || e.pointerId !== pointerId || !tempLine) return;
+      var rect = el.canvasSurface.getBoundingClientRect();
+      var zoom = page.zoom || 1;
+      var x = (e.clientX - rect.left) / zoom;
+      var y = (e.clientY - rect.top) / zoom;
+      tempLine.setAttribute("x2", x);
+      tempLine.setAttribute("y2", y);
+    });
+
+    function endConnect(e) {
+      if (!active || e.pointerId !== pointerId) return;
+      active = false;
+      pointerId = null;
+      if (tempLine) { tempLine.remove(); tempLine = null; }
+      var targetEl = document.elementFromPoint(e.clientX, e.clientY);
+      var targetCardEl = targetEl && targetEl.closest && targetEl.closest(".canvas-card");
+      if (targetCardEl && targetCardEl.dataset.cardId !== card.id) {
+        createCanvasEdge(page, card.id, targetCardEl.dataset.cardId);
+      }
+    }
+    handle.addEventListener("pointerup", endConnect);
+    handle.addEventListener("pointercancel", endConnect);
+  }
+
+  function createCanvasCardEl(page, card) {
+    var sourcePath = findItemPath(card.pageId);
+    var sourcePage = sourcePath ? sourcePath[sourcePath.length - 1] : null;
+
+    var cardEl = document.createElement("div");
+    cardEl.className = "canvas-card";
+    cardEl.style.left = card.x + "px";
+    cardEl.style.top = card.y + "px";
+    cardEl.dataset.cardId = card.id;
+
+    if (!sourcePage) {
+      var missing = document.createElement("div");
+      missing.className = "canvas-card-preview";
+      missing.textContent = "This page was deleted.";
+      cardEl.appendChild(missing);
+    } else {
+      var header = document.createElement("div");
+      header.className = "canvas-card-header";
+      var avatar = document.createElement("span");
+      applyAvatar(avatar, sourcePage, true);
+      header.appendChild(avatar);
+      var titleSpan = document.createElement("span");
+      titleSpan.textContent = sourcePage.title || "Untitled";
+      header.appendChild(titleSpan);
+      header.addEventListener("click", function () { openPage(sourcePage.id); });
+      cardEl.appendChild(header);
+
+      var preview = document.createElement("div");
+      preview.className = "canvas-card-preview";
+      preview.textContent = canvasCardPreviewText(sourcePage);
+      cardEl.appendChild(preview);
+
+      attachCanvasCardDrag(page, card, cardEl, header);
+    }
+
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "canvas-card-delete";
+    delBtn.textContent = "×";
+    delBtn.title = "Remove from canvas";
+    delBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      deleteCanvasCard(page, card.id);
+    });
+    cardEl.appendChild(delBtn);
+
+    var handle = document.createElement("div");
+    handle.className = "canvas-card-handle";
+    handle.title = "Drag to another card to connect";
+    cardEl.appendChild(handle);
+    attachCanvasConnectHandle(page, card, handle);
+
+    cardEl.addEventListener("mouseenter", function () { setCanvasHighlight(card.id, true); });
+    cardEl.addEventListener("mouseleave", function () { setCanvasHighlight(card.id, false); });
+
+    return cardEl;
+  }
+
+  function renderCanvas(page) {
+    if (!page.cards) page.cards = [];
+    if (!page.canvasEdges) page.canvasEdges = [];
+    if (typeof page.zoom !== "number") page.zoom = 1;
+    if (typeof page.panX !== "number") page.panX = 0;
+    if (typeof page.panY !== "number") page.panY = 0;
+
+    el.canvasSurface.querySelectorAll(".canvas-card").forEach(function (n) { n.remove(); });
+    clearChildren(el.canvasEdges);
+    el.canvasEmptyHint.style.display = page.cards.length ? "none" : "block";
+
+    page.cards.forEach(function (card) {
+      el.canvasSurface.appendChild(createCanvasCardEl(page, card));
+    });
+
+    page.canvasEdges.forEach(function (edge) {
+      var fromCard = page.cards.find(function (c) { return c.id === edge.from; });
+      var toCard = page.cards.find(function (c) { return c.id === edge.to; });
+      if (!fromCard || !toCard) return;
+      var c1 = canvasCardCenter(fromCard);
+      var c2 = canvasCardCenter(toCard);
+
+      var hit = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hit.setAttribute("class", "canvas-edge-hit");
+      hit.setAttribute("stroke", "transparent");
+      hit.setAttribute("stroke-width", "14");
+      hit.dataset.edgeId = edge.id;
+      hit.setAttribute("x1", c1.x);
+      hit.setAttribute("y1", c1.y);
+      hit.setAttribute("x2", c2.x);
+      hit.setAttribute("y2", c2.y);
+      hit.addEventListener("click", function () {
+        showConfirmModal("🔗 Remove connection?", "Remove this connection between cards?", { confirmLabel: "Remove", danger: true }).then(function (confirmed) {
+          if (confirmed) deleteCanvasEdge(page, edge.id);
+        });
+      });
+
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("class", "canvas-edge-line");
+      line.setAttribute("stroke", "#9a9aa2");
+      line.setAttribute("stroke-width", "2.4");
+      line.dataset.from = edge.from;
+      line.dataset.to = edge.to;
+      line.dataset.edgeId = edge.id;
+      line.setAttribute("x1", c1.x);
+      line.setAttribute("y1", c1.y);
+      line.setAttribute("x2", c2.x);
+      line.setAttribute("y2", c2.y);
+
+      el.canvasEdges.appendChild(hit);
+      el.canvasEdges.appendChild(line);
+    });
+
+    applyCanvasTransform();
+  }
+
+  function addCanvasCard(page, pageId, x, y) {
+    if (page.cards.some(function (c) { return c.pageId === pageId; })) return; // already on the board
+    page.cards.push({ id: uid(), pageId: pageId, x: x, y: y });
+    renderCanvas(page);
+    onCanvasChanged(page);
+  }
+
+  el.canvasAddPageBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    showLinkPickerModal("").then(function (result) {
+      if (!result || result.type !== "page" || result.id === page.id) return;
+      var x = 60 + Math.random() * 300;
+      var y = 60 + Math.random() * 220;
+      addCanvasCard(page, result.id, x, y);
+    });
+  });
+
+  el.canvasZoomInBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    page.zoom = Math.min(CANVAS_ZOOM_MAX, Math.round((page.zoom + 0.1) * 100) / 100);
+    applyCanvasTransform();
+    onCanvasChanged(page);
+  });
+  el.canvasZoomOutBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    page.zoom = Math.max(CANVAS_ZOOM_MIN, Math.round((page.zoom - 0.1) * 100) / 100);
+    applyCanvasTransform();
+    onCanvasChanged(page);
+  });
+  el.canvasZoomResetBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    page.zoom = 1;
+    page.panX = 0;
+    page.panY = 0;
+    applyCanvasTransform();
+    onCanvasChanged(page);
+  });
+
+  el.canvasWrap.addEventListener("wheel", function (e) {
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? -0.08 : 0.08;
+    page.zoom = Math.max(CANVAS_ZOOM_MIN, Math.min(CANVAS_ZOOM_MAX, Math.round((page.zoom + delta) * 100) / 100));
+    applyCanvasTransform();
+    onCanvasChanged(page);
+  }, { passive: false });
+
+  var canvasPanning = false;
+  var canvasPanPointerId = null;
+  var canvasPanStartX, canvasPanStartY, canvasPanOriginX, canvasPanOriginY;
+
+  el.canvasWrap.addEventListener("pointerdown", function (e) {
+    if (e.target.closest && e.target.closest(".canvas-card")) return;
+    var page = getActivePage();
+    if (!page || page.type !== "canvas") return;
+    canvasPanning = true;
+    canvasPanPointerId = e.pointerId;
+    canvasPanStartX = e.clientX;
+    canvasPanStartY = e.clientY;
+    canvasPanOriginX = page.panX;
+    canvasPanOriginY = page.panY;
+    el.canvasWrap.classList.add("panning");
+    try { el.canvasWrap.setPointerCapture(canvasPanPointerId); } catch (err) { /* ignore */ }
+  });
+  el.canvasWrap.addEventListener("pointermove", function (e) {
+    if (!canvasPanning || e.pointerId !== canvasPanPointerId) return;
+    var page = getActivePage();
+    if (!page) return;
+    page.panX = canvasPanOriginX + (e.clientX - canvasPanStartX);
+    page.panY = canvasPanOriginY + (e.clientY - canvasPanStartY);
+    applyCanvasTransform();
+  });
+  function endCanvasPan(e) {
+    if (!canvasPanning || e.pointerId !== canvasPanPointerId) return;
+    canvasPanning = false;
+    canvasPanPointerId = null;
+    el.canvasWrap.classList.remove("panning");
+    var page = getActivePage();
+    if (page) onCanvasChanged(page);
+  }
+  el.canvasWrap.addEventListener("pointerup", endCanvasPan);
+  el.canvasWrap.addEventListener("pointercancel", endCanvasPan);
 
   /* =========================================================
      EXPORT / IMPORT
