@@ -136,7 +136,59 @@
     font-size: 11px;
     color: var(--text-muted);
     margin-top: 2px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: default;
   }
+  .sidebar-header .subtitle.workspace-switchable {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .sidebar-header .subtitle.workspace-switchable:hover { color: var(--text); text-decoration: underline; }
+  .sidebar-header .subtitle.workspace-switchable::after { content: "▾"; font-size: 9px; opacity: 0.7; }
+
+  .workspace-list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 10px 0 16px; }
+  .workspace-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .workspace-row:hover { background: var(--hover); }
+  .workspace-row.active { border-color: var(--accent); background: var(--hover); }
+  .workspace-row .workspace-row-icon { flex: none; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+  .workspace-row .workspace-row-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-row .workspace-row-check { flex: none; color: var(--accent); font-weight: 700; font-size: 13px; }
+  .workspace-row .workspace-invite-btn {
+    flex: none;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+  .workspace-row .workspace-invite-btn:hover { color: var(--text); border-color: var(--accent); }
+  .workspace-switcher-actions { display: flex; gap: 8px; }
+  .workspace-switcher-actions button {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .workspace-switcher-actions button:hover { border-color: var(--accent); color: var(--accent); }
   .close-sidebar-btn {
     display: none;
     background: none;
@@ -1793,7 +1845,7 @@
         <svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#obsitionLogoSymbol" xlink:href="#obsitionLogoSymbol"></use></svg>
         <div>
           <h1>Obsition</h1>
-          <div class="subtitle" id="sidebarSubtitle">Private, offline-first writing</div>
+          <button type="button" class="subtitle" id="sidebarSubtitle">Private, offline-first writing</button>
         </div>
       </div>
       <button class="close-sidebar-btn" id="closeSidebarBtn" title="Close">&times;</button>
@@ -2125,6 +2177,21 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="workspaceSwitcherModal">
+  <div class="modal-card members-modal-card">
+    <h3>Workspaces</h3>
+    <p>Each workspace has its own members, chat, and shared pages. Your own pages stay with your account and aren't split up by workspace.</p>
+    <div class="workspace-list" id="workspaceList"></div>
+    <div class="workspace-switcher-actions">
+      <button type="button" id="joinWorkspaceBtn">🔑 Join with code</button>
+      <button type="button" id="createWorkspaceBtn">+ Create workspace</button>
+    </div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="workspaceSwitcherClose" class="primary">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="notificationsModal">
   <div class="modal-card members-modal-card">
     <h3>Notifications</h3>
@@ -2179,7 +2246,7 @@
 
 <div class="chat-overlay" id="chatOverlay" style="display:none;">
   <div class="chat-topbar">
-    <strong>Family Chat</strong>
+    <strong id="chatTitle">Family Chat</strong>
     <span class="chat-hint">Shared with anyone signed in to sync with this notebook</span>
     <button type="button" id="chatCloseBtn">Close</button>
   </div>
@@ -2232,7 +2299,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.6";
+  var BUILD_ID = "2026-07-13.7";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2789,6 +2856,12 @@
     graphViewNodes: document.getElementById("graphViewNodes"),
     graphViewEmpty: document.getElementById("graphViewEmpty"),
     chatBtn: document.getElementById("chatBtn"),
+    chatTitle: document.getElementById("chatTitle"),
+    workspaceSwitcherModal: document.getElementById("workspaceSwitcherModal"),
+    workspaceList: document.getElementById("workspaceList"),
+    joinWorkspaceBtn: document.getElementById("joinWorkspaceBtn"),
+    createWorkspaceBtn: document.getElementById("createWorkspaceBtn"),
+    workspaceSwitcherClose: document.getElementById("workspaceSwitcherClose"),
     membersBtn: document.getElementById("membersBtn"),
     membersModal: document.getElementById("membersModal"),
     membersModalTitle: document.getElementById("membersModalTitle"),
@@ -4299,7 +4372,7 @@
       ts: Date.now(),
       read: false
     };
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + toUid, "POST", notif);
+    rtdbRequestAtPath(authSession, wsPath("notifications/" + toUid), "POST", notif);
   }
 
   function pushMentionNotification(member, pageId, pageTitle) {
@@ -4354,11 +4427,11 @@
 
   function fetchNotifications() {
     if (!authSession) return Promise.resolve({ ok: false });
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + authSession.uid, "GET");
+    return rtdbRequestAtPath(authSession, wsPath("notifications/" + authSession.uid), "GET");
   }
 
   function markNotificationRead(notifId) {
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/notifications/" + authSession.uid + "/" + notifId + "/read", "PUT", true);
+    rtdbRequestAtPath(authSession, wsPath("notifications/" + authSession.uid + "/" + notifId + "/read"), "PUT", true);
   }
 
   function refreshNotificationsBadge() {
@@ -5077,13 +5150,12 @@
      pushed live, since this app talks to Firebase over plain REST
      rather than the SDK's WebSocket connection.
      ========================================================= */
-  var FAMILY_CHAT_PATH = "familyChat/messages";
   var chatPollTimer = null;
   var chatOpen = false;
   var chatSending = false;
 
   function fetchChatMessages() {
-    return rtdbRequestAtPath(authSession, FAMILY_CHAT_PATH, "GET");
+    return rtdbRequestAtPath(authSession, workspaceChatPath(currentWorkspaceId), "GET");
   }
 
   function sendChatMessageRaw(text) {
@@ -5098,7 +5170,7 @@
       eyes: profile.eyes || "dot",
       accessory: profile.accessory || "none"
     };
-    return rtdbRequestAtPath(authSession, FAMILY_CHAT_PATH, "POST", payload);
+    return rtdbRequestAtPath(authSession, workspaceChatPath(currentWorkspaceId), "POST", payload);
   }
 
   function formatChatTime(ts) {
@@ -5202,6 +5274,7 @@
   function openChatPanel() {
     chatOpen = true;
     el.chatOverlay.style.display = "flex";
+    el.chatTitle.textContent = currentWorkspaceId === LEGACY_WORKSPACE_ID ? "Family Chat" : (workspaceName || "Workspace") + " Chat";
     hideChatError();
     if (!isFirebaseConfigured() || !authSession) {
       el.chatSignedOut.style.display = "flex";
@@ -5252,22 +5325,56 @@
   });
 
   /* =========================================================
-     FAMILY WORKSPACE — identity + member roster
+     WORKSPACES — identity + member roster, and switching between them
      A real workspace needs to know who's actually in it. Everything
-     workspace-related (members, shared pages, comments, notifications)
-     lives under one Firebase path so it only needs one security rule.
+     workspace-related (members, shared pages, comments, notifications,
+     chat) lives under one Firebase path per workspace so it only needs
+     one security rule per workspace.
+
+     The very first workspace this app ever had predates the multi-
+     workspace feature and lives at the flat "familyWorkspace" (and
+     "familyChat") paths — kept exactly where they've always been so
+     nothing has to be migrated. Every workspace created since lives
+     under "workspaces/<id>". workspaceBase()/workspaceChatPath() paper
+     over that split so the rest of the code just calls wsPath(...).
+
+     Your own pages are NOT scoped by workspace — they live at
+     /users/$uid same as always. A workspace only scopes the
+     collaboration layer: who you're chatting with, and which of your
+     pages are visible to them.
      ========================================================= */
-  var FAMILY_WORKSPACE_PATH = "familyWorkspace";
+  var LEGACY_WORKSPACE_ID = "familyWorkspace";
+  var CURRENT_WORKSPACE_CACHE_KEY = "obsitionCurrentWorkspace";
   var WORKSPACE_NAME_CACHE_KEY = "obsitionWorkspaceNameCache";
+
+  function loadCachedCurrentWorkspaceId() {
+    try { return window.localStorage.getItem(CURRENT_WORKSPACE_CACHE_KEY) || LEGACY_WORKSPACE_ID; } catch (e) { return LEGACY_WORKSPACE_ID; }
+  }
+  function cacheCurrentWorkspaceId(id) {
+    try { window.localStorage.setItem(CURRENT_WORKSPACE_CACHE_KEY, id); } catch (e) { /* ignore */ }
+  }
+
+  var currentWorkspaceId = loadCachedCurrentWorkspaceId();
+
+  function workspaceBase(id) {
+    return id === LEGACY_WORKSPACE_ID ? "familyWorkspace" : "workspaces/" + id;
+  }
+  function workspaceChatPath(id) {
+    return id === LEGACY_WORKSPACE_ID ? "familyChat/messages" : "workspaces/" + id + "/chat/messages";
+  }
+  function wsPath(sub) {
+    return workspaceBase(currentWorkspaceId) + (sub ? "/" + sub : "");
+  }
+
   var workspaceName = "";
   var memberRoster = {};
   var memberRosterSyncTimer = null;
 
-  function loadCachedWorkspaceName() {
-    try { return window.localStorage.getItem(WORKSPACE_NAME_CACHE_KEY) || ""; } catch (e) { return ""; }
+  function loadCachedWorkspaceName(id) {
+    try { return window.localStorage.getItem(WORKSPACE_NAME_CACHE_KEY + ":" + id) || ""; } catch (e) { return ""; }
   }
-  function cacheWorkspaceName(name) {
-    try { window.localStorage.setItem(WORKSPACE_NAME_CACHE_KEY, name); } catch (e) { /* ignore */ }
+  function cacheWorkspaceName(id, name) {
+    try { window.localStorage.setItem(WORKSPACE_NAME_CACHE_KEY + ":" + id, name); } catch (e) { /* ignore */ }
   }
 
   function pushMemberRoster() {
@@ -5282,7 +5389,7 @@
       updatedAt: Date.now()
     };
     memberRoster[authSession.uid] = payload;
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/members/" + authSession.uid, "PUT", payload);
+    rtdbRequestAtPath(authSession, wsPath("members/" + authSession.uid), "PUT", payload);
   }
 
   // Debounced so typing your name doesn't fire a request per keystroke.
@@ -5294,39 +5401,195 @@
 
   function fetchMemberRoster() {
     if (!authSession) return Promise.resolve({ ok: false, message: "Sign in to see workspace members." });
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/members", "GET");
+    return rtdbRequestAtPath(authSession, wsPath("members"), "GET");
   }
 
   function fetchWorkspaceName() {
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/name", "GET");
+    return rtdbRequestAtPath(authSession, wsPath("name"), "GET");
   }
 
   function pushWorkspaceName(name) {
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/name", "PUT", name);
+    return rtdbRequestAtPath(authSession, wsPath("name"), "PUT", name);
   }
 
   function applyWorkspaceName(name) {
     workspaceName = name || "";
-    cacheWorkspaceName(workspaceName);
+    cacheWorkspaceName(currentWorkspaceId, workspaceName);
     el.sidebarSubtitle.textContent = workspaceName ? workspaceName + " workspace" : "Private writing, synced to your account";
     if (el.settingsWorkspaceNameInput && document.activeElement !== el.settingsWorkspaceNameInput) {
       el.settingsWorkspaceNameInput.value = workspaceName;
     }
+    registerUserWorkspace(currentWorkspaceId, workspaceName);
   }
 
   function loadWorkspaceInfo() {
     if (!authSession) return;
-    workspaceName = loadCachedWorkspaceName();
+    el.sidebarSubtitle.classList.add("workspace-switchable");
+    workspaceName = loadCachedWorkspaceName(currentWorkspaceId);
     if (workspaceName) el.sidebarSubtitle.textContent = workspaceName + " workspace";
     pushMemberRoster();
     fetchWorkspaceName().then(function (result) {
-      if (result.ok && result.data) applyWorkspaceName(result.data);
+      if (result.ok) applyWorkspaceName(result.data || "");
     });
     refreshSharedWithYou();
     refreshNotificationsBadge();
     if (!notificationsPollTimer) notificationsPollTimer = setInterval(refreshNotificationsBadge, 30000);
     openSharedLinkFromHash();
   }
+
+  /* =========================================================
+     MULTIPLE WORKSPACES
+     A user can belong to more than one workspace — e.g. a family one
+     and a separate one with friends. "userWorkspaces/$uid" is a
+     per-account index of which workspaces to offer in the switcher;
+     it's the only new node that's actually scoped to one account
+     (see the security rules), everything else keeps the same
+     all-workspace-members-can-read-and-write trust model already used
+     for the original family workspace.
+     ========================================================= */
+  function registerUserWorkspace(id, name) {
+    if (!authSession) return;
+    rtdbRequestAtPath(authSession, "userWorkspaces/" + authSession.uid + "/" + id, "PUT", { name: name || "", joinedAt: Date.now() });
+  }
+
+  function fetchUserWorkspaces() {
+    if (!authSession) return Promise.resolve({ ok: false });
+    return rtdbRequestAtPath(authSession, "userWorkspaces/" + authSession.uid, "GET");
+  }
+
+  // Closes anything showing data that belongs to the workspace we're
+  // leaving — none of it applies once we've switched.
+  function closeWorkspaceScopedPanels() {
+    if (chatOpen) closeChatPanel();
+    hideMembersModal();
+    hideNotificationsModal();
+    if (el.sharedViewOverlay.style.display !== "none") closeSharedPageView();
+  }
+
+  function switchWorkspace(id, knownName) {
+    if (id === currentWorkspaceId) { hideWorkspaceSwitcherModal(); return; }
+    closeWorkspaceScopedPanels();
+    currentWorkspaceId = id;
+    cacheCurrentWorkspaceId(id);
+    memberRoster = {};
+    applyWorkspaceName(knownName || loadCachedWorkspaceName(id));
+    hideWorkspaceSwitcherModal();
+    loadWorkspaceInfo();
+  }
+
+  function randomInviteCode() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I — easy to read aloud
+    var code = "";
+    for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  }
+
+  function createWorkspace() {
+    if (!authSession) return;
+    showPromptModal("Create a workspace", "", "e.g. Erdan & Friends").then(function (name) {
+      name = (name || "").trim();
+      if (!name) return;
+      var id = uid();
+      rtdbRequestAtPath(authSession, "workspaces/" + id + "/name", "PUT", name).then(function () {
+        switchWorkspace(id, name);
+      });
+    });
+  }
+
+  function joinWorkspaceByCode() {
+    if (!authSession) return;
+    showPromptModal("Join a workspace", "", "Paste invite code").then(function (code) {
+      code = (code || "").trim().toUpperCase();
+      if (!code) return;
+      rtdbRequestAtPath(authSession, "workspaceInvites/" + code, "GET").then(function (result) {
+        if (!result.ok || !result.data || !result.data.workspaceId) {
+          showAlertModal("Invalid code", "That invite code doesn't match any workspace.");
+          return;
+        }
+        switchWorkspace(result.data.workspaceId, result.data.workspaceName);
+      });
+    });
+  }
+
+  function createInviteForWorkspace(id, name) {
+    if (!authSession) return;
+    var code = randomInviteCode();
+    var payload = { workspaceId: id, workspaceName: name || "Workspace", createdBy: authSession.uid, createdAt: Date.now() };
+    rtdbRequestAtPath(authSession, "workspaceInvites/" + code, "PUT", payload).then(function (result) {
+      if (!result.ok) { showAlertModal("Couldn't create an invite", result.message || "Try again."); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).catch(function () {});
+      }
+      showAlertModal(
+        "Invite code for “" + (name || "Workspace") + "”",
+        "Code: " + code + " (copied to your clipboard). Share it with whoever you want to add — they can join from Workspaces → Join with code."
+      );
+    });
+  }
+
+  function renderWorkspaceList(list) {
+    clearChildren(el.workspaceList);
+    var ids = Object.keys(list || {});
+    // Always offer the legacy default workspace, even for an account
+    // that hasn't been auto-registered into userWorkspaces yet.
+    if (ids.indexOf(LEGACY_WORKSPACE_ID) === -1) ids.unshift(LEGACY_WORKSPACE_ID);
+    ids.forEach(function (id) {
+      var entry = list && list[id];
+      var name = (entry && entry.name) || loadCachedWorkspaceName(id) || (id === LEGACY_WORKSPACE_ID ? "Family" : "Untitled workspace");
+      var row = document.createElement("div");
+      row.className = "workspace-row" + (id === currentWorkspaceId ? " active" : "");
+
+      var icon = document.createElement("span");
+      icon.className = "workspace-row-icon";
+      icon.textContent = (name.trim().charAt(0) || "?").toUpperCase();
+      row.appendChild(icon);
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "workspace-row-name";
+      nameEl.textContent = name;
+      row.appendChild(nameEl);
+
+      if (id === currentWorkspaceId) {
+        var check = document.createElement("span");
+        check.className = "workspace-row-check";
+        check.textContent = "✓";
+        row.appendChild(check);
+      }
+
+      var inviteBtn = document.createElement("button");
+      inviteBtn.type = "button";
+      inviteBtn.className = "workspace-invite-btn";
+      inviteBtn.textContent = "Invite";
+      inviteBtn.title = "Get an invite code for this workspace";
+      inviteBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        createInviteForWorkspace(id, name);
+      });
+      row.appendChild(inviteBtn);
+
+      row.addEventListener("click", function () { switchWorkspace(id, name); });
+      el.workspaceList.appendChild(row);
+    });
+  }
+
+  function showWorkspaceSwitcherModal() {
+    if (!authSession) return;
+    el.workspaceSwitcherModal.style.display = "flex";
+    clearChildren(el.workspaceList);
+    var loading = document.createElement("div");
+    loading.className = "members-empty-msg";
+    loading.textContent = "Loading…";
+    el.workspaceList.appendChild(loading);
+    fetchUserWorkspaces().then(function (result) {
+      renderWorkspaceList(result.ok ? result.data : null);
+    });
+  }
+  function hideWorkspaceSwitcherModal() { el.workspaceSwitcherModal.style.display = "none"; }
+
+  el.sidebarSubtitle.addEventListener("click", showWorkspaceSwitcherModal);
+  el.workspaceSwitcherClose.addEventListener("click", hideWorkspaceSwitcherModal);
+  el.createWorkspaceBtn.addEventListener("click", createWorkspace);
+  el.joinWorkspaceBtn.addEventListener("click", joinWorkspaceByCode);
 
   /* =========================================================
      MEMBERS PANEL
@@ -5471,12 +5734,12 @@
 
   function pushSharedPage(item) {
     if (!authSession) return;
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + item.id, "PUT", sharedPagePayload(item));
+    rtdbRequestAtPath(authSession, wsPath("sharedPages/" + item.id), "PUT", sharedPagePayload(item));
   }
 
   function unshareSharedPage(itemId) {
     if (!authSession) return;
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + itemId, "DELETE");
+    rtdbRequestAtPath(authSession, wsPath("sharedPages/" + itemId), "DELETE");
   }
 
   // Deleting a folder can delete several shared pages at once — a shared
@@ -5562,7 +5825,7 @@
 
   function fetchAllSharedPages() {
     if (!authSession) return Promise.resolve({ ok: false });
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages", "GET");
+    return rtdbRequestAtPath(authSession, wsPath("sharedPages"), "GET");
   }
 
   function renderSharedWithYouSection(allShared) {
@@ -5697,7 +5960,7 @@
   var currentCommentsPageId = null;
 
   function fetchPageComments(pageId) {
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/comments/" + pageId, "GET");
+    return rtdbRequestAtPath(authSession, wsPath("comments/" + pageId), "GET");
   }
 
   function postPageComment(pageId, text) {
@@ -5711,7 +5974,7 @@
       eyes: profile.eyes || "dot",
       accessory: profile.accessory || "none"
     };
-    return rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/comments/" + pageId, "POST", payload);
+    return rtdbRequestAtPath(authSession, wsPath("comments/" + pageId), "POST", payload);
   }
 
   function renderPageComments(data) {
@@ -5821,7 +6084,7 @@
     var match = /#shared=([^&]+)/.exec(location.hash);
     if (!match || !authSession) return;
     var pageId = decodeURIComponent(match[1]);
-    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + pageId, "GET").then(function (result) {
+    rtdbRequestAtPath(authSession, wsPath("sharedPages/" + pageId), "GET").then(function (result) {
       if (result.ok && result.data) {
         openSharedPageView(pageId, result.data);
       } else {
