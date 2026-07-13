@@ -1182,6 +1182,26 @@
   #pageTitleAvatar { cursor: pointer; }
   #pageTitleAvatar:hover { filter: brightness(0.94); }
 
+  .daily-note-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 8px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .daily-note-nav button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .daily-note-nav button:hover { color: var(--text); border-color: var(--accent); }
+  .daily-note-nav span { font-weight: 600; color: var(--text); }
+
   .page-header-actions { display: flex; gap: 6px; padding: 2px 0 4px; }
   .page-header-actions button {
     background: none;
@@ -2025,6 +2045,7 @@
         </span>
         <span class="profile-row-gear">&#9881;</span>
       </button>
+      <button type="button" id="todayNoteBtn" class="trash-btn" title="Open (or create) today's daily note">📅 Today's Note</button>
       <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">🕸️ Graph view</button>
       <button type="button" id="chatBtn" class="trash-btn" title="Chat with everyone signed in to this notebook" style="display:none;">💬 Chat</button>
       <button type="button" id="membersBtn" class="trash-btn" title="See everyone in this workspace" style="display:none;">👥 Members</button>
@@ -2055,6 +2076,12 @@
         <button type="button" id="navForwardBtn" class="nav-history-btn" title="Forward" disabled>&rarr;</button>
       </div>
       <div class="breadcrumb" id="breadcrumb"></div>
+      <div class="daily-note-nav" id="dailyNoteNav" style="display:none;">
+        <button type="button" id="dailyNotePrevBtn" title="Previous day">&larr;</button>
+        <span id="dailyNoteNavLabel"></span>
+        <button type="button" id="dailyNoteTodayBtn">Today</button>
+        <button type="button" id="dailyNoteNextBtn" title="Next day">&rarr;</button>
+      </div>
       <div class="page-cover" id="pageCover" style="display:none;">
         <div class="page-cover-actions">
           <button type="button" id="pageCoverChangeBtn" title="Change cover">Change cover</button>
@@ -2480,7 +2507,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.12";
+  var BUILD_ID = "2026-07-13.13";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2790,6 +2817,85 @@
     el.coverPickerModal.style.display = "flex";
   }
   function hideCoverPickerModal() { el.coverPickerModal.style.display = "none"; }
+
+  /* =========================================================
+     DAILY NOTES
+     A one-click "today's note" that auto-creates a dated journal page
+     under a "Daily Notes" folder the first time it's opened, with
+     yesterday/today/tomorrow navigation once you're on one. Dates use
+     the local calendar day, not UTC, so "today" matches the clock the
+     person actually reads.
+     ========================================================= */
+  var DAILY_NOTES_FOLDER_NAME = "Daily Notes";
+
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+
+  function dateKeyFor(date) {
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+  }
+
+  function dateFromKey(dateKey) {
+    var parts = dateKey.split("-").map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+
+  function shiftDateKey(dateKey, days) {
+    var d = dateFromKey(dateKey);
+    d.setDate(d.getDate() + days);
+    return dateKeyFor(d);
+  }
+
+  function dailyNoteTitleFor(dateKey) {
+    var d = dateFromKey(dateKey);
+    return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  }
+
+  function findDailyNotesFolder() {
+    return state.items.find(function (i) { return i.kind === "folder" && i.name === DAILY_NOTES_FOLDER_NAME; }) || null;
+  }
+
+  function findDailyNote(dateKey) {
+    var folder = findDailyNotesFolder();
+    if (!folder) return null;
+    return folder.children.find(function (i) { return i.dailyNoteDate === dateKey; }) || null;
+  }
+
+  function openDailyNote(dateKey) {
+    var existing = findDailyNote(dateKey);
+    if (existing) { openPage(existing.id); return; }
+    var folder = findDailyNotesFolder();
+    if (!folder) {
+      folder = { id: uid(), kind: "folder", name: DAILY_NOTES_FOLDER_NAME, color: NOTEBOOK_COLORS[0], expanded: true, children: [] };
+      state.items.push(folder);
+    }
+    var file = {
+      id: uid(),
+      kind: "file",
+      type: "doc",
+      title: dailyNoteTitleFor(dateKey),
+      dailyNoteDate: dateKey,
+      icon: "📅",
+      content: "",
+      updatedAt: Date.now()
+    };
+    folder.children.push(file);
+    folder.expanded = true;
+    pendingHighlightId = file.id;
+    renderTree();
+    clearHighlightSoon();
+    scheduleSave();
+    openPage(file.id);
+  }
+
+  function openTodayNote() { openDailyNote(dateKeyFor(new Date())); }
+
+  function renderDailyNoteNav(item) {
+    if (!item.dailyNoteDate) { el.dailyNoteNav.style.display = "none"; return; }
+    el.dailyNoteNav.style.display = "flex";
+    var isToday = item.dailyNoteDate === dateKeyFor(new Date());
+    el.dailyNoteNavLabel.textContent = isToday ? "Today" : dailyNoteTitleFor(item.dailyNoteDate);
+    el.dailyNoteTodayBtn.style.display = isToday ? "none" : "inline-block";
+  }
 
   // Items form a tree: a folder has .children (more folders or files), a
   // file is a leaf holding either rich-text .content or mind map .nodes/.edges.
@@ -3135,6 +3241,12 @@
     editorHeader: document.getElementById("editorHeader"),
     pageTitle: document.getElementById("pageTitle"),
     pageTitleAvatar: document.getElementById("pageTitleAvatar"),
+    todayNoteBtn: document.getElementById("todayNoteBtn"),
+    dailyNoteNav: document.getElementById("dailyNoteNav"),
+    dailyNotePrevBtn: document.getElementById("dailyNotePrevBtn"),
+    dailyNoteNavLabel: document.getElementById("dailyNoteNavLabel"),
+    dailyNoteTodayBtn: document.getElementById("dailyNoteTodayBtn"),
+    dailyNoteNextBtn: document.getElementById("dailyNoteNextBtn"),
     pageCover: document.getElementById("pageCover"),
     pageCoverChangeBtn: document.getElementById("pageCoverChangeBtn"),
     pageCoverRemoveBtn: document.getElementById("pageCoverRemoveBtn"),
@@ -3224,6 +3336,17 @@
     if (page) setItemCover(page, "");
     hideCoverPickerModal();
   });
+
+  el.todayNoteBtn.addEventListener("click", function () { openTodayNote(); closeSidebarOnMobile(); });
+  el.dailyNotePrevBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (page && page.dailyNoteDate) openDailyNote(shiftDateKey(page.dailyNoteDate, -1));
+  });
+  el.dailyNoteNextBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (page && page.dailyNoteDate) openDailyNote(shiftDateKey(page.dailyNoteDate, 1));
+  });
+  el.dailyNoteTodayBtn.addEventListener("click", openTodayNote);
 
   /* =========================================================
      ERROR RESILIENCE
@@ -3805,6 +3928,7 @@
       el.deletePageBtn.style.display = page.special === "wishlist" ? "none" : "inline-block";
       applyAvatar(el.pageTitleAvatar, page, false);
       renderPageCover(page);
+      renderDailyNoteNav(page);
       renderPageTags(page);
       renderSharePageButton(page);
       el.backlinksPanel.style.display = "block";
@@ -7391,6 +7515,7 @@
       { icon: "📄", label: "New page", run: function () { addFile(null, "doc"); } },
       { icon: "🧠", label: "New mind map", run: function () { addFile(null, "mindmap"); } },
       { icon: "📁", label: "New folder", run: function () { addFolder(null); } },
+      { icon: "📅", label: "Open today's note", run: openTodayNote },
       { icon: "🕸️", label: "Open graph view", run: openGraphView },
       { icon: "🗑️", label: "Open Trash", run: showTrashModal },
       { icon: "⚙️", label: "Open Settings", run: showSettingsModal },
