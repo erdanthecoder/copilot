@@ -1591,20 +1591,32 @@
     margin-bottom: 10px;
   }
   .backlinks-count { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 4px; }
-  .backlinks-list { display: flex; flex-direction: column; gap: 6px; }
+  .backlinks-list { display: flex; flex-direction: column; gap: 10px; }
   .backlinks-empty { font-size: 13px; color: var(--text-muted); }
+  .backlink-group { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .backlink-item {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
     cursor: pointer;
     font-size: 13.5px;
+    font-weight: 600;
   }
-  .backlink-item:hover { background: var(--hover); border-color: var(--accent); }
-  .backlink-item .backlink-path { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .backlink-group .backlink-item { border-bottom: 1px solid var(--border); }
+  .backlink-item:hover { background: var(--hover); }
+  .backlink-item .backlink-path { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: auto; }
+  .backlink-snippet {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .backlink-snippet:last-child { border-bottom: none; }
+  .backlink-snippet:hover { background: var(--hover); color: var(--text); }
+  .backlink-snippet mark { background: rgba(59,110,246,0.22); color: var(--text); border-radius: 3px; padding: 0 2px; font-weight: 600; }
 
   .empty-state {
     display: flex;
@@ -2507,7 +2519,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.13";
+  var BUILD_ID = "2026-07-13.14";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -4621,6 +4633,48 @@
 
   // Every page whose content contains an internal link (a.page-link)
   // pointing at pageId, i.e. the Obsidian-style "what links here" list.
+  var BACKLINK_SNIPPET_SIDE = 70; // chars of context kept on each side of the link
+
+  // Splits the containing block's text around the linked text itself, so
+  // the caller can render "...before [match] after..." with the match
+  // highlighted — Obsidian-style context, not just a bare page title.
+  function buildBacklinkSnippet(fullText, linkText) {
+    var idx = linkText ? fullText.indexOf(linkText) : -1;
+    if (idx === -1) {
+      var plain = fullText.length > BACKLINK_SNIPPET_SIDE * 2
+        ? fullText.slice(0, BACKLINK_SNIPPET_SIDE * 2).trim() + "…"
+        : fullText;
+      return { before: plain, match: "", after: "" };
+    }
+    var before = fullText.slice(0, idx);
+    var after = fullText.slice(idx + linkText.length);
+    if (before.length > BACKLINK_SNIPPET_SIDE) before = "…" + before.slice(before.length - BACKLINK_SNIPPET_SIDE);
+    if (after.length > BACKLINK_SNIPPET_SIDE) after = after.slice(0, BACKLINK_SNIPPET_SIDE) + "…";
+    return { before: before, match: linkText, after: after };
+  }
+
+  // Finds every place a page links to `targetId` inside `content` and
+  // returns one context snippet per occurrence (a page can link to the
+  // same target more than once, e.g. from two different paragraphs).
+  function extractBacklinkSnippets(content, targetId) {
+    var temp = document.createElement("div");
+    temp.innerHTML = content;
+    var links = temp.querySelectorAll('a.page-link[data-page-id="' + targetId + '"]');
+    var results = [];
+    var seen = {};
+    links.forEach(function (link) {
+      var block = link.closest("p, div, li, h1, h2, h3, blockquote") || link.parentElement || temp;
+      var fullText = (block.textContent || "").replace(/\s+/g, " ").trim();
+      var linkText = (link.textContent || "").trim();
+      if (!fullText) return;
+      var key = fullText + "::" + linkText;
+      if (seen[key]) return;
+      seen[key] = true;
+      results.push(buildBacklinkSnippet(fullText, linkText));
+    });
+    return results;
+  }
+
   function findBacklinksFor(pageId) {
     var out = [];
     var needle = 'data-page-id="' + pageId + '"';
@@ -4629,7 +4683,7 @@
         if (item.kind === "folder") {
           walk(item.children, path.concat([item.name]));
         } else if (item.id !== pageId && item.type !== "mindmap" && typeof item.content === "string" && item.content.indexOf(needle) !== -1) {
-          out.push({ id: item.id, title: item.title || "Untitled", path: path.join(" / ") });
+          out.push({ id: item.id, title: item.title || "Untitled", path: path.join(" / "), snippets: extractBacklinkSnippets(item.content, pageId) });
         }
       });
     }
@@ -4649,19 +4703,38 @@
       return;
     }
     backlinks.forEach(function (b) {
-      var row = document.createElement("div");
-      row.className = "backlink-item";
+      var group = document.createElement("div");
+      group.className = "backlink-group";
+
+      var header = document.createElement("div");
+      header.className = "backlink-item";
       var name = document.createElement("span");
       name.textContent = b.title;
-      row.appendChild(name);
+      header.appendChild(name);
       if (b.path) {
         var pathEl = document.createElement("span");
         pathEl.className = "backlink-path";
         pathEl.textContent = b.path;
-        row.appendChild(pathEl);
+        header.appendChild(pathEl);
       }
-      row.addEventListener("click", function () { openPage(b.id); });
-      el.backlinksList.appendChild(row);
+      header.addEventListener("click", function () { openPage(b.id); });
+      group.appendChild(header);
+
+      b.snippets.forEach(function (snip) {
+        var snippetEl = document.createElement("div");
+        snippetEl.className = "backlink-snippet";
+        snippetEl.appendChild(document.createTextNode(snip.before));
+        if (snip.match) {
+          var mark = document.createElement("mark");
+          mark.textContent = snip.match;
+          snippetEl.appendChild(mark);
+        }
+        snippetEl.appendChild(document.createTextNode(snip.after));
+        snippetEl.addEventListener("click", function () { openPage(b.id); });
+        group.appendChild(snippetEl);
+      });
+
+      el.backlinksList.appendChild(group);
     });
   }
 
