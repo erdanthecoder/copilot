@@ -1177,6 +1177,70 @@
   .page-avatar.avatar-mindmap { border-radius: 11px; }
   .page-avatar.avatar-sm { width: 22px; height: 22px; font-size: 11px; border-radius: 50%; }
   .page-avatar.avatar-sm.avatar-mindmap { border-radius: 6px; }
+  .page-avatar.has-icon { font-size: 22px; text-shadow: none; }
+  .page-avatar.avatar-sm.has-icon { font-size: 14px; }
+  #pageTitleAvatar { cursor: pointer; }
+  #pageTitleAvatar:hover { filter: brightness(0.94); }
+
+  .page-header-actions { display: flex; gap: 6px; padding: 2px 0 4px; }
+  .page-header-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .page-header-actions button:hover { background: var(--hover); color: var(--text); }
+
+  .page-cover {
+    height: 150px;
+    border-radius: 10px;
+    margin: 2px 0 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 10px;
+  }
+  .page-cover-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+  .page-cover:hover .page-cover-actions { opacity: 1; }
+  .page-cover-actions button {
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+  .page-cover-actions button:hover { background: rgba(0,0,0,0.65); }
+
+  .icon-picker-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; margin: 10px 0 16px; }
+  .icon-picker-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+  }
+  .icon-picker-btn:hover { background: var(--hover); border-color: var(--border); }
+
+  .cover-picker-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+  .cover-picker-swatch {
+    width: 56px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .cover-picker-swatch.active { border-color: var(--text); }
 
   .page-meta-row {
     display: flex;
@@ -1991,8 +2055,17 @@
         <button type="button" id="navForwardBtn" class="nav-history-btn" title="Forward" disabled>&rarr;</button>
       </div>
       <div class="breadcrumb" id="breadcrumb"></div>
+      <div class="page-cover" id="pageCover" style="display:none;">
+        <div class="page-cover-actions">
+          <button type="button" id="pageCoverChangeBtn" title="Change cover">Change cover</button>
+          <button type="button" id="pageCoverRemoveBtn" title="Remove cover">Remove</button>
+        </div>
+      </div>
+      <div class="page-header-actions" id="pageHeaderActions">
+        <button type="button" id="addCoverBtn">🖼️ Add cover</button>
+      </div>
       <div class="page-title-row">
-        <span class="page-avatar" id="pageTitleAvatar"></span>
+        <span class="page-avatar" id="pageTitleAvatar" title="Click to change icon"></span>
         <input type="text" id="pageTitle" class="page-title" placeholder="Untitled page">
       </div>
       <div class="page-tags-row" id="pageTagsRow"></div>
@@ -2376,6 +2449,30 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="iconPickerModal">
+  <div class="modal-card members-modal-card">
+    <h3>Page icon</h3>
+    <p>Pick an emoji, or remove it to go back to the default color avatar.</p>
+    <div class="icon-picker-grid" id="iconPickerGrid"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="iconPickerRemoveBtn">Remove icon</button>
+      <button type="button" id="iconPickerClose" class="primary">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="coverPickerModal">
+  <div class="modal-card members-modal-card">
+    <h3>Page cover</h3>
+    <p>Pick a banner color for the top of this page.</p>
+    <div class="cover-picker-grid" id="coverPickerGrid"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="coverPickerRemoveBtn">Remove cover</button>
+      <button type="button" id="coverPickerClose" class="primary">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -2383,7 +2480,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.11";
+  var BUILD_ID = "2026-07-13.12";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2601,10 +2698,98 @@
   }
 
   function applyAvatar(avatarEl, item, small) {
-    avatarEl.className = "page-avatar " + (item.type === "mindmap" ? "avatar-mindmap" : "avatar-doc") + (small ? " avatar-sm" : "");
-    avatarEl.style.background = avatarColorForId(item.id);
-    avatarEl.textContent = avatarInitial(item.title);
+    avatarEl.className = "page-avatar " + (item.type === "mindmap" ? "avatar-mindmap" : "avatar-doc") +
+      (small ? " avatar-sm" : "") + (item.icon ? " has-icon" : "");
+    if (item.icon) {
+      avatarEl.style.background = "transparent";
+      avatarEl.textContent = item.icon;
+    } else {
+      avatarEl.style.background = avatarColorForId(item.id);
+      avatarEl.textContent = avatarInitial(item.title);
+    }
   }
+
+  /* =========================================================
+     PAGE COVERS + ICONS
+     Notion-style page header customization: an optional emoji icon
+     (opt-in — the default stays the plain colored-initial avatar) and
+     an optional gradient banner. Both are just fields on the item, so
+     they sync/save the same way everything else does.
+     ========================================================= */
+  var PAGE_ICON_CHOICES = [
+    "📄", "📝", "📚", "📖", "💡", "🎯", "🚀", "⭐", "🔥", "❤️", "✅", "📌",
+    "🎨", "🎵", "🎮", "🍕", "🏠", "🌟", "🎉", "🔑", "📷", "🎬", "🧠", "💻",
+    "📊", "📈", "🗂️", "🏆", "🎁", "🌈", "☀️", "🌙", "⚡", "🐱", "🐶", "🌍", "🍀"
+  ];
+
+  var COVER_PRESETS = {
+    sunset: "linear-gradient(135deg, #ff6f91 0%, #ffd166 100%)",
+    ocean: "linear-gradient(135deg, #3b6ef6 0%, #06d6a0 100%)",
+    purple: "linear-gradient(135deg, #7c6cff 0%, #ff6f91 100%)",
+    forest: "linear-gradient(135deg, #2d6a4f 0%, #95d5b2 100%)",
+    peach: "linear-gradient(135deg, #ffb997 0%, #f67e7d 100%)",
+    mono: "linear-gradient(135deg, #4b4b55 0%, #1e1f22 100%)"
+  };
+  var COVER_PRESET_ORDER = ["sunset", "ocean", "purple", "forest", "peach", "mono"];
+
+  function renderPageCover(item) {
+    if (item.cover && COVER_PRESETS[item.cover]) {
+      el.pageCover.style.display = "flex";
+      el.pageCover.style.background = COVER_PRESETS[item.cover];
+      el.pageHeaderActions.style.display = "none";
+    } else {
+      el.pageCover.style.display = "none";
+      el.pageHeaderActions.style.display = item.special === "wishlist" ? "none" : "flex";
+    }
+  }
+
+  function setItemIcon(item, icon) {
+    item.icon = icon || "";
+    item.updatedAt = Date.now();
+    applyAvatar(el.pageTitleAvatar, item, false);
+    renderTree();
+    scheduleSave();
+  }
+
+  function setItemCover(item, presetKey) {
+    item.cover = presetKey || "";
+    item.updatedAt = Date.now();
+    renderPageCover(item);
+    scheduleSave();
+  }
+
+  function showIconPickerModal() {
+    var page = getActivePage();
+    if (!page) return;
+    clearChildren(el.iconPickerGrid);
+    PAGE_ICON_CHOICES.forEach(function (icon) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "icon-picker-btn";
+      btn.textContent = icon;
+      btn.addEventListener("click", function () { setItemIcon(page, icon); });
+      el.iconPickerGrid.appendChild(btn);
+    });
+    el.iconPickerModal.style.display = "flex";
+  }
+  function hideIconPickerModal() { el.iconPickerModal.style.display = "none"; }
+
+  function showCoverPickerModal() {
+    var page = getActivePage();
+    if (!page) return;
+    clearChildren(el.coverPickerGrid);
+    COVER_PRESET_ORDER.forEach(function (key) {
+      var sw = document.createElement("button");
+      sw.type = "button";
+      sw.className = "cover-picker-swatch" + (page.cover === key ? " active" : "");
+      sw.style.background = COVER_PRESETS[key];
+      sw.title = key;
+      sw.addEventListener("click", function () { setItemCover(page, key); hideCoverPickerModal(); });
+      el.coverPickerGrid.appendChild(sw);
+    });
+    el.coverPickerModal.style.display = "flex";
+  }
+  function hideCoverPickerModal() { el.coverPickerModal.style.display = "none"; }
 
   // Items form a tree: a folder has .children (more folders or files), a
   // file is a leaf holding either rich-text .content or mind map .nodes/.edges.
@@ -2950,6 +3135,19 @@
     editorHeader: document.getElementById("editorHeader"),
     pageTitle: document.getElementById("pageTitle"),
     pageTitleAvatar: document.getElementById("pageTitleAvatar"),
+    pageCover: document.getElementById("pageCover"),
+    pageCoverChangeBtn: document.getElementById("pageCoverChangeBtn"),
+    pageCoverRemoveBtn: document.getElementById("pageCoverRemoveBtn"),
+    pageHeaderActions: document.getElementById("pageHeaderActions"),
+    addCoverBtn: document.getElementById("addCoverBtn"),
+    iconPickerModal: document.getElementById("iconPickerModal"),
+    iconPickerGrid: document.getElementById("iconPickerGrid"),
+    iconPickerRemoveBtn: document.getElementById("iconPickerRemoveBtn"),
+    iconPickerClose: document.getElementById("iconPickerClose"),
+    coverPickerModal: document.getElementById("coverPickerModal"),
+    coverPickerGrid: document.getElementById("coverPickerGrid"),
+    coverPickerRemoveBtn: document.getElementById("coverPickerRemoveBtn"),
+    coverPickerClose: document.getElementById("coverPickerClose"),
     pageTagsRow: document.getElementById("pageTagsRow"),
     pageMeta: document.getElementById("pageMeta"),
     deletePageBtn: document.getElementById("deletePageBtn"),
@@ -3005,6 +3203,27 @@
     physicsBtn: document.getElementById("physicsBtn"),
     editorScroll: document.getElementById("editorScroll")
   };
+
+  el.pageTitleAvatar.addEventListener("click", showIconPickerModal);
+  el.iconPickerClose.addEventListener("click", hideIconPickerModal);
+  el.iconPickerRemoveBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (page) setItemIcon(page, "");
+    hideIconPickerModal();
+  });
+
+  el.addCoverBtn.addEventListener("click", showCoverPickerModal);
+  el.pageCoverChangeBtn.addEventListener("click", showCoverPickerModal);
+  el.pageCoverRemoveBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (page) setItemCover(page, "");
+  });
+  el.coverPickerClose.addEventListener("click", hideCoverPickerModal);
+  el.coverPickerRemoveBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (page) setItemCover(page, "");
+    hideCoverPickerModal();
+  });
 
   /* =========================================================
      ERROR RESILIENCE
@@ -3585,6 +3804,7 @@
       el.pageMeta.textContent = "Last edited " + formatDate(page.updatedAt);
       el.deletePageBtn.style.display = page.special === "wishlist" ? "none" : "inline-block";
       applyAvatar(el.pageTitleAvatar, page, false);
+      renderPageCover(page);
       renderPageTags(page);
       renderSharePageButton(page);
       el.backlinksPanel.style.display = "block";
