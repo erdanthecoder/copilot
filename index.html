@@ -554,6 +554,54 @@
     white-space: nowrap;
     pointer-events: none;
   }
+  .table-view-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .table-view-overlay .graph-view-topbar input {
+    flex: 1;
+    max-width: 260px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .table-view-body { flex: 1; overflow: auto; padding: 20px; }
+  .table-view-table { width: 100%; max-width: 900px; margin: 0 auto; border-collapse: collapse; }
+  .table-view-table th {
+    text-align: left;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .table-view-table th:hover { color: var(--text); }
+  .table-view-table th .sort-arrow { display: inline-block; width: 10px; }
+  .table-view-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .table-view-table tbody tr { cursor: pointer; }
+  .table-view-table tbody tr:hover { background: var(--hover); }
+  .table-view-table td:first-child { display: flex; align-items: center; gap: 8px; }
+  .table-view-table .page-avatar { flex: none; }
+  .table-view-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+
   .graph-view-empty {
     position: absolute;
     inset: 0;
@@ -2440,6 +2488,28 @@
   </div>
 </div>
 
+<div class="table-view-overlay" id="tableViewOverlay" style="display:none;">
+  <div class="graph-view-topbar">
+    <strong id="tableViewTitle">📊 Table view</strong>
+    <input type="text" id="tableViewTagFilter" placeholder="Filter by tag...">
+    <button type="button" id="tableViewCloseBtn">Close</button>
+  </div>
+  <div class="table-view-body" id="tableViewBody">
+    <table class="table-view-table">
+      <thead>
+        <tr>
+          <th data-sort="title">Title <span class="sort-arrow"></span></th>
+          <th data-sort="type">Type <span class="sort-arrow"></span></th>
+          <th data-sort="tags">Tags <span class="sort-arrow"></span></th>
+          <th data-sort="updatedAt">Last edited <span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tableViewRows"></tbody>
+    </table>
+    <div class="table-view-empty" id="tableViewEmpty" style="display:none;">No pages in this folder yet.</div>
+  </div>
+</div>
+
 <div class="chat-overlay" id="chatOverlay" style="display:none;">
   <div class="chat-topbar">
     <strong id="chatTitle">Family Chat</strong>
@@ -2519,7 +2589,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.14";
+  var BUILD_ID = "2026-07-13.15";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -3165,6 +3235,12 @@
     graphViewEdges: document.getElementById("graphViewEdges"),
     graphViewNodes: document.getElementById("graphViewNodes"),
     graphViewEmpty: document.getElementById("graphViewEmpty"),
+    tableViewOverlay: document.getElementById("tableViewOverlay"),
+    tableViewTitle: document.getElementById("tableViewTitle"),
+    tableViewTagFilter: document.getElementById("tableViewTagFilter"),
+    tableViewCloseBtn: document.getElementById("tableViewCloseBtn"),
+    tableViewRows: document.getElementById("tableViewRows"),
+    tableViewEmpty: document.getElementById("tableViewEmpty"),
     chatBtn: document.getElementById("chatBtn"),
     chatTitle: document.getElementById("chatTitle"),
     commandPaletteModal: document.getElementById("commandPaletteModal"),
@@ -3359,6 +3435,103 @@
     if (page && page.dailyNoteDate) openDailyNote(shiftDateKey(page.dailyNoteDate, 1));
   });
   el.dailyNoteTodayBtn.addEventListener("click", openTodayNote);
+
+  /* =========================================================
+     TABLE VIEW
+     Turns one folder's pages into a sortable, filterable table —
+     Notion database-view-lite, built on the fields pages already have
+     (title, type, tags, last edited) rather than a whole custom-
+     properties system. Only that folder's direct pages are rows;
+     nested subfolders aren't flattened in, to keep it predictable.
+     ========================================================= */
+  var tableViewFolder = null;
+  var tableViewSort = { key: "title", dir: 1 };
+  var tableViewFilterTag = "";
+
+  function renderTableView() {
+    if (!tableViewFolder) return;
+    el.tableViewTitle.textContent = "📊 " + tableViewFolder.name;
+    var rows = tableViewFolder.children.filter(function (i) { return i.kind === "file"; });
+    if (tableViewFilterTag) {
+      rows = rows.filter(function (r) { return (r.tags || []).indexOf(tableViewFilterTag) !== -1; });
+    }
+    var key = tableViewSort.key, dir = tableViewSort.dir;
+    rows.sort(function (a, b) {
+      var av, bv;
+      if (key === "type") { av = a.type || ""; bv = b.type || ""; }
+      else if (key === "tags") { av = (a.tags || []).join(","); bv = (b.tags || []).join(","); }
+      else if (key === "updatedAt") { av = a.updatedAt || 0; bv = b.updatedAt || 0; }
+      else { av = (a.title || "").toLowerCase(); bv = (b.title || "").toLowerCase(); }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+
+    document.querySelectorAll("#tableViewOverlay th[data-sort]").forEach(function (th) {
+      var arrow = th.querySelector(".sort-arrow");
+      arrow.textContent = th.dataset.sort === key ? (dir === 1 ? "▲" : "▼") : "";
+    });
+
+    clearChildren(el.tableViewRows);
+    el.tableViewEmpty.style.display = rows.length ? "none" : "block";
+    rows.forEach(function (item) {
+      var tr = document.createElement("tr");
+
+      var titleTd = document.createElement("td");
+      var avatar = document.createElement("span");
+      applyAvatar(avatar, item, true);
+      titleTd.appendChild(avatar);
+      var titleText = document.createElement("span");
+      titleText.textContent = item.title || "Untitled";
+      titleTd.appendChild(titleText);
+      tr.appendChild(titleTd);
+
+      var typeTd = document.createElement("td");
+      typeTd.textContent = item.type === "mindmap" ? "Mind map" : "Page";
+      tr.appendChild(typeTd);
+
+      var tagsTd = document.createElement("td");
+      tagsTd.textContent = (item.tags || []).map(function (t) { return "#" + t; }).join(" ");
+      tr.appendChild(tagsTd);
+
+      var dateTd = document.createElement("td");
+      dateTd.textContent = formatDate(item.updatedAt);
+      tr.appendChild(dateTd);
+
+      tr.addEventListener("click", function () { closeTableView(); openPage(item.id); });
+      el.tableViewRows.appendChild(tr);
+    });
+  }
+
+  function openTableView(folder) {
+    tableViewFolder = folder;
+    tableViewSort = { key: "title", dir: 1 };
+    tableViewFilterTag = "";
+    el.tableViewTagFilter.value = "";
+    el.tableViewOverlay.style.display = "flex";
+    renderTableView();
+  }
+  function closeTableView() {
+    el.tableViewOverlay.style.display = "none";
+    tableViewFolder = null;
+  }
+
+  el.tableViewCloseBtn.addEventListener("click", closeTableView);
+  el.tableViewTagFilter.addEventListener("input", function () {
+    tableViewFilterTag = el.tableViewTagFilter.value.trim().replace(/^#/, "");
+    renderTableView();
+  });
+  document.querySelectorAll("#tableViewOverlay th[data-sort]").forEach(function (th) {
+    th.addEventListener("click", function () {
+      var key = th.dataset.sort;
+      if (tableViewSort.key === key) tableViewSort.dir *= -1;
+      else { tableViewSort.key = key; tableViewSort.dir = 1; }
+      renderTableView();
+    });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && el.tableViewOverlay.style.display !== "none") closeTableView();
+  });
 
   /* =========================================================
      ERROR RESILIENCE
@@ -3887,6 +4060,9 @@
     }
     row.appendChild(makeIconButton("⋯", isFolder ? "Folder options" : "Page options", function (e) {
       var menuItems = [{ label: "✏️  Rename", onClick: function () { renameItem(item); } }];
+      if (isFolder) {
+        menuItems.push({ label: "📊  View as table", onClick: function () { openTableView(item); } });
+      }
       if (item.special !== "wishlist") {
         menuItems.push({ label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } });
       }
