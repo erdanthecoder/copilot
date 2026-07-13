@@ -1736,6 +1736,47 @@
   .command-palette-item .cp-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; color: var(--text); }
   .command-palette-item .cp-hint { flex: none; font-size: 11px; color: var(--text-muted); }
   .command-palette-empty { padding: 24px 18px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+  .slash-menu {
+    position: fixed;
+    z-index: 200;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    min-width: 210px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .slash-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .slash-menu-item .sm-icon { flex: none; width: 24px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 12px; }
+  .slash-menu-item:hover, .slash-menu-item.selected { background: var(--hover); }
+  .slash-menu-empty { padding: 10px; font-size: 12.5px; color: var(--text-muted); text-align: center; }
+  .editor hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .callout { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border-radius: 8px; margin: 12px 0; }
+  .callout-icon { flex: none; font-size: 18px; line-height: 1.5; }
+  .callout-text { flex: 1; min-width: 0; }
+  .callout-tip { background: rgba(124,108,255,0.14); }
+  .callout-warning { background: rgba(255,209,102,0.2); }
+  .callout-info { background: rgba(59,110,246,0.14); }
+
+  .toggle-block { margin: 10px 0; }
+  .toggle-summary { cursor: pointer; font-weight: 600; padding: 4px; border-radius: 6px; }
+  .toggle-summary:hover { background: var(--hover); }
+  .toggle-summary::marker { color: var(--text-muted); }
+  .toggle-summary::-webkit-details-marker { color: var(--text-muted); }
+  .toggle-body { padding: 4px 4px 4px 22px; }
   .modal-card {
     max-width: 420px;
     width: 100%;
@@ -2012,6 +2053,8 @@
       <button id="physicsBtn" type="button" title="Let connected ideas pull together and unconnected ones push apart, like Obsidian's graph view">⚛️ Auto-arrange</button>
       <span class="mindmap-hint">Double-click the canvas to add a node &bull; drag a node to move it &bull; drag the blue dot to connect ideas</span>
     </div>
+
+    <div class="slash-menu" id="slashMenu" style="display:none;"></div>
 
     <div class="editor-scroll" id="editorScroll">
       <div class="editor" id="editor" contenteditable="true" style="display:none;"></div>
@@ -2340,7 +2383,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.9";
+  var BUILD_ID = "2026-07-13.11";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2920,6 +2963,7 @@
     colorBtn: document.getElementById("colorBtn"),
     colorPopover: document.getElementById("colorPopover"),
     tableBtn: document.getElementById("tableBtn"),
+    slashMenu: document.getElementById("slashMenu"),
     linkBtn: document.getElementById("linkBtn"),
     hamburgerBtn: document.getElementById("hamburgerBtn"),
     closeSidebarBtn: document.getElementById("closeSidebarBtn"),
@@ -3825,6 +3869,7 @@
   el.navForwardBtn.addEventListener("click", function () { navigateHistory(1); });
 
   function openPage(pageId) {
+    closeSlashMenu();
     state.activePageId = pageId;
     pushNavHistory(pageId);
     try {
@@ -3975,7 +4020,7 @@
   });
   document.addEventListener("click", closeAllPopovers);
 
-  el.tableBtn.addEventListener("click", function () {
+  function promptInsertTable() {
     showPromptModal("📊 Table size", "3x3", "rows x columns, e.g. 3x3").then(function (sizeInput) {
       if (sizeInput === null) return;
       var match = sizeInput.toLowerCase().match(/(\d+)\s*x\s*(\d+)/);
@@ -3984,7 +4029,209 @@
       if (!rows || !cols) { rows = 3; cols = 3; }
       insertTable(rows, cols);
     });
-  });
+  }
+  el.tableBtn.addEventListener("click", promptInsertTable);
+
+  /* =========================================================
+     SLASH COMMANDS (/)
+     Typing "/" as the first character of an otherwise-empty line opens
+     a small menu to insert a block type, Notion-style — an alternative
+     to reaching for the toolbar.
+     ========================================================= */
+  function insertDividerBlock() {
+    el.editor.focus();
+    ensureEditorSelection();
+    try { document.execCommand("insertHTML", false, "<hr><p><br></p>"); } catch (e) { /* ignore */ }
+    onEditorChanged();
+  }
+
+  // Selects the placeholder text inside a freshly-inserted block so the
+  // very next keystroke replaces it, instead of just placing the caret.
+  function selectPlaceholderIn(container, selector) {
+    var nodes = container.querySelectorAll(selector);
+    var target = nodes[nodes.length - 1];
+    if (!target) return;
+    var range = document.createRange();
+    range.selectNodeContents(target);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  function insertCalloutBlock(kind, icon) {
+    el.editor.focus();
+    ensureEditorSelection();
+    var html = '<div class="callout callout-' + kind + '"><span class="callout-icon">' + icon +
+      '</span><span class="callout-text">Type something…</span></div><p><br></p>';
+    try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
+    selectPlaceholderIn(el.editor, ".callout-text");
+    onEditorChanged();
+  }
+
+  function insertToggleBlock() {
+    el.editor.focus();
+    ensureEditorSelection();
+    var html = '<details class="toggle-block" open><summary class="toggle-summary">Toggle</summary>' +
+      '<div class="toggle-body">Type here…</div></details><p><br></p>';
+    try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
+    selectPlaceholderIn(el.editor, ".toggle-summary");
+    onEditorChanged();
+  }
+
+  var SLASH_COMMANDS = [
+    { icon: "H1", label: "Heading 1", keywords: "title h1", run: function () { runCommand("formatBlock", "H1"); } },
+    { icon: "H2", label: "Heading 2", keywords: "h2", run: function () { runCommand("formatBlock", "H2"); } },
+    { icon: "H3", label: "Heading 3", keywords: "h3", run: function () { runCommand("formatBlock", "H3"); } },
+    { icon: "•", label: "Bulleted list", keywords: "unordered ul bullets", run: function () { runCommand("insertUnorderedList"); } },
+    { icon: "1.", label: "Numbered list", keywords: "ordered ol", run: function () { runCommand("insertOrderedList"); } },
+    { icon: "☑", label: "To-do checklist", keywords: "todo checkbox task", run: function () { insertChecklistItem(); } },
+    { icon: "❝", label: "Quote", keywords: "blockquote", run: function () { runCommand("formatBlock", "BLOCKQUOTE"); } },
+    { icon: "—", label: "Divider", keywords: "hr line separator", run: insertDividerBlock },
+    { icon: "▦", label: "Table", keywords: "grid rows columns", run: promptInsertTable },
+    { icon: "💡", label: "Callout: Tip", keywords: "highlight box", run: function () { insertCalloutBlock("tip", "💡"); } },
+    { icon: "⚠️", label: "Callout: Warning", keywords: "caution alert", run: function () { insertCalloutBlock("warning", "⚠️"); } },
+    { icon: "ℹ️", label: "Callout: Info", keywords: "note", run: function () { insertCalloutBlock("info", "ℹ️"); } },
+    { icon: "▶", label: "Toggle list", keywords: "collapse expand details dropdown", run: insertToggleBlock }
+  ];
+
+  var slashMenuOpen = false;
+  var slashMenuMatches = [];
+  var slashMenuSelected = 0;
+  var slashMenuBlockEl = null;
+
+  function isBlockLevelEl(node) {
+    return !!node && node.nodeType === 1 && /^(P|DIV|H1|H2|H3|LI|BLOCKQUOTE|TD|TH)$/.test(node.tagName);
+  }
+
+  // Only triggers when "/" (optionally followed by letters) is the
+  // *entire* content of the current line so far — matching Notion's
+  // rule that the slash menu only opens on an otherwise-empty block.
+  function getSlashTriggerInfo() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return null;
+    var range = sel.getRangeAt(0);
+    if (!el.editor.contains(range.startContainer)) return null;
+    var node = range.startContainer;
+    var blockEl = node.nodeType === 3 ? node.parentElement : node;
+    while (blockEl && blockEl !== el.editor && !isBlockLevelEl(blockEl)) blockEl = blockEl.parentElement;
+    if (!blockEl) return null;
+    var preRange = document.createRange();
+    preRange.selectNodeContents(blockEl);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    var match = /^\/([a-zA-Z0-9]*)$/.exec(preRange.toString());
+    if (!match) return null;
+    return { blockEl: blockEl, query: match[1].toLowerCase() };
+  }
+
+  function closeSlashMenu() {
+    slashMenuOpen = false;
+    slashMenuBlockEl = null;
+    el.slashMenu.style.display = "none";
+    clearChildren(el.slashMenu);
+  }
+
+  function updateSlashMenuSelection() {
+    var items = el.slashMenu.querySelectorAll(".slash-menu-item");
+    items.forEach(function (item) {
+      item.classList.toggle("selected", Number(item.dataset.index) === slashMenuSelected);
+    });
+  }
+
+  function renderSlashMenu(query) {
+    slashMenuMatches = SLASH_COMMANDS.filter(function (cmd) {
+      if (!query) return true;
+      return cmd.label.toLowerCase().indexOf(query) !== -1 || cmd.keywords.indexOf(query) !== -1;
+    });
+    slashMenuSelected = 0;
+    clearChildren(el.slashMenu);
+    if (!slashMenuMatches.length) {
+      var empty = document.createElement("div");
+      empty.className = "slash-menu-empty";
+      empty.textContent = "No matching block type.";
+      el.slashMenu.appendChild(empty);
+      return;
+    }
+    slashMenuMatches.forEach(function (cmd, i) {
+      var item = document.createElement("div");
+      item.className = "slash-menu-item" + (i === 0 ? " selected" : "");
+      item.dataset.index = i;
+      var icon = document.createElement("span");
+      icon.className = "sm-icon";
+      icon.textContent = cmd.icon;
+      item.appendChild(icon);
+      var label = document.createElement("span");
+      label.textContent = cmd.label;
+      item.appendChild(label);
+      // mousedown+preventDefault (not click) so the editor never loses
+      // focus/selection before we get a chance to act on it.
+      item.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        runSlashCommand(i);
+      });
+      el.slashMenu.appendChild(item);
+    });
+  }
+
+  function positionSlashMenu() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    var range = sel.getRangeAt(0).cloneRange();
+    var rects = range.getClientRects();
+    var rect = (rects && rects.length) ? rects[0] : range.startContainer.parentElement.getBoundingClientRect();
+    el.slashMenu.style.left = Math.round(rect.left) + "px";
+    el.slashMenu.style.top = Math.round(rect.bottom + 6) + "px";
+  }
+
+  function checkSlashTrigger() {
+    var info = getSlashTriggerInfo();
+    if (!info) { closeSlashMenu(); return; }
+    slashMenuOpen = true;
+    slashMenuBlockEl = info.blockEl;
+    positionSlashMenu();
+    el.slashMenu.style.display = "block";
+    renderSlashMenu(info.query);
+  }
+
+  function runSlashCommand(index) {
+    var cmd = slashMenuMatches[index];
+    var blockEl = slashMenuBlockEl;
+    closeSlashMenu();
+    if (!cmd || !blockEl) return;
+    el.editor.focus();
+    // Remove the "/query" trigger text before running the block command.
+    var range = document.createRange();
+    range.selectNodeContents(blockEl);
+    range.deleteContents();
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    cmd.run();
+  }
+
+  el.editor.addEventListener("input", checkSlashTrigger);
+  el.editor.addEventListener("blur", closeSlashMenu);
+
+  el.editor.addEventListener("keydown", function (e) {
+    if (!slashMenuOpen) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeSlashMenu(); return; }
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); e.stopPropagation();
+      if (slashMenuSelected < slashMenuMatches.length - 1) slashMenuSelected++;
+      updateSlashMenuSelection();
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault(); e.stopPropagation();
+      if (slashMenuSelected > 0) slashMenuSelected--;
+      updateSlashMenuSelection();
+      return;
+    }
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault(); e.stopPropagation();
+      runSlashCommand(slashMenuSelected);
+      return;
+    }
+  }, true);
 
   function escapeHtml(s) {
     var div = document.createElement("div");
@@ -4517,7 +4764,36 @@
     var sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
     var node = sel.anchorNode;
-    var item = node && (node.nodeType === 1 ? node.closest(".checklist-item") : node.parentElement && node.parentElement.closest(".checklist-item"));
+    var anchorEl = node && (node.nodeType === 1 ? node : node.parentElement);
+    if (!anchorEl) return;
+
+    // A callout is a single line, not a multi-paragraph block — Enter
+    // exits it to a fresh paragraph below, rather than letting the
+    // browser's default block-splitting mangle the flex layout.
+    var calloutText = anchorEl.closest(".callout-text");
+    if (calloutText) {
+      e.preventDefault();
+      var calloutEl = calloutText.closest(".callout");
+      var afterCallout = document.createElement("p");
+      afterCallout.innerHTML = "<br>";
+      calloutEl.insertAdjacentElement("afterend", afterCallout);
+      placeCaretAtStart(afterCallout);
+      onEditorChanged();
+      return;
+    }
+
+    // Enter on a toggle's summary/title moves straight into its body,
+    // the natural next step when authoring one (title, then content).
+    var toggleSummary = anchorEl.closest(".toggle-summary");
+    if (toggleSummary) {
+      e.preventDefault();
+      var body = toggleSummary.parentElement.querySelector(".toggle-body");
+      if (body) placeCaretAtStart(body);
+      onEditorChanged();
+      return;
+    }
+
+    var item = anchorEl.closest(".checklist-item");
     if (!item) return;
 
     e.preventDefault();
