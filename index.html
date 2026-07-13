@@ -620,6 +620,22 @@
   .share-page-btn:hover { color: var(--text); border-color: var(--accent); }
   .share-page-btn.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
+  .share-page-select {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 12px;
+    margin-right: 8px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .share-page-select:hover { color: var(--text); border-color: var(--accent); }
+  .share-page-select.level-unlisted { background: var(--hover); color: var(--text); border-color: var(--accent); }
+  .share-page-select.level-public { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+  .share-page-select.level-public option, .share-page-select.level-unlisted option { color: var(--text); background: var(--bg); }
+
   .shared-with-you-section { padding: 4px 8px 10px; border-top: 1px solid var(--border); margin-top: 4px; }
   .shared-with-you-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 8px 4px 6px; }
   .shared-with-you-list { display: flex; flex-direction: column; gap: 2px; }
@@ -1847,7 +1863,12 @@
       <div class="page-tags-row" id="pageTagsRow"></div>
       <div class="page-meta-row">
         <span class="page-meta" id="pageMeta"></span>
-        <button type="button" class="share-page-btn" id="sharePageBtn" style="display:none;" title="Share this page with everyone in the workspace">🌐 Share</button>
+        <select class="share-page-select" id="sharePageSelect" style="display:none;" title="Control who can see this page">
+          <option value="private">🔒 Private</option>
+          <option value="unlisted">🔗 Unlisted</option>
+          <option value="public">🌐 Public</option>
+        </select>
+        <button type="button" class="share-page-btn" id="copyShareLinkBtn" style="display:none;" title="Copy a link to this page">Copy link</button>
         <button type="button" class="share-page-btn" id="viewCommentsBtn" style="display:none;" title="See how this page looks to others, and read comments">💬 Comments</button>
         <button class="delete-page-btn" id="deletePageBtn">Delete page</button>
       </div>
@@ -2211,7 +2232,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-13.5";
+  var BUILD_ID = "2026-07-13.6";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -2787,7 +2808,8 @@
     chatComposer: document.getElementById("chatComposer"),
     chatInput: document.getElementById("chatInput"),
     chatSendBtn: document.getElementById("chatSendBtn"),
-    sharePageBtn: document.getElementById("sharePageBtn"),
+    sharePageSelect: document.getElementById("sharePageSelect"),
+    copyShareLinkBtn: document.getElementById("copyShareLinkBtn"),
     viewCommentsBtn: document.getElementById("viewCommentsBtn"),
     sharedWithYouSection: document.getElementById("sharedWithYouSection"),
     sharedWithYouList: document.getElementById("sharedWithYouList"),
@@ -4286,7 +4308,7 @@
 
   el.mentionBtn.addEventListener("click", function () {
     var page = getActivePage();
-    if (!page || !page.shared) return;
+    if (!page || getShareLevel(page) === "private") return;
     el.editor.focus();
     ensureEditorSelection();
     var sel = window.getSelection();
@@ -5303,6 +5325,7 @@
     refreshSharedWithYou();
     refreshNotificationsBadge();
     if (!notificationsPollTimer) notificationsPollTimer = setInterval(refreshNotificationsBadge, 30000);
+    openSharedLinkFromHash();
   }
 
   /* =========================================================
@@ -5407,6 +5430,23 @@
      ========================================================= */
   var sharedPagePushTimers = {};
 
+  // Three visibility tiers, like Notion's share menu:
+  //  - private:  not shared at all (default)
+  //  - unlisted: mirrored to Firebase but NOT listed in others' "Shared
+  //              with you" sidebar — reachable only via a direct link.
+  //              Firebase's rules here are workspace-wide ("auth != null"),
+  //              so this is a discoverability control, not a true access
+  //              boundary — any signed-in workspace member who somehow got
+  //              the link could still open it. Same tradeoff Notion's own
+  //              "anyone with the link" makes.
+  //  - public:   mirrored AND auto-listed for everyone in the workspace.
+  // Falls back to the old boolean `item.shared` field for pages created
+  // before this feature existed.
+  function getShareLevel(item) {
+    if (item.shareLevel) return item.shareLevel;
+    return item.shared ? "public" : "private";
+  }
+
   function sharedPagePayload(item) {
     var payload = {
       ownerUid: authSession.uid,
@@ -5417,6 +5457,7 @@
       title: item.title || "Untitled",
       type: item.type,
       tags: item.tags || [],
+      shareLevel: getShareLevel(item),
       updatedAt: item.updatedAt || Date.now()
     };
     if (item.type === "mindmap") {
@@ -5443,51 +5484,80 @@
   function unshareAllInSubtree(item) {
     if (item.kind === "folder") {
       (item.children || []).forEach(unshareAllInSubtree);
-    } else if (item.shared) {
+    } else if (getShareLevel(item) !== "private") {
       unshareSharedPage(item.id);
-      item.shared = false;
+      item.shareLevel = "private";
+      delete item.shared;
     }
   }
 
   // Debounced per-page so rapid typing doesn't fire a request per keystroke.
   function maybeSyncSharedPage(item) {
-    if (!item || !item.shared || !authSession) return;
+    if (!item || getShareLevel(item) === "private" || !authSession) return;
     if (sharedPagePushTimers[item.id]) clearTimeout(sharedPagePushTimers[item.id]);
     sharedPagePushTimers[item.id] = setTimeout(function () { pushSharedPage(item); }, 800);
   }
 
-  function toggleShareForPage(item) {
-    item.shared = !item.shared;
-    if (item.shared) {
-      pushSharedPage(item);
-    } else {
+  function setShareLevel(item, level) {
+    item.shareLevel = level;
+    delete item.shared;
+    if (level === "private") {
       unshareSharedPage(item.id);
+    } else {
+      pushSharedPage(item);
     }
     renderSharePageButton(item);
     scheduleSave();
   }
 
+  function copyShareLink(item) {
+    var url = location.origin + location.pathname + "#shared=" + encodeURIComponent(item.id);
+    var done = function () {
+      var original = el.copyShareLinkBtn.textContent;
+      el.copyShareLinkBtn.textContent = "Copied!";
+      setTimeout(function () { el.copyShareLinkBtn.textContent = original; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, done);
+    } else {
+      done();
+    }
+  }
+
   function renderSharePageButton(item) {
     if (!isFirebaseConfigured() || !authSession) {
-      el.sharePageBtn.style.display = "none";
+      el.sharePageSelect.style.display = "none";
+      el.copyShareLinkBtn.style.display = "none";
       el.viewCommentsBtn.style.display = "none";
       el.mentionBtn.style.display = "none";
       return;
     }
-    el.sharePageBtn.style.display = "inline-block";
-    el.sharePageBtn.classList.toggle("active", !!item.shared);
-    el.sharePageBtn.textContent = item.shared ? "🌐 Shared" : "🌐 Share";
-    el.sharePageBtn.title = item.shared
-      ? "Visible to everyone in the workspace — click to stop sharing"
-      : "Share this page with everyone in the workspace";
-    el.viewCommentsBtn.style.display = item.shared ? "inline-block" : "none";
-    el.mentionBtn.style.display = (item.shared && item.type !== "mindmap") ? "inline-block" : "none";
+    var level = getShareLevel(item);
+    el.sharePageSelect.style.display = "inline-block";
+    el.sharePageSelect.value = level;
+    el.sharePageSelect.classList.toggle("level-unlisted", level === "unlisted");
+    el.sharePageSelect.classList.toggle("level-public", level === "public");
+    el.sharePageSelect.title = level === "private"
+      ? "Only you can see this page"
+      : level === "unlisted"
+      ? "Anyone with the link can see this page — not listed for others"
+      : "Visible to everyone in the workspace";
+    var isShared = level !== "private";
+    el.copyShareLinkBtn.style.display = isShared ? "inline-block" : "none";
+    el.viewCommentsBtn.style.display = isShared ? "inline-block" : "none";
+    el.mentionBtn.style.display = (isShared && item.type !== "mindmap") ? "inline-block" : "none";
   }
 
-  el.sharePageBtn.addEventListener("click", function () {
+  el.sharePageSelect.addEventListener("change", function () {
     var page = getActivePage();
     if (!page) return;
-    toggleShareForPage(page);
+    setShareLevel(page, el.sharePageSelect.value);
+  });
+
+  el.copyShareLinkBtn.addEventListener("click", function () {
+    var page = getActivePage();
+    if (!page) return;
+    copyShareLink(page);
   });
 
   function fetchAllSharedPages() {
@@ -5497,8 +5567,14 @@
 
   function renderSharedWithYouSection(allShared) {
     clearChildren(el.sharedWithYouList);
+    // Unlisted pages are deliberately excluded here — they're reachable
+    // only via a direct "Copy link" share, not auto-listed for everyone.
     var ids = Object.keys(allShared || {}).filter(function (id) {
-      return allShared[id].ownerUid !== (authSession && authSession.uid);
+      // Pages shared before this feature existed have no shareLevel field
+      // on the mirror yet (it's added on next edit) — treat those as
+      // public, matching the old all-shared-is-visible behavior.
+      var level = allShared[id].shareLevel || "public";
+      return allShared[id].ownerUid !== (authSession && authSession.uid) && level === "public";
     });
     if (!ids.length) { el.sharedWithYouSection.style.display = "none"; return; }
     el.sharedWithYouSection.style.display = "block";
@@ -5734,9 +5810,29 @@
   // read/join its comments, reusing the exact same read-only viewer.
   el.viewCommentsBtn.addEventListener("click", function () {
     var page = getActivePage();
-    if (!page || !page.shared) return;
+    if (!page || getShareLevel(page) === "private") return;
     openSharedPageView(page.id, sharedPagePayload(page));
   });
+
+  // Opening a "#shared=<id>" link (from "Copy link") fetches that one page
+  // directly by id, so unlisted pages — which are never auto-listed in
+  // anyone else's sidebar — are still reachable by whoever has the link.
+  function openSharedLinkFromHash() {
+    var match = /#shared=([^&]+)/.exec(location.hash);
+    if (!match || !authSession) return;
+    var pageId = decodeURIComponent(match[1]);
+    rtdbRequestAtPath(authSession, FAMILY_WORKSPACE_PATH + "/sharedPages/" + pageId, "GET").then(function (result) {
+      if (result.ok && result.data) {
+        openSharedPageView(pageId, result.data);
+      } else {
+        showAlertModal("Page not found", "This page may no longer be shared, or the link is incorrect.");
+      }
+    });
+  }
+  // A "#shared=<id>" link opened while the app is already sitting in a
+  // browser tab is a same-document navigation (no full reload), so it
+  // needs its own listener rather than only running once at startup.
+  window.addEventListener("hashchange", openSharedLinkFromHash);
 
   function attachNodeDrag(page, node, nodeEl) {
     var dragging = false;
