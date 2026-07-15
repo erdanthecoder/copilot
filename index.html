@@ -24,9 +24,10 @@
     --success: #2f9e44;
     --warning: #e8a33d;
     --hover: #eef0f5;
+    --active-bg: rgba(59,110,246,0.1);
     --shadow: 0 2px 10px rgba(0,0,0,0.08);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.16);
-    --font-display: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   html[data-theme="dark"] {
     --bg: #1e1f22;
@@ -42,6 +43,7 @@
     --success: #4cc06a;
     --warning: #e0b23a;
     --hover: #2e2f34;
+    --active-bg: rgba(91,141,255,0.16);
     --shadow: 0 2px 10px rgba(0,0,0,0.35);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
   }
@@ -275,6 +277,18 @@
 
   .tree-node { margin-bottom: 2px; }
 
+  .favorites-section { padding: 0 6px; margin-bottom: 6px; }
+  .favorites-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 8px 4px;
+  }
+  .favorite-row .icon-btn { color: var(--warning); opacity: 0.85; }
+  .favorite-row .icon-btn:hover { opacity: 1; }
+
   .tree-row {
     display: flex;
     align-items: center;
@@ -290,8 +304,8 @@
     transition: background-color 0.15s ease, color 0.15s ease;
   }
   .tree-row:hover { background: var(--hover); }
-  .tree-row.active { background: var(--accent); color: var(--accent-contrast); }
-  .tree-row.active .icon-btn { color: var(--accent-contrast); }
+  .tree-row.active { background: var(--active-bg); color: var(--accent); font-weight: 600; }
+  .tree-row.active .icon-btn { color: var(--accent); }
 
   .tree-row .caret {
     width: 14px;
@@ -301,7 +315,7 @@
     transition: transform 0.15s ease;
   }
   .tree-row.collapsed .caret { transform: rotate(-90deg); }
-  .tree-row.active .caret { color: var(--accent-contrast); }
+  .tree-row.active .caret { color: var(--accent); }
 
   .tree-row .label {
     flex: 1;
@@ -312,11 +326,14 @@
   .tree-row.folder-row .label { font-weight: 700; font-family: var(--font-display); }
 
   .notebook-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
+    width: 15px;
+    height: 15px;
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
+  .notebook-dot svg { width: 100%; height: 100%; display: block; }
   .icon-btn {
     background: none;
     border: none;
@@ -448,15 +465,19 @@
   }
   .trash-btn {
     width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     text-align: left;
     padding: 6px 8px;
     border-radius: 7px;
     border: none;
     background: none;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 12.5px;
     margin-bottom: 4px;
   }
+  .trash-btn svg { width: 15px; height: 15px; flex: none; }
   .trash-btn:hover { background: var(--hover); color: var(--text); }
   .trash-modal-card { max-width: 480px; }
   .trash-list { max-height: 320px; overflow-y: auto; margin-bottom: 16px; }
@@ -1383,7 +1404,8 @@
     border-radius: 6px;
     padding: 6px 9px;
     font-size: 13px;
-    min-height: 30px;
+    min-height: 32px;
+    color: var(--text);
   }
   .toolbar button:hover, .toolbar select:hover { background: var(--hover); }
   .toolbar .sep {
@@ -1391,6 +1413,21 @@
     align-self: stretch;
     background: var(--border);
     margin: 0 4px;
+  }
+  .toolbar button.toolbar-icon-btn {
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .toolbar button.toolbar-icon-btn svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+    flex: none;
   }
   .toolbar button.bold-btn { font-weight: 700; }
   .toolbar button.italic-btn { font-style: italic; }
@@ -1964,7 +2001,8 @@
     cursor: pointer;
   }
   .command-palette-item:hover, .command-palette-item.selected { background: var(--hover); }
-  .command-palette-item .cp-icon { flex: none; width: 20px; text-align: center; font-size: 14px; }
+  .command-palette-item .cp-icon { flex: none; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); }
+  .command-palette-item .cp-icon svg { width: 16px; height: 16px; display: block; }
   .command-palette-item .cp-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; color: var(--text); }
   .command-palette-item .cp-hint { flex: none; font-size: 11px; color: var(--text-muted); }
   .command-palette-empty { padding: 24px 18px; text-align: center; color: var(--text-muted); font-size: 13px; }
@@ -2119,33 +2157,20 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="obsitionLogoBg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#f2f1ff"/>
-      <stop offset="100%" stop-color="#dcdcff"/>
+      <stop offset="0%" stop-color="#8b7bff"/>
+      <stop offset="100%" stop-color="#4f7dff"/>
     </linearGradient>
     <symbol id="obsitionLogoSymbol" viewBox="0 0 100 100">
       <rect width="100" height="100" rx="22" fill="url(#obsitionLogoBg)"/>
-      <line x1="46" y1="72" x2="92" y2="72" stroke="#3a3a46" stroke-width="4.4" stroke-linecap="round"/>
-      <line x1="50" y1="72" x2="50" y2="86" stroke="#3a3a46" stroke-width="3.8" stroke-linecap="round"/>
-      <line x1="88" y1="72" x2="88" y2="86" stroke="#3a3a46" stroke-width="3.8" stroke-linecap="round"/>
-      <g transform="rotate(-5 72 62)">
-        <rect x="60" y="54" width="24" height="17" rx="2.5" fill="#ffffff" stroke="#3a3a46" stroke-width="2.2"/>
-        <line x1="64" y1="59" x2="78" y2="59" stroke="#8b8bd6" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="64" y1="63" x2="78" y2="63" stroke="#8b8bd6" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="64" y1="67" x2="72" y2="67" stroke="#8b8bd6" stroke-width="1.8" stroke-linecap="round"/>
-      </g>
-      <circle cx="30" cy="36" r="9.5" fill="none" stroke="#2b2b33" stroke-width="3.4"/>
-      <circle cx="27" cy="35" r="1.3" fill="#2b2b33"/>
-      <circle cx="33" cy="35" r="1.3" fill="#2b2b33"/>
-      <path d="M27 40 Q30 42.5 33 40" fill="none" stroke="#2b2b33" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M30 45 C28 55, 32 64, 34 71" fill="none" stroke="#2b2b33" stroke-width="3.4" stroke-linecap="round"/>
-      <path d="M30 51 C23 55, 21 61, 23 67" fill="none" stroke="#2b2b33" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M33 51 C44 53, 52 55, 58 59" fill="none" stroke="#2b2b33" stroke-width="3.2" stroke-linecap="round"/>
-      <line x1="58" y1="59" x2="68" y2="62" stroke="#f2a65a" stroke-width="3.2" stroke-linecap="round"/>
-      <line x1="68" y1="62" x2="71" y2="62.7" stroke="#3a3a46" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M32 71 C29 78, 27 84, 27 90" fill="none" stroke="#2b2b33" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M35 71 C38 78, 40 84, 39 90" fill="none" stroke="#2b2b33" stroke-width="3.2" stroke-linecap="round"/>
-      <circle cx="82" cy="49" r="1.5" fill="#ffd166" opacity="0.75"/>
-      <path class="logo-sparkle" d="M73 57 l1.5 -3 l1.5 3 l-3 0 Z" fill="#ffd166" opacity="0.9"/>
+      <path d="M50 32 C41 26 27 24 16 27 V76 C27 73 41 75 50 81 C59 75 73 73 84 76 V27 C73 24 59 26 50 32 Z" fill="#ffffff"/>
+      <line x1="50" y1="32" x2="50" y2="81" stroke="#c9c2ff" stroke-width="2.8"/>
+      <line x1="24" y1="40" x2="42" y2="38.5" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <line x1="24" y1="50" x2="42" y2="48.8" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <line x1="24" y1="60" x2="38" y2="58.8" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <line x1="58" y1="38.5" x2="76" y2="40" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <line x1="58" y1="48.8" x2="76" y2="50" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <line x1="62" y1="58.8" x2="76" y2="60" stroke="#7a72d9" stroke-width="3.4" stroke-linecap="round"/>
+      <path class="logo-sparkle" d="M76 15 L79.8 23 L88 27 L79.8 31 L76 39 L72.2 31 L64 27 L72.2 23 Z" fill="#ffd166"/>
     </symbol>
   </defs>
 </svg>
@@ -2176,6 +2201,11 @@
       <button type="button" id="commandPaletteHintBtn" title="Open command palette (jump to any page, run an action)">⌘K</button>
     </div>
 
+    <div class="favorites-section" id="favoritesSection" style="display:none;">
+      <div class="favorites-title">Favorites</div>
+      <div class="favorites-list" id="favoritesList"></div>
+    </div>
+
     <div class="tree" id="tree"></div>
     <div class="search-empty" id="searchEmpty" style="display:none;">No pages match "<span id="searchEmptyQuery"></span>"</div>
 
@@ -2193,12 +2223,30 @@
         </span>
         <span class="profile-row-gear">&#9881;</span>
       </button>
-      <button type="button" id="todayNoteBtn" class="trash-btn" title="Open (or create) today's daily note">📅 Today's Note</button>
-      <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">🕸️ Graph view</button>
-      <button type="button" id="chatBtn" class="trash-btn" title="Chat with everyone signed in to this notebook" style="display:none;">💬 Chat</button>
-      <button type="button" id="membersBtn" class="trash-btn" title="See everyone in this workspace" style="display:none;">👥 Members</button>
-      <button type="button" id="notificationsBtn" class="trash-btn" title="Mentions and comments on your shared pages" style="display:none;">🔔 Notifications <span id="notificationsCount"></span></button>
-      <button type="button" id="trashBtn" class="trash-btn" style="display:none;">🗑️ Trash <span id="trashCount"></span></button>
+      <button type="button" id="todayNoteBtn" class="trash-btn" title="Open (or create) today's daily note">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="13" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="2.5" y1="7.5" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="2.5" x2="6" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="14" y1="2.5" x2="14" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Today's Note</span>
+      </button>
+      <button type="button" id="graphViewBtn" class="trash-btn" title="See every page and how they link together">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><line x1="5" y1="15" x2="10" y2="4" stroke="currentColor" stroke-width="1.3"/><line x1="15" y1="15" x2="10" y2="4" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="4" r="2.1" fill="currentColor"/><circle cx="5" cy="15" r="2.1" fill="currentColor"/><circle cx="15" cy="15" r="2.1" fill="currentColor"/></svg>
+        <span>Graph view</span>
+      </button>
+      <button type="button" id="chatBtn" class="trash-btn" title="Chat with everyone signed in to this notebook" style="display:none;">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5 C3 3.7 3.7 3 4.5 3 H15.5 C16.3 3 17 3.7 17 4.5 V11.5 C17 12.3 16.3 13 15.5 13 H8 L4.5 16 V13 H4.5 C3.7 13 3 12.3 3 11.5 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span>Chat</span>
+      </button>
+      <button type="button" id="membersBtn" class="trash-btn" title="See everyone in this workspace" style="display:none;">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 16 C2 12.5 4.2 10.5 7 10.5 C9.8 10.5 12 12.5 12 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="14.5" cy="7.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12.5 16 C12.7 13.2 14.2 11.7 16 11.7 C17.9 11.7 19.3 13.3 19.3 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Members</span>
+      </button>
+      <button type="button" id="notificationsBtn" class="trash-btn" title="Mentions and comments on your shared pages" style="display:none;">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3 C7.5 3 5.8 4.9 5.8 7.3 V9.8 C5.8 10.6 5.5 11.3 5 11.9 L4 13 H16 L15 11.9 C14.5 11.3 14.2 10.6 14.2 9.8 V7.3 C14.2 4.9 12.5 3 10 3 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8.2 15.5 C8.2 16.6 9 17.4 10 17.4 C11 17.4 11.8 16.6 11.8 15.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Notifications</span> <span id="notificationsCount"></span>
+      </button>
+      <button type="button" id="trashBtn" class="trash-btn" style="display:none;">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.5 H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 5.5 V3.8 C7.5 3.3 7.9 3 8.3 3 H11.7 C12.1 3 12.5 3.3 12.5 3.8 V5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 5.5 L6.2 16 C6.3 16.6 6.8 17 7.4 17 H12.6 C13.2 17 13.7 16.6 13.8 16 L14.5 5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><line x1="8.5" y1="8.5" x2="8.7" y2="14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="11.5" y1="8.5" x2="11.3" y2="14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span>Trash</span> <span id="trashCount"></span>
+      </button>
       <div class="storage-status" id="storageStatus">Checking storage…</div>
       <div class="footer-buttons">
         <button id="exportBtn" title="Save everything to a file">Export</button>
@@ -2268,32 +2316,46 @@
 
       <div class="sep"></div>
 
-      <button class="bold-btn" data-cmd="bold" title="Bold (Ctrl+B)">B</button>
-      <button class="italic-btn" data-cmd="italic" title="Italic (Ctrl+I)">I</button>
-      <button class="underline-btn" data-cmd="underline" title="Underline (Ctrl+U)">U</button>
+      <button class="bold-btn toolbar-icon-btn" data-cmd="bold" title="Bold (Ctrl+B)">B</button>
+      <button class="italic-btn toolbar-icon-btn" data-cmd="italic" title="Italic (Ctrl+I)">I</button>
+      <button class="underline-btn toolbar-icon-btn" data-cmd="underline" title="Underline (Ctrl+U)">U</button>
 
       <div class="sep"></div>
 
-      <button data-cmd="insertUnorderedList" title="Bulleted list">&bull; List</button>
-      <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
-      <button id="checklistBtn" title="Checklist">&#9745; Check</button>
+      <button class="toolbar-icon-btn" data-cmd="insertUnorderedList" title="Bulleted list">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="3" cy="5" r="1.3" fill="currentColor"/><circle cx="3" cy="10" r="1.3" fill="currentColor"/><circle cx="3" cy="15" r="1.3" fill="currentColor"/><line x1="7.5" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <button class="toolbar-icon-btn" data-cmd="insertOrderedList" title="Numbered list">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><text x="0.5" y="6.8" font-size="5.5" font-family="sans-serif" fill="currentColor">1</text><text x="0.5" y="11.8" font-size="5.5" font-family="sans-serif" fill="currentColor">2</text><text x="0.5" y="16.8" font-size="5.5" font-family="sans-serif" fill="currentColor">3</text><line x1="7.5" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <button id="checklistBtn" class="toolbar-icon-btn" title="Checklist">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2.5" width="6" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.2 5.5 L4.4 6.7 L6.6 4.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><line x1="10.5" y1="5.5" x2="18" y2="5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="2" y="11.5" width="6" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10.5" y1="14.5" x2="18" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
 
       <div class="sep"></div>
 
       <div class="color-popover-wrap">
-        <button id="highlightBtn" title="Highlight">🖍️ Highlight</button>
+        <button id="highlightBtn" class="toolbar-icon-btn" title="Highlight">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15.5 L5.5 17.5 L8.5 14.5 L6.5 12.5 Z" fill="currentColor"/><path d="M6.5 12.5 L13 3.5 L16.5 7 L10 15.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        </button>
         <div class="color-popover" id="highlightPopover"></div>
       </div>
       <div class="color-popover-wrap">
-        <button id="colorBtn" title="Text color">A Color</button>
+        <button id="colorBtn" class="toolbar-icon-btn" title="Text color">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><text x="3" y="14" font-size="12" font-family="sans-serif" font-weight="700" fill="currentColor">A</text><rect x="3" y="16" width="14" height="2.4" rx="1" fill="#e05a5a"/></svg>
+        </button>
         <div class="color-popover" id="colorPopover"></div>
       </div>
 
       <div class="sep"></div>
 
-      <button id="linkBtn" title="Add link">🔗 Link</button>
-      <button id="mentionBtn" title="Mention someone (only on shared pages)" style="display:none;">@ Mention</button>
-      <button id="tableBtn" title="Insert table">&#9638; Table</button>
+      <button id="linkBtn" class="toolbar-icon-btn" title="Add link">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9.5 6.5 L11 5 C12.5 3.5 15 3.5 16 5 C17.5 6.5 17.5 9 16 10.5 L14.5 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.5 L9 15 C7.5 16.5 5 16.5 4 15 C2.5 13.5 2.5 11 4 9.5 L5.5 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="12.5" x2="12.5" y2="7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <button id="mentionBtn" class="toolbar-icon-btn" title="Mention someone (only on shared pages)" style="display:none;">@</button>
+      <button id="tableBtn" class="toolbar-icon-btn" title="Insert table">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="2.5" y1="8" x2="17.5" y2="8" stroke="currentColor" stroke-width="1.2"/><line x1="2.5" y1="13" x2="17.5" y2="13" stroke="currentColor" stroke-width="1.2"/><line x1="8" y1="2.5" x2="8" y2="17.5" stroke="currentColor" stroke-width="1.2"/><line x1="13" y1="2.5" x2="13" y2="17.5" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
     </div>
 
     <div class="mindmap-toolbar" id="mindmapToolbar" style="display:none;">
@@ -2692,7 +2754,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-14.1";
+  var BUILD_ID = "2026-07-15.1";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -3337,6 +3399,8 @@
     sidebar: document.getElementById("sidebar"),
     sidebarBackdrop: document.getElementById("sidebarBackdrop"),
     tree: document.getElementById("tree"),
+    favoritesSection: document.getElementById("favoritesSection"),
+    favoritesList: document.getElementById("favoritesList"),
     newItemBtn: document.getElementById("newItemBtn"),
     searchInput: document.getElementById("searchInput"),
     searchClearBtn: document.getElementById("searchClearBtn"),
@@ -4117,11 +4181,62 @@
     if (Date.now() >= WORKSPACE_UPDATE_TARGET) showWorkspaceUpdateModal();
   }
 
+  function flattenAllItems(items, out) {
+    out = out || [];
+    items.forEach(function (item) {
+      out.push(item);
+      if (item.kind === "folder" && item.children) flattenAllItems(item.children, out);
+    });
+    return out;
+  }
+
+  function toggleFavorite(item) {
+    item.favorite = !item.favorite;
+    item.updatedAt = Date.now();
+    renderFavorites();
+    renderTree();
+    scheduleSave();
+  }
+
+  // A flat, always-visible shortcut list above the main tree — Notion's
+  // "Favorites" / Obsidian's starred notes — so important pages don't get
+  // lost several folders deep. Only pages (not folders) can be starred,
+  // since "open" is unambiguous for a page but not for a container.
+  function renderFavorites() {
+    var favs = flattenAllItems(state.items).filter(function (item) {
+      return item.kind !== "folder" && item.favorite;
+    });
+    el.favoritesSection.style.display = favs.length ? "block" : "none";
+    clearChildren(el.favoritesList);
+    favs.forEach(function (item) {
+      var row = document.createElement("div");
+      row.className = "tree-row file-row favorite-row" + (item.id === state.activePageId ? " active" : "");
+      row.tabIndex = 0;
+
+      var avatar = document.createElement("span");
+      applyAvatar(avatar, item, true);
+      row.appendChild(avatar);
+
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = item.title || "Untitled";
+      row.appendChild(label);
+
+      row.appendChild(makeIconButton("★", "Remove from Favorites", function () {
+        toggleFavorite(item);
+      }));
+
+      row.addEventListener("click", function () { openPage(item.id); closeSidebarOnMobile(); });
+      el.favoritesList.appendChild(row);
+    });
+  }
+
   function renderTree() {
     // Wrapped defensively: a failure here must never block whatever the
     // caller does next (closing the sidebar, saving, etc.) — it should
     // surface as a visible error, not a silently half-finished UI.
     try {
+      renderFavorites();
       clearChildren(el.tree);
       renderItemList(state.items, el.tree, 0);
       pendingHighlightId = null;
@@ -4176,7 +4291,8 @@
 
       var dot = document.createElement("span");
       dot.className = "notebook-dot";
-      dot.style.background = getFolderColor(item, index);
+      dot.style.color = getFolderColor(item, index);
+      dot.innerHTML = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3.5 C1 2.4 1.9 1.5 3 1.5 H7.5 L9 3.2 H17 C18.1 3.2 19 4.1 19 5.2 V12.5 C19 13.6 18.1 14.5 17 14.5 H3 C1.9 14.5 1 13.6 1 12.5 Z" fill="currentColor"/></svg>';
       row.appendChild(dot);
     } else {
       var avatar = document.createElement("span");
@@ -4198,6 +4314,11 @@
       var menuItems = [{ label: "✏️  Rename", onClick: function () { renameItem(item); } }];
       if (isFolder) {
         menuItems.push({ label: "📊  View as table", onClick: function () { openTableView(item); } });
+      } else {
+        menuItems.push({
+          label: item.favorite ? "★  Remove from Favorites" : "☆  Add to Favorites",
+          onClick: function () { toggleFavorite(item); }
+        });
       }
       if (item.special !== "wishlist") {
         menuItems.push({ label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } });
@@ -8318,17 +8439,33 @@
     return out;
   }
 
+  var PALETTE_ICONS = {
+    page: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h7l3 3v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M12 2.5V6h3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+    mindmap: '<svg viewBox="0 0 20 20" aria-hidden="true"><line x1="5" y1="15" x2="10" y2="4" stroke="currentColor" stroke-width="1.3"/><line x1="15" y1="15" x2="10" y2="4" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="4" r="2.1" fill="currentColor"/><circle cx="5" cy="15" r="2.1" fill="currentColor"/><circle cx="15" cy="15" r="2.1" fill="currentColor"/></svg>',
+    folder: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3.5 C1 2.4 1.9 1.5 3 1.5 H7.5 L9 3.2 H17 C18.1 3.2 19 4.1 19 5.2 V12.5 C19 13.6 18.1 14.5 17 14.5 H3 C1.9 14.5 1 13.6 1 12.5 Z" fill="currentColor"/></svg>',
+    calendar: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="13" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="2.5" y1="7.5" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="1.4"/><line x1="6" y1="2.5" x2="6" y2="5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="14" y1="2.5" x2="14" y2="5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    graph: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="6.5" y1="6.5" x2="13.5" y2="7.2" stroke="currentColor" stroke-width="1.1"/><line x1="6.5" y1="7.2" x2="7" y2="13.2" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="15.2" x2="13" y2="14.6" stroke="currentColor" stroke-width="1.1"/></svg>',
+    trash: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.5 H16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 5.5 V3.8 C7.5 3.3 7.9 3 8.3 3 H11.7 C12.1 3 12.5 3.3 12.5 3.8 V5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M5.5 5.5 L6.2 16 C6.3 16.6 6.8 17 7.4 17 H12.6 C13.2 17 13.7 16.6 13.8 16 L14.5 5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+    settings: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 3 V4.6 M10 15.4 V17 M17 10 H15.4 M4.6 10 H3 M14.9 5.1 L13.8 6.2 M6.2 13.8 L5.1 14.9 M14.9 14.9 L13.8 13.8 M6.2 6.2 L5.1 5.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    sun: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 2.5V4.5 M10 15.5V17.5 M17.5 10H15.5 M4.5 10H2.5 M15.3 4.7L13.9 6.1 M6.1 13.9L4.7 15.3 M15.3 15.3L13.9 13.9 M6.1 6.1L4.7 4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    moon: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 12.5 A6.5 6.5 0 1 1 7.5 4.5 A5.2 5.2 0 0 0 15.5 12.5 Z" fill="currentColor"/></svg>',
+    chat: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5 C3 3.7 3.7 3 4.5 3 H15.5 C16.3 3 17 3.7 17 4.5 V11.5 C17 12.3 16.3 13 15.5 13 H8 L4.5 16 V13 H4.5 C3.7 13 3 12.3 3 11.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+    members: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 16 C2 12.5 4.2 10.5 7 10.5 C9.8 10.5 12 12.5 12 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="14.5" cy="7.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M12.5 16 C12.7 13.2 14.2 11.7 16 11.7 C17.9 11.7 19.3 13.3 19.3 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    bell: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3 C7.5 3 5.8 4.9 5.8 7.3 V9.8 C5.8 10.6 5.5 11.3 5 11.9 L4 13 H16 L15 11.9 C14.5 11.3 14.2 10.6 14.2 9.8 V7.3 C14.2 4.9 12.5 3 10 3 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.2 15.5 C8.2 16.6 9 17.4 10 17.4 C11 17.4 11.8 16.6 11.8 15.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    workspace: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="6.5" height="6.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>'
+  };
+
   function commandPaletteActionList() {
     var actions = [
-      { icon: "📄", label: "New page", run: function () { addFile(null, "doc"); } },
-      { icon: "🧠", label: "New mind map", run: function () { addFile(null, "mindmap"); } },
-      { icon: "📁", label: "New folder", run: function () { addFolder(null); } },
-      { icon: "📅", label: "Open today's note", run: openTodayNote },
-      { icon: "🕸️", label: "Open graph view", run: openGraphView },
-      { icon: "🗑️", label: "Open Trash", run: showTrashModal },
-      { icon: "⚙️", label: "Open Settings", run: showSettingsModal },
+      { icon: PALETTE_ICONS.page, label: "New page", run: function () { addFile(null, "doc"); } },
+      { icon: PALETTE_ICONS.mindmap, label: "New mind map", run: function () { addFile(null, "mindmap"); } },
+      { icon: PALETTE_ICONS.folder, label: "New folder", run: function () { addFolder(null); } },
+      { icon: PALETTE_ICONS.calendar, label: "Open today's note", run: openTodayNote },
+      { icon: PALETTE_ICONS.graph, label: "Open graph view", run: openGraphView },
+      { icon: PALETTE_ICONS.trash, label: "Open Trash", run: showTrashModal },
+      { icon: PALETTE_ICONS.settings, label: "Open Settings", run: showSettingsModal },
       {
-        icon: state.theme === "dark" ? "☀️" : "🌙",
+        icon: state.theme === "dark" ? PALETTE_ICONS.sun : PALETTE_ICONS.moon,
         label: state.theme === "dark" ? "Switch to Light theme" : "Switch to Dark theme",
         run: function () {
           state.theme = state.theme === "dark" ? "light" : "dark";
@@ -8339,10 +8476,10 @@
       }
     ];
     if (isFirebaseConfigured() && authSession) {
-      actions.push({ icon: "💬", label: "Open Chat", run: openChatPanel });
-      actions.push({ icon: "👥", label: "Open Members", run: showMembersModal });
-      actions.push({ icon: "🔔", label: "Open Notifications", run: showNotificationsModal });
-      actions.push({ icon: "🗂️", label: "Switch workspace", run: showWorkspaceSwitcherModal });
+      actions.push({ icon: PALETTE_ICONS.chat, label: "Open Chat", run: openChatPanel });
+      actions.push({ icon: PALETTE_ICONS.members, label: "Open Members", run: showMembersModal });
+      actions.push({ icon: PALETTE_ICONS.bell, label: "Open Notifications", run: showNotificationsModal });
+      actions.push({ icon: PALETTE_ICONS.workspace, label: "Switch workspace", run: showWorkspaceSwitcherModal });
     }
     return actions;
   }
@@ -8370,7 +8507,7 @@
     pages.forEach(function (p) {
       entries.push({
         type: "page",
-        icon: p.type === "mindmap" ? "🧠" : "📄",
+        icon: p.type === "mindmap" ? PALETTE_ICONS.mindmap : PALETTE_ICONS.page,
         label: p.title || "Untitled",
         hint: "Jump to page",
         run: function () { openPage(p.id); }
@@ -8404,7 +8541,7 @@
         row.dataset.index = idx;
         var icon = document.createElement("span");
         icon.className = "cp-icon";
-        icon.textContent = entry.icon;
+        icon.innerHTML = entry.icon;
         row.appendChild(icon);
         var label = document.createElement("span");
         label.className = "cp-label";
