@@ -2042,11 +2042,12 @@
   .callout-info { background: rgba(59,110,246,0.14); }
 
   .toggle-block { margin: 10px 0; }
-  .toggle-summary { cursor: pointer; font-weight: 600; padding: 4px; border-radius: 6px; }
+  .toggle-summary { font-weight: 600; padding: 4px; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
   .toggle-summary:hover { background: var(--hover); }
-  .toggle-summary::marker { color: var(--text-muted); }
-  .toggle-summary::-webkit-details-marker { color: var(--text-muted); }
+  .toggle-caret { flex: none; display: inline-block; font-size: 10px; color: var(--text-muted); transition: transform 0.15s ease; cursor: pointer; }
+  .toggle-block.collapsed .toggle-caret { transform: rotate(-90deg); }
   .toggle-body { padding: 4px 4px 4px 22px; }
+  .toggle-block.collapsed .toggle-body { display: none; }
   .modal-card {
     max-width: 420px;
     width: 100%;
@@ -2754,7 +2755,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-15.1";
+  var BUILD_ID = "2026-07-15.2";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -4887,13 +4888,21 @@
     onEditorChanged();
   }
 
+  // Deliberately NOT a native <details>/<summary> element: browsers'
+  // contenteditable normalization doesn't reliably keep that structure
+  // intact when inserted via execCommand — the summary text can end up
+  // orphaned into the surrounding paragraph while the emptied <details>
+  // falls back to showing the browser's default "Details" label. Plain
+  // divs plus a manual collapsed-class toggle sidestep that entirely.
   function insertToggleBlock() {
     el.editor.focus();
     ensureEditorSelection();
-    var html = '<details class="toggle-block" open><summary class="toggle-summary">Toggle</summary>' +
-      '<div class="toggle-body">Type here…</div></details><p><br></p>';
+    var html = '<div class="toggle-block"><div class="toggle-summary">' +
+      '<span class="toggle-caret" contenteditable="false">▶</span>' +
+      '<span class="toggle-summary-text">Toggle</span></div>' +
+      '<div class="toggle-body">Type here…</div></div><p><br></p>';
     try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
-    selectPlaceholderIn(el.editor, ".toggle-summary");
+    selectPlaceholderIn(el.editor, ".toggle-summary-text");
     onEditorChanged();
   }
 
@@ -5596,6 +5605,17 @@
   // the same way clicking a sidebar page does — no modifier key needed,
   // since the chip isn't meant to be edited inline like plain text.
   el.editor.addEventListener("click", function (e) {
+    var caret = e.target.closest && e.target.closest(".toggle-caret");
+    if (caret) {
+      e.preventDefault();
+      var toggleBlock = caret.closest(".toggle-block");
+      if (toggleBlock) {
+        toggleBlock.classList.toggle("collapsed");
+        onEditorChanged();
+      }
+      return;
+    }
+
     var link = e.target.closest && e.target.closest("a.page-link");
     if (!link) return;
     e.preventDefault();
