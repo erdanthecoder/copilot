@@ -520,6 +520,7 @@
     border-bottom: 1px solid var(--border);
     flex: none;
   }
+  .graph-view-icon { width: 16px; height: 16px; vertical-align: -3px; color: var(--text); }
   .graph-view-hint { color: var(--text-muted); font-size: 12.5px; flex: 1; }
   .graph-view-topbar button {
     border: 1px solid var(--border);
@@ -982,62 +983,6 @@
   .notification-item .notif-text b { font-weight: 700; }
   .notification-item .notif-time { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
-  .workspace-update-card { max-width: 420px; text-align: center; }
-  .wu-scene {
-    position: relative;
-    height: 140px;
-    margin: -4px -4px 14px;
-    border-radius: 14px;
-    background: linear-gradient(160deg, var(--accent) 0%, #7c6cff 100%);
-    overflow: hidden;
-  }
-  .wu-people {
-    position: absolute;
-    left: 50%;
-    bottom: 18px;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 14px;
-  }
-  .wu-people .person-avatar-wrap { width: 52px; height: 52px; animation: wuBob 1.6s ease-in-out infinite; }
-  .wu-people .person-avatar-wrap:nth-child(1) { animation-delay: 0s; }
-  .wu-people .person-avatar-wrap:nth-child(2) { animation-delay: 0.3s; }
-  .wu-people .person-avatar-wrap svg { display: block; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-  @keyframes wuBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-
-  .wu-bubble {
-    position: absolute;
-    top: 16px;
-    right: 28px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #fff;
-    padding: 8px 10px;
-    border-radius: 999px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
-  }
-  .wu-dot { width: 6px; height: 6px; border-radius: 50%; background: #7c6cff; animation: wuTypingDot 1.2s ease-in-out infinite; }
-  .wu-dot:nth-child(2) { animation-delay: 0.15s; }
-  .wu-dot:nth-child(3) { animation-delay: 0.3s; }
-  @keyframes wuTypingDot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
-
-  .wu-confetti { position: absolute; inset: 0; pointer-events: none; }
-  .wu-confetti-piece {
-    position: absolute;
-    top: -10px;
-    width: 7px;
-    height: 7px;
-    opacity: 0;
-    animation-name: wuConfettiFall;
-    animation-timing-function: ease-in;
-    animation-fill-mode: forwards;
-  }
-  @keyframes wuConfettiFall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-    12% { opacity: 1; }
-    100% { transform: translateY(150px) rotate(320deg); opacity: 0; }
-  }
   .editor a.page-link {
     display: inline-flex;
     align-items: center;
@@ -2613,23 +2558,6 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="workspaceUpdateModal" style="display:none;">
-  <div class="modal-card workspace-update-card">
-    <div class="wu-scene" id="wuScene">
-      <div class="wu-confetti" id="wuConfetti"></div>
-      <div class="wu-people" id="wuPeople"></div>
-      <div class="wu-bubble">
-        <span class="wu-dot"></span><span class="wu-dot"></span><span class="wu-dot"></span>
-      </div>
-    </div>
-    <h3>A workspace update is coming</h3>
-    <p>Soon you'll be able to chat and work on pages together with other people, right inside your notebook.</p>
-    <div class="modal-actions modal-actions-row">
-      <button type="button" id="workspaceUpdateClose" class="primary">Got it</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="trashModal">
   <div class="modal-card trash-modal-card">
     <h3>🗑️ Trash</h3>
@@ -2643,7 +2571,7 @@
 
 <div class="graph-view-overlay" id="graphViewOverlay" style="display:none;">
   <div class="graph-view-topbar">
-    <strong>🕸️ Notebook Graph</strong>
+    <strong><svg class="graph-view-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="6.5" y1="6.5" x2="13.5" y2="7.2" stroke="currentColor" stroke-width="1.1"/><line x1="6.5" y1="7.2" x2="7" y2="13.2" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="15.2" x2="13" y2="14.6" stroke="currentColor" stroke-width="1.1"/></svg> Notebook Graph</strong>
     <span class="graph-view-hint">Click a page to open it &bull; drag a dot to move it around</span>
     <button type="button" id="graphViewCloseBtn">Close</button>
   </div>
@@ -2755,7 +2683,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-15.2";
+  var BUILD_ID = "2026-07-20.1";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -3508,11 +3436,6 @@
     settingsThemeLight: document.getElementById("settingsThemeLight"),
     settingsThemeDark: document.getElementById("settingsThemeDark"),
     settingsModalClose: document.getElementById("settingsModalClose"),
-    workspaceUpdateModal: document.getElementById("workspaceUpdateModal"),
-    wuScene: document.getElementById("wuScene"),
-    wuConfetti: document.getElementById("wuConfetti"),
-    wuPeople: document.getElementById("wuPeople"),
-    workspaceUpdateClose: document.getElementById("workspaceUpdateClose"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     themeToggle: document.getElementById("themeToggle"),
@@ -4122,66 +4045,6 @@
     scheduleSave();
   });
 
-  /* =========================================================
-     WORKSPACE UPDATE ANNOUNCEMENT
-     A one-time animated popup that appears once the clock passes the
-     announced update time (Sunday 2026-07-19, 12:00 Bishkek time).
-     Shown at most once ever, tracked in localStorage — checked on load
-     and every minute after, so it still appears even if the app was
-     already open when the moment arrived.
-     ========================================================= */
-  var WORKSPACE_UPDATE_TARGET = Date.parse("2026-07-19T06:00:00Z"); // 12:00 Bishkek (UTC+6)
-  var WORKSPACE_UPDATE_SEEN_KEY = "obsitionWorkspaceUpdateSeenV1";
-
-  function hasSeenWorkspaceUpdate() {
-    try { return window.localStorage.getItem(WORKSPACE_UPDATE_SEEN_KEY) === "1"; } catch (e) { return false; }
-  }
-  function markWorkspaceUpdateSeen() {
-    try { window.localStorage.setItem(WORKSPACE_UPDATE_SEEN_KEY, "1"); } catch (e) { /* ignore */ }
-  }
-
-  function buildWorkspaceUpdateScene() {
-    clearChildren(el.wuPeople);
-    var castA = { avatarBg: "#7c6cff", name: "A" };
-    var castB = { avatarBg: "#ffd166", name: "B" };
-    [castA, castB].forEach(function (profile) {
-      var wrap = document.createElement("span");
-      wrap.className = "person-avatar-wrap";
-      wrap.innerHTML = personAvatarSVG(profile, 52);
-      el.wuPeople.appendChild(wrap);
-    });
-
-    clearChildren(el.wuConfetti);
-    var confettiColors = ["#ffd166", "#06d6a0", "#ffe5ec", "#ffffff", "#ff8fab"];
-    for (var i = 0; i < 16; i++) {
-      var piece = document.createElement("span");
-      piece.className = "wu-confetti-piece";
-      piece.style.left = Math.round(Math.random() * 100) + "%";
-      piece.style.background = confettiColors[i % confettiColors.length];
-      piece.style.borderRadius = i % 2 === 0 ? "50%" : "2px";
-      piece.style.animationDuration = (1.4 + Math.random() * 0.9).toFixed(2) + "s";
-      piece.style.animationDelay = (Math.random() * 0.6).toFixed(2) + "s";
-      el.wuConfetti.appendChild(piece);
-    }
-  }
-
-  function showWorkspaceUpdateModal() {
-    buildWorkspaceUpdateScene();
-    el.workspaceUpdateModal.style.display = "flex";
-  }
-  function hideWorkspaceUpdateModal() {
-    el.workspaceUpdateModal.style.display = "none";
-    markWorkspaceUpdateSeen();
-  }
-  el.workspaceUpdateClose.addEventListener("click", hideWorkspaceUpdateModal);
-
-  function checkWorkspaceUpdateTime() {
-    if (hasSeenWorkspaceUpdate()) return;
-    if (el.authOverlay.style.display === "flex") return;
-    if (el.workspaceUpdateModal.style.display === "flex") return;
-    if (Date.now() >= WORKSPACE_UPDATE_TARGET) showWorkspaceUpdateModal();
-  }
-
   function flattenAllItems(items, out) {
     out = out || [];
     items.forEach(function (item) {
@@ -4725,9 +4588,33 @@
     sel.addRange(fallback);
   }
 
+  // execCommand("formatBlock") is unreliable when the current block is
+  // truly empty (not even a <br>) — it can silently reformat a
+  // neighboring block instead of this one. A <br> placeholder (the same
+  // pattern used everywhere else in this file for an "empty" block) keeps
+  // the browser's selection anchored to the right element. Only needed
+  // for formatBlock: insertHTML-based commands (callouts, tables, etc.)
+  // insert at the cursor rather than reformatting it, so they're unaffected.
+  function ensureNonEmptyCurrentBlock() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
+    var range = sel.getRangeAt(0);
+    var node = range.startContainer;
+    var blockEl = node.nodeType === 3 ? node.parentElement : node;
+    while (blockEl && blockEl !== el.editor && !isBlockLevelEl(blockEl)) blockEl = blockEl.parentElement;
+    if (!blockEl || blockEl === el.editor || blockEl.childNodes.length > 0) return;
+    blockEl.appendChild(document.createElement("br"));
+    var placeRange = document.createRange();
+    placeRange.setStart(blockEl, 0);
+    placeRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(placeRange);
+  }
+
   function runCommand(cmd, value) {
     el.editor.focus();
     ensureEditorSelection();
+    if (cmd === "formatBlock") ensureNonEmptyCurrentBlock();
     try {
       document.execCommand(cmd, false, value);
     } catch (e) {
@@ -4751,16 +4638,51 @@
     insertChecklistItem();
   });
 
-  function insertChecklistItem() {
+  // Inserts block-level HTML (a callout, table, divider, etc.) at the
+  // current cursor position. execCommand("insertHTML") is unreliable when
+  // the current block is empty and sits right after a non-empty sibling —
+  // exactly the state right after a slash command clears its "/query"
+  // trigger text, or after pressing Enter on a fresh line — producing
+  // invalid nested markup or merging content into the previous block. In
+  // that specific case we replace the empty block with a direct DOM
+  // insertion instead of going through execCommand at all; otherwise
+  // (inserting mid-content) execCommand still handles it correctly.
+  function insertBlockHTML(html) {
     el.editor.focus();
     ensureEditorSelection();
+    var sel = window.getSelection();
+    var blockEl = null;
+    if (sel && sel.rangeCount && sel.isCollapsed) {
+      var node = sel.getRangeAt(0).startContainer;
+      blockEl = node.nodeType === 3 ? node.parentElement : node;
+      while (blockEl && blockEl !== el.editor && !isBlockLevelEl(blockEl)) blockEl = blockEl.parentElement;
+    }
+    if (blockEl && blockEl !== el.editor && blockEl.parentNode && blockEl.textContent === "") {
+      var template = document.createElement("template");
+      template.innerHTML = html;
+      var lastNode = template.content.lastChild;
+      blockEl.parentNode.insertBefore(template.content, blockEl);
+      blockEl.remove();
+      // Leave the cursor at the start of the last inserted node (typically
+      // a trailing empty paragraph placeholder) so continued typing lands
+      // somewhere sensible, even for callers that don't reposition it
+      // themselves afterward.
+      if (lastNode && lastNode.nodeType === 1) {
+        var placeRange = document.createRange();
+        placeRange.selectNodeContents(lastNode);
+        placeRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(placeRange);
+      }
+    } else {
+      try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function insertChecklistItem() {
     var html =
       '<div class="checklist-item"><input type="checkbox" class="chk"><span class="chk-text"><br></span></div><p><br></p>';
-    try {
-      document.execCommand("insertHTML", false, html);
-    } catch (e) {
-      /* ignore */
-    }
+    insertBlockHTML(html);
     // insertHTML's post-insert caret placement across a multi-node fragment
     // isn't reliable enough to depend on, so place it explicitly in the new
     // item's text span — otherwise typing lands in the wrong place.
@@ -4859,9 +4781,7 @@
      to reaching for the toolbar.
      ========================================================= */
   function insertDividerBlock() {
-    el.editor.focus();
-    ensureEditorSelection();
-    try { document.execCommand("insertHTML", false, "<hr><p><br></p>"); } catch (e) { /* ignore */ }
+    insertBlockHTML("<hr><p><br></p>");
     onEditorChanged();
   }
 
@@ -4879,11 +4799,9 @@
   }
 
   function insertCalloutBlock(kind, icon) {
-    el.editor.focus();
-    ensureEditorSelection();
     var html = '<div class="callout callout-' + kind + '"><span class="callout-icon">' + icon +
       '</span><span class="callout-text">Type something…</span></div><p><br></p>';
-    try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
+    insertBlockHTML(html);
     selectPlaceholderIn(el.editor, ".callout-text");
     onEditorChanged();
   }
@@ -4895,13 +4813,11 @@
   // falls back to showing the browser's default "Details" label. Plain
   // divs plus a manual collapsed-class toggle sidestep that entirely.
   function insertToggleBlock() {
-    el.editor.focus();
-    ensureEditorSelection();
     var html = '<div class="toggle-block"><div class="toggle-summary">' +
       '<span class="toggle-caret" contenteditable="false">▶</span>' +
       '<span class="toggle-summary-text">Toggle</span></div>' +
       '<div class="toggle-body">Type here…</div></div><p><br></p>';
-    try { document.execCommand("insertHTML", false, html); } catch (e) { /* ignore */ }
+    insertBlockHTML(html);
     selectPlaceholderIn(el.editor, ".toggle-summary-text");
     onEditorChanged();
   }
@@ -5036,6 +4952,58 @@
     cmd.run();
   }
 
+  /* =========================================================
+     MARKDOWN SHORTCUTS
+     Typing a familiar markdown prefix ("# ", "- ", "1. ", "> ", "---")
+     at the start of an otherwise-empty line converts the block on the
+     spot, Notion/Obsidian-style, same as the slash menu but without
+     needing to open it.
+     ========================================================= */
+  var MARKDOWN_SHORTCUTS = [
+    { regex: /^### $/, run: function () { runCommand("formatBlock", "H3"); } },
+    { regex: /^## $/, run: function () { runCommand("formatBlock", "H2"); } },
+    { regex: /^# $/, run: function () { runCommand("formatBlock", "H1"); } },
+    { regex: /^> $/, run: function () { runCommand("formatBlock", "BLOCKQUOTE"); } },
+    { regex: /^[-*] $/, run: function () { runCommand("insertUnorderedList"); } },
+    { regex: /^1\. $/, run: function () { runCommand("insertOrderedList"); } },
+    { regex: /^---$/, run: insertDividerBlock }
+  ];
+
+  function getMarkdownShortcutInfo() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return null;
+    var range = sel.getRangeAt(0);
+    if (!el.editor.contains(range.startContainer)) return null;
+    var node = range.startContainer;
+    var blockEl = node.nodeType === 3 ? node.parentElement : node;
+    while (blockEl && blockEl !== el.editor && !isBlockLevelEl(blockEl)) blockEl = blockEl.parentElement;
+    if (!blockEl || blockEl === el.editor) return null;
+    var preRange = document.createRange();
+    preRange.selectNodeContents(blockEl);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    // Contenteditable renders a trailing typed space as &nbsp; (U+00A0) so
+    // it doesn't get collapsed by HTML whitespace rules — normalize it
+    // back to a plain space before matching.
+    var text = preRange.toString().replace(/ /g, " ");
+    var match = MARKDOWN_SHORTCUTS.find(function (s) { return s.regex.test(text); });
+    if (!match) return null;
+    return { blockEl: blockEl, cmd: match };
+  }
+
+  function checkMarkdownShortcut() {
+    var info = getMarkdownShortcutInfo();
+    if (!info) return;
+    el.editor.focus();
+    var range = document.createRange();
+    range.selectNodeContents(info.blockEl);
+    range.deleteContents();
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    info.cmd.run();
+  }
+
+  el.editor.addEventListener("input", checkMarkdownShortcut);
   el.editor.addEventListener("input", checkSlashTrigger);
   el.editor.addEventListener("blur", closeSlashMenu);
 
@@ -5639,13 +5607,7 @@
       html += "</tr>";
     }
     html += "</table><p><br></p>";
-    el.editor.focus();
-    ensureEditorSelection();
-    try {
-      document.execCommand("insertHTML", false, html);
-    } catch (e) {
-      /* ignore */
-    }
+    insertBlockHTML(html);
     onEditorChanged();
   }
 
@@ -8366,7 +8328,6 @@
   function showAuthOverlay() { el.authOverlay.style.display = "flex"; }
   function hideAuthOverlay() {
     el.authOverlay.style.display = "none";
-    checkWorkspaceUpdateTime();
   }
 
   el.authForm.addEventListener("submit", function (e) {
@@ -8751,8 +8712,6 @@
     }
   }
 
-  checkWorkspaceUpdateTime();
-  setInterval(checkWorkspaceUpdateTime, 60000);
 })();
 </script>
 </body>
