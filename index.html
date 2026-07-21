@@ -504,6 +504,25 @@
   .trash-item button.danger { color: var(--danger); border-color: var(--danger); }
   .trash-empty-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
 
+  .move-to-modal-card { max-width: 380px; }
+  .move-to-list { max-height: 320px; overflow-y: auto; margin: 4px 0 16px; }
+  .move-to-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: var(--text);
+    font-size: 13.5px;
+  }
+  .move-to-row:hover:not(:disabled) { background: var(--hover); }
+  .move-to-row:disabled { color: var(--text-muted); cursor: default; opacity: 0.55; }
+  .move-to-row svg { flex: none; width: 15px; height: 15px; color: var(--text-muted); }
+
   .graph-view-overlay {
     position: fixed;
     inset: 0;
@@ -2569,6 +2588,16 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="moveToModal">
+  <div class="modal-card move-to-modal-card">
+    <h3>Move to&hellip;</h3>
+    <div class="move-to-list" id="moveToList"></div>
+    <div class="modal-actions modal-actions-row">
+      <button type="button" id="moveToModalCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="graph-view-overlay" id="graphViewOverlay" style="display:none;">
   <div class="graph-view-topbar">
     <strong><svg class="graph-view-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="6.5" y1="6.5" x2="13.5" y2="7.2" stroke="currentColor" stroke-width="1.1"/><line x1="6.5" y1="7.2" x2="7" y2="13.2" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="15.2" x2="13" y2="14.6" stroke="currentColor" stroke-width="1.1"/></svg> Notebook Graph</strong>
@@ -2683,7 +2712,7 @@
   // Bumped by hand on every meaningful change. If the number shown in the
   // sidebar footer doesn't match what you expect, the browser is serving a
   // cached copy — hard refresh (or clear site data) to get the real update.
-  var BUILD_ID = "2026-07-20.1";
+  var BUILD_ID = "2026-07-21.1";
 
   /* =========================================================
      FIREBASE CONFIGURATION
@@ -3346,6 +3375,9 @@
     trashModal: document.getElementById("trashModal"),
     trashList: document.getElementById("trashList"),
     trashModalCloseBtn: document.getElementById("trashModalCloseBtn"),
+    moveToModal: document.getElementById("moveToModal"),
+    moveToList: document.getElementById("moveToList"),
+    moveToModalCancel: document.getElementById("moveToModalCancel"),
     graphViewBtn: document.getElementById("graphViewBtn"),
     graphViewOverlay: document.getElementById("graphViewOverlay"),
     graphViewCloseBtn: document.getElementById("graphViewCloseBtn"),
@@ -4183,8 +4215,12 @@
           label: item.favorite ? "★  Remove from Favorites" : "☆  Add to Favorites",
           onClick: function () { toggleFavorite(item); }
         });
+        if (item.special !== "wishlist") {
+          menuItems.push({ label: "⧉  Duplicate", onClick: function () { duplicateItem(item); } });
+        }
       }
       if (item.special !== "wishlist") {
+        menuItems.push({ label: "➜  Move to…", onClick: function () { showMoveToModal(item); } });
         menuItems.push({ label: "🗑️  Delete", danger: true, onClick: function () { deleteItem(item); } });
       }
       showRowMenu(e.currentTarget, menuItems);
@@ -4446,6 +4482,87 @@
     if (item.kind !== "folder") return false;
     return item.children.some(function (child) { return itemContainsId(child, id); });
   }
+
+  // A full deep clone (works uniformly for doc/mindmap/canvas pages,
+  // whatever fields they carry) inserted right after the original —
+  // Notion's "Duplicate" action.
+  function duplicateItem(item) {
+    var path = findItemPath(item.id);
+    if (!path) return;
+    var parent = path.length >= 2 ? path[path.length - 2] : null;
+    var siblings = childArrayOf(parent);
+    var index = siblings.indexOf(item);
+    var clone = JSON.parse(JSON.stringify(item));
+    clone.id = uid();
+    clone.title = (item.title || "Untitled") + " (copy)";
+    clone.favorite = false;
+    clone.updatedAt = Date.now();
+    siblings.splice(index + 1, 0, clone);
+    pendingHighlightId = clone.id;
+    renderTree();
+    clearHighlightSoon();
+    scheduleSave();
+  }
+
+  function flattenFolders(items, depth, out) {
+    out = out || [];
+    items.forEach(function (folderItem) {
+      if (folderItem.kind === "folder") {
+        out.push({ folder: folderItem, depth: depth });
+        flattenFolders(folderItem.children, depth + 1, out);
+      }
+    });
+    return out;
+  }
+
+  function performMove(item, destFolder) {
+    var path = findItemPath(item.id);
+    var currentParent = path && path.length >= 2 ? path[path.length - 2] : null;
+    if (currentParent === destFolder) { hideMoveToModal(); return; }
+    var oldSiblings = childArrayOf(currentParent);
+    var index = oldSiblings.indexOf(item);
+    if (index === -1) { hideMoveToModal(); return; }
+    oldSiblings.splice(index, 1);
+    childArrayOf(destFolder).push(item);
+    if (destFolder) destFolder.expanded = true;
+    item.updatedAt = Date.now();
+    hideMoveToModal();
+    pendingHighlightId = item.id;
+    renderTree();
+    clearHighlightSoon();
+    scheduleSave();
+  }
+
+  function showMoveToModal(item) {
+    var path = findItemPath(item.id);
+    var currentParent = path && path.length >= 2 ? path[path.length - 2] : null;
+    clearChildren(el.moveToList);
+
+    var rootRow = document.createElement("button");
+    rootRow.type = "button";
+    rootRow.className = "move-to-row";
+    rootRow.innerHTML = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3.5 C1 2.4 1.9 1.5 3 1.5 H7.5 L9 3.2 H17 C18.1 3.2 19 4.1 19 5.2 V12.5 C19 13.6 18.1 14.5 17 14.5 H3 C1.9 14.5 1 13.6 1 12.5 Z" fill="currentColor"/></svg><span>My Notebook (top level)</span>';
+    rootRow.disabled = !currentParent;
+    rootRow.addEventListener("click", function () { performMove(item, null); });
+    el.moveToList.appendChild(rootRow);
+
+    flattenFolders(state.items, 0).forEach(function (entry) {
+      if (itemContainsId(item, entry.folder.id)) return; // can't move a folder into itself or its own descendant
+      var row = document.createElement("button");
+      row.type = "button";
+      row.className = "move-to-row";
+      row.style.paddingLeft = (10 + entry.depth * 16) + "px";
+      row.innerHTML = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3.5 C1 2.4 1.9 1.5 3 1.5 H7.5 L9 3.2 H17 C18.1 3.2 19 4.1 19 5.2 V12.5 C19 13.6 18.1 14.5 17 14.5 H3 C1.9 14.5 1 13.6 1 12.5 Z" fill="currentColor"/></svg><span></span>';
+      row.querySelector("span").textContent = entry.folder.name;
+      row.disabled = entry.folder === currentParent;
+      row.addEventListener("click", function () { performMove(item, entry.folder); });
+      el.moveToList.appendChild(row);
+    });
+
+    el.moveToModal.style.display = "flex";
+  }
+  function hideMoveToModal() { el.moveToModal.style.display = "none"; }
+  el.moveToModalCancel.addEventListener("click", hideMoveToModal);
 
   // Returns the removed item (with its subtree intact, if it was a
   // folder) so callers can move it to Trash, or null if not found.
