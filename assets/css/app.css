@@ -646,3 +646,18 @@ body { letter-spacing: .1px; }
 .pop-words { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; margin: -2px 0 10px; }
 .pop-words .mini { flex: 1; height: 8px; background: rgba(255,255,255,.3); border-radius: 9px; overflow: hidden; }
 .pop-words .mini i { display: block; height: 100%; background: #fff; border-radius: 9px; }
+/* tap-a-word hints + speaker */
+.ky-line { display: flex; align-items: flex-start; gap: 10px; }
+.speak-btn { flex: none; width: 44px; height: 44px; border-radius: 14px; background: var(--blue); color: #fff; box-shadow: 0 3px 0 var(--blue-d); font-size: 22px; }
+.speak-btn:hover { background: var(--blue); color: #fff; filter: brightness(1.06); }
+.speak-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blue-d); }
+.intro-word .speak-btn { width: 52px; height: 52px; font-size: 26px; }
+.hint-word { position: relative; cursor: pointer; border-bottom: 2px dotted var(--ink-3); padding-bottom: 1px; }
+.hint-word:hover { border-bottom-color: var(--blue); color: var(--blue-d); }
+.hint-pop { position: absolute; left: 50%; top: calc(100% + 10px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 12px; border-radius: 12px; font-size: 15px; font-weight: 800; white-space: nowrap; z-index: 30; box-shadow: 0 8px 20px rgba(0,0,0,.2); animation: popIn .12s ease-out; }
+.hint-pop::before { content: ""; position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; background: var(--ink); transform: translateX(-50%) rotate(45deg); border-radius: 2px; }
+.hint-pop .hint-end { font-weight: 600; opacity: .8; }
+.hint-pop .muted { color: inherit; opacity: .8; }
+.speech .ky-line .tl { display: block; }
+.intro-word.long { font-size: clamp(26px, 6vw, 38px); flex-wrap: wrap; }
+.intro-card .hint-pop { font-size: 15px; letter-spacing: 0; }

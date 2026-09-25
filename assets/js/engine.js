@@ -164,12 +164,11 @@ export function makeExercise(kind, item, P, lang, all) {
   Everything is freshly randomised on every call, so each student gets a different lesson.
   `known` (a Set of word ids) lets level 0 continue with the next unlearned words.
 */
-const STAGES2 = [[0.2, "w", ["choose-tr", "choose-ky"]], [0.45, "s", ["build-tr", "blank"]], [0.75, "s", ["build-ky", "build-tr"]], [1, "mix", ["type-tr", "type-ky"]]];
 export function nextWordBatch(topicIds, known, size = 5) {
   const words = pool(topicIds).words;
   return known ? words.filter(w => !known.has(w.id)).slice(0, size) : shuffle(words).slice(0, size);
 }
-export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intro = false, known = null } = {}) {
+export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intro = false, known = null, typing = false } = {}) {
   const P = pool(topicIds), all = allPool();
   const lv = Math.max(0, Math.min(2, level));
   const phraseTopic = topicIds.some(id => (TOPIC_AREA[id] || "vocab") !== "vocab");
@@ -200,35 +199,40 @@ export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intr
       plan.push(makeExercise(scored() < count * 0.5 ? pick(["choose-ky", "choose-tr"]) : pick(["choose-tr", "choose-tr", "choose-ky"]), w, small, lang, all));
     }
   } else if (lv === 1) {
+    // Practise: recognise and recall every word of the topic. No typing.
     const words = shuffle(P.words);
     const phrases = phraseTopic ? shuffle(P.sentences) : [];
     let wi = 0, pi = 0;
-    const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.35), Math.round(count * 0.7)]) : new Set();
+    const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.35), Math.round(count * 0.75)]) : new Set();
     for (let i = 0; i < count; i++) {
       if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
       const p = count > 1 ? i / (count - 1) : 0;
       if (phrases.length && i % 3 === 2) { plan.push(makeExercise(p < 0.6 ? "choose-ky" : "choose-tr", phrases[pi++ % phrases.length], P, lang, all)); continue; }
       const w = words[wi++ % words.length];
-      plan.push(makeExercise(p < 0.4 ? pick(["choose-ky", "choose-tr"]) : p < 0.8 ? pick(["choose-tr", "choose-ky", "type-tr"]) : pick(["type-tr", "choose-tr"]), w, P, lang, all));
+      plan.push(makeExercise(p < 0.4 ? "choose-ky" : pick(["choose-tr", "choose-ky", "choose-tr"]), w, P, lang, all));
+      if (typing && p > 0.7) plan[plan.length - 1] = makeExercise("type-tr", w, P, lang, all);
     }
   } else {
-    const words = shuffle(P.words), sents = shuffle(P.sentences);
-    let wi = 0, si = 0;
-    const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.3)]) : new Set();
-    for (let i = 0; i < count; i++) {
-      if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
-      const p = count > 1 ? i / (count - 1) : 0;
-      const [, what, kinds] = STAGES2.find(st => p <= st[0]) || STAGES2[STAGES2.length - 1];
-      const useSentence = sents.length && (what === "s" || (what === "mix" && Math.random() < 0.6) || !words.length);
-      if (useSentence) {
-        const x = sents[si++ % sents.length];
-        let kind = pick(kinds);
-        if (tokens(first(x.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = pick(["choose-ky", "type-tr"]);
+    // Sentences, step by step: meet a sentence -> pick its meaning -> order the
+    // translation -> fill a gap -> finally build it in Kyrgyz. Typing only when asked (homework).
+    const sents = shuffle(P.sentences.slice().sort((x, y) => tokens(first(x.ky)).length - tokens(first(y.ky)).length).slice(0, Math.max(4, Math.ceil(P.sentences.length * 0.8))));
+    const words = shuffle(P.words);
+    let si = 0, wi = 0;
+    const nextS = () => sents[si++ % sents.length];
+    if (!sents.length) { for (let i = 0; i < count; i++) plan.push(makeExercise(pick(["choose-tr", "choose-ky"]), words[wi++ % words.length], P, lang, all)); }
+    else {
+      const taughtS = sents.slice(0, Math.min(2, sents.length));
+      for (const x of taughtS) { if (intro !== false) plan.push(introCard(x, P, lang, true)); plan.push(makeExercise("choose-ky", x, P, lang, all)); }
+      si = taughtS.length;
+      const ramp = ["build-tr", "choose-tr", "build-tr", "match", "blank", "build-tr", "blank", "build-ky", "build-ky", "build-ky"];
+      let r = 0;
+      while (scored() < count) {
+        let kind = ramp[r++ % ramp.length];
+        if (kind === "match") { if (P.words.length >= 4) plan.push(makeExercise("match", null, P, lang, all)); continue; }
+        const x = nextS();
+        if (tokens(first(x.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = "choose-tr";
+        if (typing && scored() >= count - 3) kind = pick(["type-tr", "type-ky"]);
         plan.push(makeExercise(kind, x, P, lang, all));
-      } else {
-        let kind = pick(kinds);
-        if (kind.startsWith("build") || kind === "blank") kind = "type-ky";
-        plan.push(makeExercise(kind, words[wi++ % words.length], P, lang, all));
       }
     }
   }
@@ -244,9 +248,9 @@ export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intr
   return plan.filter(Boolean);
 }
 
-function introCard(w, P, lang) {
-  const ex = P.sentences.find(x => normalize(x.ky).split(" ").includes(normalize(first(w.ky))));
-  return { type: "intro", ky: first(w.ky), tr: first(w[lang]), example: ex ? [first(ex.ky), first(ex[lang])] : null, item: w };
+function introCard(w, P, lang, sentence = false) {
+  const ex = sentence ? null : P.sentences.find(x => normalize(x.ky).split(" ").includes(normalize(first(w.ky))));
+  return { type: "intro", sentence, ky: first(w.ky), tr: first(w[lang]), example: ex ? [first(ex.ky), first(ex[lang])] : null, item: w };
 }
 
 export function readingExercises(topicIds, lang) {
@@ -286,4 +290,52 @@ export function customExercise(q, setId, idx) {
 
 export function allWords(lang) {
   return TOPIC_ORDER.flatMap(id => TOPICS[id].words.map((w, i) => ({ ky: w[0], tr: first(lang === "ru" ? w[2] : w[1]), topic: id, id: `${id}:w${i}` })));
+}
+
+// ── Word hints: tap a Kyrgyz word to see what it means ──
+// Looks the word up in the curriculum; if it carries an ending (мектеп-ке, китеб-им),
+// strips common suffixes to find the dictionary form.
+const SUFFIXES = ["лардын", "лердин", "дардын", "дердин", "тардын", "тердин", "лардан", "лерден", "дардан", "дерден", "тардан", "терден",
+  "ларга", "лерге", "дарга", "дерге", "тарга", "терге", "ларда", "лерде", "дарда", "дерде", "тарда", "терде",
+  "мын", "мин", "мун", "мүн", "быз", "биз", "буз", "бүз", "сың", "сиң", "суң", "сүң",
+  "лар", "лер", "лор", "лөр", "дар", "дер", "дор", "дөр", "тар", "тер", "тор", "төр",
+  "нын", "нин", "нун", "нүн", "дын", "дин", "дун", "дүн", "тын", "тин", "тун", "түн",
+  "дан", "ден", "дон", "дөн", "тан", "тен", "тон", "төн",
+  "га", "ге", "го", "гө", "ка", "ке", "ко", "кө", "да", "де", "до", "дө", "та", "те", "то", "тө",
+  "ны", "ни", "ну", "нү", "ды", "ди", "ду", "дү", "ты", "ти", "ту", "тү",
+  "ым", "им", "ум", "үм", "бы", "би", "бу", "бү", "м", "ң", "ы", "и", "у", "ү"];
+const ENDING = {
+  en: { га: "to", ка: "to", да: "in/at", та: "in/at", дан: "from", тан: "from", нын: "of", дын: "of", тын: "of", ны: "(object)", ды: "(object)", ты: "(object)", лар: "(plural)", дар: "(plural)", тар: "(plural)", м: "my", ым: "my", ң: "your", ы: "his/her", бы: "?" },
+  ru: { га: "к/в", ка: "к/в", да: "в/на", та: "в/на", дан: "из/от", тан: "из/от", нын: "(род. п.)", дын: "(род. п.)", тын: "(род. п.)", ны: "(вин. п.)", ды: "(вин. п.)", ты: "(вин. п.)", лар: "(мн. ч.)", дар: "(мн. ч.)", тар: "(мн. ч.)", м: "мой", ым: "мой", ң: "твой", ы: "его/её", бы: "?" },
+};
+const VOWEL_NORM = { е: "а", о: "а", ө: "а", и: "ы", у: "ы", ү: "ы", г: "к", д: "т" };
+function endingMeaning(suf, lang) {
+  const key = suf.replace(/[еоө]/g, "а").replace(/[иуү]/g, "ы");
+  const table = ENDING[lang] || ENDING.en;
+  for (const k of [suf, key, key.replace(/^[гкдт]/, (c) => VOWEL_NORM[c] || c)]) if (table[k]) return table[k];
+  const base = key.replace(/^л/, "л").replace(/^[дт]/, "д");
+  return table[base] || "";
+}
+let DICT = null;
+function dict(lang) {
+  if (DICT && DICT.lang === lang) return DICT.map;
+  const map = new Map();
+  for (const id of TOPIC_ORDER) for (const w of TOPICS[id].words) {
+    const tr = first(lang === "ru" ? w[2] : w[1]);
+    for (const k of alts(w[0])) { const n = normalize(k); if (!map.has(n)) map.set(n, tr); }
+  }
+  DICT = { lang, map };
+  return map;
+}
+export function glossKy(word, lang = "en") {
+  const m = dict(lang); const n = normalize(word);
+  if (!n) return null;
+  if (m.has(n)) return { stem: n, meaning: m.get(n) };
+  for (const suf of SUFFIXES) {
+    if (n.length - suf.length < 2 || !n.endsWith(suf)) continue;
+    let stem = n.slice(0, -suf.length);
+    const cands = [stem, stem.replace(/б$/, "п"), stem.replace(/г$/, "к"), stem + "ы", stem + "и"];
+    for (const c of cands) if (m.has(c)) return { stem: c, meaning: m.get(c), ending: suf, endingMeaning: endingMeaning(suf, lang) };
+  }
+  return null;
 }

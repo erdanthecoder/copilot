@@ -6,6 +6,7 @@ import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.j
 import { buildLesson, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
+import { voice } from "../assets/js/speech.js";
 import { openMeeting } from "../assets/js/call.js";
 import { watchPresentations, openLiveViewer, openSlideshow } from "../assets/js/present.js";
 
@@ -420,7 +421,7 @@ function startTopic(id, level, jump = false) {
   if (openPop) { openPop.remove(); openPop = null; }
   regenHearts();
   if (profile.hearts <= 0) return noHearts();
-  const ex = buildLesson([id], { count: jump ? 14 : level === 0 ? 10 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level === 0, known: seenSet() });
+  const ex = buildLesson([id], { count: jump ? 14 : level === 0 ? 10 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level !== 1, known: seenSet() });
   runLesson({
     exercises: ex, mode: "practice", hearts: profile.hearts,
     onHeart: (n) => { profile.hearts = n; if (n < MAX_HEARTS && !prog().heartsAt) prog().heartsAt = Date.now(); save(); },
@@ -652,7 +653,7 @@ async function startHomework(hw, c) {
     if (error) return toast(errMsg(error), "bad");
     sets = data || [];
   }
-  let exercises = hw.topic_ids.length && hw.question_count ? buildLesson(hw.topic_ids, { count: hw.question_count, level: hw.difficulty ?? 1, lang: getLang() }) : [];
+  let exercises = hw.topic_ids.length && hw.question_count ? buildLesson(hw.topic_ids, { count: hw.question_count, level: hw.difficulty ?? 1, lang: getLang(), typing: hw.difficulty === 2 }) : [];
   const custom = sets.flatMap(s => (s.questions || []).map((q, i) => customExercise(q, s.id, i))).filter(Boolean);
   // Every student gets a different order: the teacher's own questions land at random spots.
   for (const q of shuffle(custom)) exercises.splice(Math.floor(Math.random() * (exercises.length + 1)), 0, q);
@@ -736,7 +737,8 @@ function viewProfile(main) {
     h("div", {}, h("div", { class: "muted small", style: { fontWeight: 800, marginBottom: "6px" } }, "Avatar"), h("div", { class: "row" }, COLORS.map(col => h("button", { style: { width: "34px", height: "34px", borderRadius: "50%", background: col, border: profile.avatar_color === col ? "3px solid var(--ink)" : "0", cursor: "pointer" }, onClick: () => { profile.avatar_color = col; save(); render(); } })))),
     h("div", {}, h("div", { class: "muted small", style: { fontWeight: 800, marginBottom: "6px" } }, t("dailyGoal")), h("div", { class: "seg" }, [10, 20, 30, 50].map(g => h("button", { class: p.goal === g ? "on" : "", onClick: () => { p.goal = g; save(); render(); } }, `${g} XP`)))),
     h("div", {}, h("div", { class: "muted small", style: { fontWeight: 800, marginBottom: "6px" } }, t("theme")), themeSeg()),
-    h("label", { class: "row" }, h("input", { type: "checkbox", checked: sound.enabled, onChange: (e) => sound.set(e.target.checked) }), t("sound"))));
+    h("label", { class: "row" }, h("input", { type: "checkbox", checked: sound.enabled, onChange: (e) => sound.set(e.target.checked) }), t("sound")),
+    h("label", { class: "row" }, h("input", { type: "checkbox", checked: voice.enabled, onChange: (e) => voice.set(e.target.checked) }), getLang() === "ru" ? "Озвучивать кыргызские слова" : "Speak Kyrgyz words aloud")));
   main.append(h("div", { style: { marginTop: "20px" } }, guest
     ? h("button", { class: "btn primary", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} renderAuth("signup"); } }, t("signUp"))
     : h("button", { class: "btn ghost", onClick: () => client.auth.signOut() }, icon("logout"), t("signOut"))));

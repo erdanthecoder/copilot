@@ -1,6 +1,7 @@
 // Full-screen lesson player (Duolingo-style) used for practice, homework and teacher previews.
-import { h, icon, mascot, sound, confetti, modal, kyKeys, speakKy, kyVoice, countUp } from "./ui.js";
-import { checkTyped, normalize, translit, shuffle } from "./engine.js";
+import { h, icon, mascot, sound, confetti, modal, kyKeys, countUp, toast } from "./ui.js";
+import { sayKy } from "./speech.js";
+import { checkTyped, normalize, translit, shuffle, glossKy } from "./engine.js";
 import { t, getLang } from "./i18n.js";
 import { TOPICS } from "./curriculum.js";
 
@@ -171,25 +172,45 @@ export function runLesson(opts) {
   }
 
   // ───────── renderers ─────────
-  function kyText(s, big) {
-    const v = kyVoice();
-    return h("span", {}, h("span", { class: "ky" }, s),
-      v ? h("button", { class: "icon-btn", "aria-label": "Listen", onClick: () => speakKy(s) }, icon("speaker")) : null,
-      h("span", { class: "tl" }, translit(s)));
+  // Kyrgyz text where every word can be tapped for its meaning (and is spoken).
+  let hintEl = null;
+  function closeHint() { if (hintEl) { hintEl.remove(); hintEl = null; } }
+  root.addEventListener("click", (e) => { if (!e.target.closest(".hint-word")) closeHint(); });
+  function hintWords(text) {
+    return text.split(/(\s+)/).map(part => {
+      if (/^\s+$/.test(part) || !/[а-яёңөү]/i.test(part)) return part;
+      const w = h("span", { class: "hint-word", onClick: (e) => {
+        e.stopPropagation(); closeHint();
+        const clean = part.replace(/[.,!?;:«»"“”—()]/g, "");
+        sayKy(clean, { force: true });
+        const g = glossKy(clean, lang);
+        hintEl = h("span", { class: "hint-pop" }, g ? [h("b", {}, g.meaning), g.ending ? h("span", { class: "hint-end" }, ` + -${g.ending}${g.endingMeaning ? " (" + g.endingMeaning + ")" : ""}`) : null] : h("span", { class: "muted" }, translit(clean)));
+        w.append(hintEl);
+      } }, part);
+      return w;
+    });
+  }
+  function speakBtn(text) {
+    return h("button", { class: "icon-btn speak-btn", "aria-label": "Listen", onClick: (e) => { e.stopPropagation(); if (!sayKy(text, { force: true })) toast(lang === "ru" ? "На этом устройстве нет голоса для озвучки" : "This device has no voice for playback"); } }, icon("speaker"));
+  }
+  function kyText(s) {
+    return h("span", { class: "ky-line" }, speakBtn(s), h("span", {}, h("span", { class: "ky" }, hintWords(s)), h("span", { class: "tl" }, translit(s))));
   }
   function promptBubble(text, isKy) {
+    if (isKy) setTimeout(() => sayKy(text), 250);
     return h("div", { class: "prompt-row" }, mascot(isKy ? "think" : "happy", 96), h("div", { class: "speech" }, isKy ? kyText(text) : text));
   }
 
   function renderIntro(ex) {
-    const v = kyVoice();
+    setTimeout(() => sayKy(ex.ky), 300);
     return h("div", { class: "ex-card intro-card" },
-      h("div", { class: "intro-kicker" }, icon("star"), lang === "ru" ? "Новое слово" : "New word"),
+      h("div", { class: "intro-kicker" }, icon("star"), ex.sentence ? (lang === "ru" ? "Новое предложение" : "New sentence") : (lang === "ru" ? "Новое слово" : "New word")),
       mascot("wave", 110),
-      h("div", { class: "intro-word" }, ex.ky, v ? h("button", { class: "icon-btn", "aria-label": "Listen", onClick: () => speakKy(ex.ky) }, icon("speaker")) : null),
+      h("div", { class: "intro-word" + (ex.ky.length > 14 ? " long" : "") }, speakBtn(ex.ky), ex.sentence ? h("span", {}, hintWords(ex.ky)) : ex.ky),
+      ex.sentence ? h("div", { class: "small muted", style: { marginTop: "6px" } }, lang === "ru" ? "Нажмите на слово, чтобы увидеть перевод" : "Tap a word to see what it means") : null,
       h("div", { class: "intro-tl" }, translit(ex.ky)),
       h("div", { class: "intro-tr" }, ex.tr),
-      ex.example ? h("div", { class: "intro-ex" }, h("span", { class: "ky" }, ex.example[0]), h("span", {}, ex.example[1])) : null);
+      ex.example ? h("div", { class: "intro-ex" }, h("span", { class: "ky-line" }, speakBtn(ex.example[0]), h("span", { class: "ky" }, hintWords(ex.example[0]))), h("span", {}, ex.example[1])) : null);
   }
 
   function render(ex) {
@@ -205,7 +226,7 @@ export function runLesson(opts) {
 
   function optionButtons(ex, labels, isKy, onPick) {
     let sel = -1;
-    const btns = labels.map((o, i) => h("button", { class: "opt", "data-num": i + 1, onClick: () => { sound.tap(); sel = i; btns.forEach((b, j) => b.classList.toggle("sel", j === i)); onPick(i); } },
+    const btns = labels.map((o, i) => h("button", { class: "opt", "data-num": i + 1, onClick: () => { if (isKy) sayKy(o); else sound.tap(); sel = i; btns.forEach((b, j) => b.classList.toggle("sel", j === i)); onPick(i); } },
       h("span", { class: "num" }, i + 1), h("span", {}, isKy ? h("span", { class: "ky" }, o) : o)));
     return { btns, get: () => sel };
   }
@@ -228,7 +249,7 @@ export function runLesson(opts) {
     card.append(h("h2", { class: "ex-title" }, t("readAnswer")));
     const trans = h("div", { class: "trans hidden" }, ex.translation);
     const toggle = h("button", { class: "link-btn small", onClick: () => { trans.classList.toggle("hidden"); toggle.textContent = trans.classList.contains("hidden") ? t("showTranslation") : t("hideTranslation"); } }, t("showTranslation"));
-    card.append(h("div", { class: "reading" }, h("div", { class: "ky" }, ex.text), trans), toggle);
+    card.append(h("div", { class: "reading" }, h("div", { class: "ky-line" }, speakBtn(ex.text), h("div", { class: "ky" }, hintWords(ex.text))), trans), toggle);
     card.append(h("h3", { style: { margin: "14px 0 12px" } }, ex.prompt));
     const o = optionButtons(ex, ex.options, false, () => setReady(true));
     card.append(h("div", { class: "options" }, o.btns));
@@ -247,7 +268,7 @@ export function runLesson(opts) {
     const mk = (x, side) => {
       const b = h("button", { class: "opt", onClick: () => {
         if (b.classList.contains("gone")) return;
-        sound.tap();
+        if (x.ky) sayKy(x.text); else sound.tap();
         if (side === "L") { pickL?.el.classList.remove("sel"); pickL = { ...x, el: b }; } else { pickR?.el.classList.remove("sel"); pickR = { ...x, el: b }; }
         b.classList.add("sel");
         if (pickL && pickR) {
@@ -277,7 +298,7 @@ export function runLesson(opts) {
     const bank = h("div", { class: "bank" }, ex.bank.map((w) => {
       const tile = h("button", { class: "tile", onClick: () => {
         if (tile.classList.contains("used")) return;
-        sound.tap(); tile.classList.add("used");
+        if (ex.lang === "ky") sayKy(w); else sound.tap(); tile.classList.add("used");
         const placed = h("button", { class: "tile", onClick: () => { sound.tap(); placed.remove(); tile.classList.remove("used"); chosen.splice(chosen.indexOf(entry), 1); setReady(chosen.length > 0); } }, w);
         const entry = { w, placed }; chosen.push(entry); area.append(placed); setReady(true);
       } }, w);
@@ -311,7 +332,7 @@ export function runLesson(opts) {
     card.append(h("p", { class: "muted" }, ex.hint));
     card.append(h("div", { class: "blank-sent ky" }, ex.before, " ", slot, " ", ex.after));
     let sel = -1;
-    const btns = ex.options.map((o, i) => h("button", { class: "opt", "data-num": i + 1, onClick: () => { sound.tap(); sel = i; slot.textContent = o; btns.forEach((b, j) => b.classList.toggle("sel", j === i)); setReady(true); } },
+    const btns = ex.options.map((o, i) => h("button", { class: "opt", "data-num": i + 1, onClick: () => { sayKy(o); sel = i; slot.textContent = o; btns.forEach((b, j) => b.classList.toggle("sel", j === i)); setReady(true); } },
       h("span", { class: "num" }, i + 1), h("span", { class: "ky" }, o)));
     card.append(h("div", { class: "options two" }, btns));
     checkFn = () => {
