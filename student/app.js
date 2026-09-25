@@ -1,6 +1,6 @@
 // LearnKyrgyz — student app
 import { sb, SITES } from "../assets/js/config.js";
-import { h, $, icon, mascot, toast, modal, confetti, sound, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, speakKy, kyVoice } from "../assets/js/ui.js";
+import { h, $, icon, mascot, toast, modal, confetti, sound, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, speakKy, kyVoice, ornamentUrl, mountains, ring } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
 import { buildLesson, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
@@ -19,7 +19,7 @@ let classes = [], liveMeetings = {}, liveSlides = {}, watchers = [], meetingSub 
 let saveTimer = null;
 
 // ───────────────────────── profile & persistence ─────────────────────────
-function defaultProgress() { return { topics: {}, words: {}, mistakes: [], daily: { date: today(), xp: 0 }, goal: 30, heartsAt: Date.now(), lessons: 0, achievements: [] }; }
+function defaultProgress() { return { topics: {}, words: {}, mistakes: [], daily: { date: today(), xp: 0 }, goal: 30, heartsAt: Date.now(), lessons: 0, achievements: [], days: {}, chests: [] }; }
 function loadGuest() {
   let p = null; try { p = JSON.parse(localStorage.getItem("lk.guest") || "null"); } catch {}
   return p || { full_name: "Guest", xp: 0, streak: 0, last_active: null, hearts: MAX_HEARTS, learn_from: getLang(), progress: defaultProgress(), avatar_color: "#58cc02" };
@@ -59,8 +59,10 @@ function currentTopic() { return TOPIC_ORDER.find(id => topicCrowns(id) === 0) |
 
 function awardLesson(res, { topicId = null, level = 0, review = false } = {}) {
   const p = prog();
+  const firstToday = profile.last_active !== today();
   profile.xp += res.xp;
   dailyXp(); p.daily.xp += res.xp;
+  p.days = p.days || {}; p.days[today()] = (p.days[today()] || 0) + res.xp;
   p.lessons = (p.lessons || 0) + 1;
   // streak
   const last = profile.last_active; const d = last ? Math.round((new Date(today()) - new Date(last)) / 86400000) : 99;
@@ -75,6 +77,7 @@ function awardLesson(res, { topicId = null, level = 0, review = false } = {}) {
   if (review) { p.mistakes = p.mistakes.filter(m => !res.answers.some(a => a.id === m && a.ok)); profile.hearts = Math.min(MAX_HEARTS, profile.hearts + 1); }
   checkAchievements();
   save();
+  return { firstToday: firstToday && !res.failed };
 }
 
 const ACHIEVEMENTS = [
@@ -110,7 +113,7 @@ function renderAuth(mode = "welcome", msg = null) {
   const langSeg = h("div", { class: "seg" }, ["en", "ru"].map(l => h("button", { class: getLang() === l ? "on" : "", onClick: () => { setLang(l); renderAuth(mode); } }, l === "en" ? "English" : "Русский")));
   let content;
   if (mode === "welcome") {
-    content = [mascot("wave", 150), h("h1", {}, t("welcomeTitle")), h("p", { class: "muted" }, t("welcomeText")),
+    content = [mascot("wave", 130), h("h1", {}, t("welcomeTitle")), h("p", { class: "muted" }, t("welcomeText")),
       h("p", { class: "small muted" }, t("pickLang")), langSeg,
       h("div", { class: "stack", style: { marginTop: "22px" } },
         h("button", { class: "btn primary block", onClick: () => renderAuth("signup") }, t("signUp")),
@@ -146,8 +149,14 @@ function renderAuth(mode = "welcome", msg = null) {
       h("p", { class: "small muted" }, signup ? t("haveAccount") : t("noAccount"), " ", h("button", { class: "link-btn", onClick: () => renderAuth(signup ? "signin" : "signup") }, signup ? t("signIn") : t("signUp"))),
       h("button", { class: "link-btn", onClick: () => renderAuth("welcome") }, t("back"))];
   }
-  app.replaceChildren(h("div", { class: "auth" }, h("div", { class: "auth-box" }, h("div", { class: "brand", style: { justifyContent: "center" } }, "Learn", h("b", {}, "Kyrgyz")), ...content,
-    h("p", { class: "small muted", style: { marginTop: "26px" } }, "Teacher? ", h("a", { href: SITES.teacher }, "Open LearnKyrgyz for teachers")))));
+  const ru = getLang() === "ru";
+  const art = h("div", { class: "auth-art" }, mountains(),
+    h("div", { class: "art-copy" }, h("h2", {}, ru ? "Кыргыз тилин ойноп үйрөн!" : "Learn Kyrgyz like a game."), h("p", {}, ru ? "Короткие уроки, серии, XP и домашние задания от учителя." : "Bite-sized lessons, streaks, XP — and homework from your teacher.")),
+    h("div", { class: "art-letters" }, ["Ң", "Ө", "Ү", "Ы"].map((l, i) => h("span", { class: "letter-tile", style: { left: [12, 70, 24, 80][i] + "%", top: [34, 30, 50, 47][i] + "%", animationDelay: i * .5 + "s" } }, l))),
+    h("div", { class: "art-mascot" }, mascot("cheer", 220), h("span", { class: "bubble", style: { left: "-70px", top: "30px" } }, "Салам!"), h("span", { class: "bubble", style: { right: "-80px", top: "90px", animationDelay: ".7s" } }, "Кош келиңиз!")));
+  const box = h("div", { class: "auth" }, h("div", { class: "auth-box" }, h("div", { style: { display: "flex", justifyContent: "center" } }, brandEl()), ...content,
+    h("p", { class: "small muted", style: { marginTop: "26px" } }, "Teacher? ", h("a", { href: SITES.teacher }, "Open LearnKyrgyz for teachers"))));
+  app.replaceChildren(h("div", { class: "auth-split" }, art, box));
 }
 
 async function migrateGuest(u) {
@@ -247,12 +256,16 @@ function banners() {
 function refreshBanners() { const host = $("#banners"); if (host) host.replaceChildren(...banners()); }
 
 // ───────────────────────── shell ─────────────────────────
+export function brandEl() {
+  const mark = h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false }));
+  return h("div", { class: "brand" }, mark, "Learn", h("b", {}, "Kyrgyz"));
+}
 function render() {
   regenHearts();
   const nav = [["learn", "home", t("learn")], ["practice", "target", t("practice")], ["class", "users", t("classroom")], ["profile", "user", t("profile")]];
   const main = h("main", { class: "main" });
   app.replaceChildren(h("div", { class: "shell student-app" },
-    h("nav", { class: "side" }, h("div", { class: "brand" }, "Learn", h("b", {}, "Kyrgyz")),
+    h("nav", { class: "side" }, brandEl(),
       nav.map(([id, ic, label]) => h("button", { class: "nav-btn" + (view === id ? " on" : ""), onClick: () => { view = id; render(); } }, icon(ic), h("span", { class: "lbl" }, label))),
       h("div", { class: "spacer" }),
       h("div", { class: "side-foot small muted", style: { padding: "0 10px" } }, getLang() === "ru" ? "Нашли ошибку в кыргызском? " : "Spotted a mistake in the Kyrgyz? ", h("button", { class: "link-btn small", onClick: () => reportDialog(null) }, t("report")))),
@@ -263,48 +276,113 @@ function render() {
   window.scrollTo(0, 0);
 }
 
+const DAY_NAMES = { en: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"], ru: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"] };
+function weekRow() {
+  const days = prog().days || {};
+  const now = new Date(); const dow = (now.getDay() + 6) % 7;
+  return h("div", { class: "week" }, DAY_NAMES[getLang()].map((n, i) => {
+    const d = new Date(now); d.setDate(now.getDate() - dow + i);
+    const key = d.toISOString().slice(0, 10);
+    const on = days[key] > 0;
+    return h("div", { class: "d" + (on ? " on" : "") + (i === dow ? " today" : "") }, n, h("span", { class: "dot" }, on ? icon("flame") : null));
+  }));
+}
+function heartsTimer() {
+  if (profile.hearts >= MAX_HEARTS) return getLang() === "ru" ? "Все сердечки на месте!" : "You have full hearts!";
+  const left = HEART_MS - (Date.now() - (prog().heartsAt || Date.now())) % HEART_MS;
+  const m = Math.max(1, Math.ceil(left / 60000));
+  return getLang() === "ru" ? `Следующее сердечко через ${m} мин` : `Next heart in ${m} min`;
+}
+let openStat = null;
+document.addEventListener("click", () => { if (openStat) { openStat.remove(); openStat = null; } });
+function statPill(cls, ic, value, title, popFn) {
+  const btn = h("button", { class: "stat-pill " + cls, title, onClick: (e) => {
+    e.stopPropagation();
+    const had = openStat && openStat.parentNode === btn;
+    if (openStat) { openStat.remove(); openStat = null; }
+    if (had) return;
+    openStat = h("div", { class: "stat-pop", onClick: (ev) => ev.stopPropagation() }, popFn());
+    btn.append(openStat);
+  } }, icon(ic), value);
+  return btn;
+}
 function topbar() {
-  const hearts = profile.hearts;
+  const st = streakAlive(); const ru = getLang() === "ru";
   return h("div", { class: "topbar" },
-    h("span", { class: "stat " + (streakAlive() ? "flame" : "dim"), title: t("streak") }, icon("flame"), streakAlive()),
-    h("span", { class: "stat xp", title: "XP" }, icon("bolt"), profile.xp),
-    h("span", { class: "stat heart", title: t("hearts") }, icon("heart"), hearts));
+    statPill("flame" + (st ? "" : " dim"), "flame", st, t("streak"), () => [h("h4", {}, `${st} ${ru ? "дн. подряд" : "day streak"}`), h("p", {}, st ? (ru ? "Занимайтесь каждый день, чтобы не потерять серию!" : "Practise every day to keep your streak alive!") : (ru ? "Пройдите урок, чтобы начать серию." : "Do a lesson to start a new streak.")), weekRow()]),
+    statPill("xp", "bolt", profile.xp, "XP", () => [h("h4", {}, `${dailyXp()} / ${prog().goal} XP`), h("p", {}, t("dailyGoal")), h("div", { class: "goal-bar" }, h("i", { style: { width: Math.min(100, Math.round(100 * dailyXp() / prog().goal)) + "%" } }))]),
+    statPill("heart", "heart", profile.hearts, t("hearts"), () => [h("h4", {}, `${profile.hearts} / ${MAX_HEARTS} ${t("hearts").toLowerCase()}`), h("p", {}, heartsTimer()),
+      h("div", { class: "row", style: { gap: "4px", marginBottom: "14px" } }, Array.from({ length: MAX_HEARTS }, (_, i) => h("span", { style: { fontSize: "28px", color: i < profile.hearts ? "var(--red)" : "var(--line)" } }, icon("heart")))),
+      profile.hearts < MAX_HEARTS ? h("button", { class: "btn primary block sm", onClick: () => startReview(false) }, ru ? "Практика +1 сердечко" : "Practise to earn a heart") : null]));
 }
 
 // ───────────────────────── Learn ─────────────────────────
+const DECO = ["wave", "cheer", "happy", "wow"];
 function viewLearn(main) {
-  const lang = getLang();
-  const path = h("div");
   const cur = currentTopic();
-  let side = -1;
+  const path = h("div");
   for (const [ui, u] of UNITS.entries()) {
-    path.append(h("div", { class: "unit-head", style: { background: u.color } },
-      h("div", {}, h("p", { style: { margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: ".8px" } }, `${t("unit")} ${ui + 1}`), h("h2", {}, tn(u)), h("p", {}, u.ky)), h("span", { class: "lvl" }, u.level)));
+    const done = u.topics.filter(id => topicCrowns(id) > 0).length;
+    path.append(h("div", { class: "unit-head", style: { backgroundColor: u.color, backgroundImage: ornamentUrl(), "--uc-d": shade(u.color) } },
+      h("div", {},
+        h("p", { style: { margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: ".8px", fontWeight: 900, opacity: .9 } }, `${t("unit")} ${ui + 1} · ${u.level}`),
+        h("h2", {}, tn(u)), h("p", { style: { fontWeight: 800 } }, u.ky),
+        h("div", { class: "unit-prog" }, h("span", { class: "mini" }, h("i", { style: { width: Math.round(100 * done / u.topics.length) + "%" } })), `${done}/${u.topics.length}`)),
+      h("button", { class: "guide-btn", onClick: () => guidebook(u) }, icon("book"), getLang() === "ru" ? "Справочник" : "Guidebook")));
     const col = h("div", { class: "path" });
     u.topics.forEach((id, i) => {
       const tp = TOPICS[id]; const crowns = topicCrowns(id); const unlocked = isUnlocked(id);
-      const offset = Math.round(Math.sin((i + ui) * 1.1) * 70);
-      const node = h("button", { class: "node" + (!unlocked ? " locked" : crowns >= LEVELS ? " done" : "") + (id === cur ? " current" : ""), style: { "--c": unlocked && crowns < LEVELS ? u.color : undefined, "--cd": unlocked && crowns < LEVELS ? shade(u.color) : undefined }, "aria-label": tn(tp) },
-        icon(!unlocked ? "lock" : crowns >= LEVELS ? "crown" : tp.passages ? "book" : "star"));
-      const wrap = h("div", { class: "node-wrap", style: { transform: `translateX(${offset}px)` } },
-        id === cur && unlocked ? h("div", { class: "start-bubble" }, t("start")) : null,
+      const offset = Math.round(Math.sin((i + ui * 2) * 1.05) * 72);
+      const isCur = id === cur && unlocked;
+      const node = h("button", { class: "node" + (!unlocked ? " locked" : crowns >= LEVELS ? " done" : ""), style: { "--c": unlocked && crowns < LEVELS ? u.color : undefined, "--cd": unlocked && crowns < LEVELS ? shade(u.color) : undefined }, "aria-label": tn(tp) },
+        icon(!unlocked ? "lock" : crowns >= LEVELS ? "crown" : tp.passages ? "book" : isCur ? "star" : crowns ? "check" : "star"));
+      const wrap = h("div", { class: "node-wrap" + (isCur ? " is-current" : ""), style: { transform: `translateX(${offset}px)` } },
+        unlocked && crowns < LEVELS ? ring(crowns / LEVELS, 100, crowns ? "var(--yellow)" : "var(--line)") : null,
+        isCur ? h("div", { class: "start-bubble" }, t("start")) : null,
         node, crowns ? h("span", { class: "node-crowns" }, icon("crown"), crowns) : null,
         h("div", { class: "node-label" }, tn(tp)));
       node.addEventListener("click", (e) => { e.stopPropagation(); sound.tap(); openNodePop(wrap, id, u, unlocked); });
       col.append(wrap);
     });
+    // reward chest at the end of each unit
+    const allDone = u.topics.every(id => topicCrowns(id) > 0);
+    const opened = (prog().chests || []).includes(u.id);
+    const chest = h("button", { class: "node chest" + (opened ? " open" : allDone ? " ready" : ""), "aria-label": "Chest" }, icon(opened ? "check" : "trophy"));
+    chest.addEventListener("click", (e) => { e.stopPropagation(); openChest(u, allDone, opened); });
+    col.append(h("div", { class: "node-wrap", style: { transform: `translateX(${Math.round(Math.sin((u.topics.length + ui * 2) * 1.05) * 72)}px)` } }, chest, h("div", { class: "node-label" }, opened ? "+20 XP" : getLang() === "ru" ? "Сундук" : "Treasure")));
+    col.append(h("div", { class: "path-deco " + (ui % 2 ? "left" : "right") }, mascot(DECO[ui % DECO.length], 130)));
     path.append(col);
   }
-  const rail = h("div", { class: "rail" }, goalPanel(), classPanel(), unitsPanel());
+  const rail = h("div", { class: "rail" }, streakPanel(), goalPanel(), wordOfDay(), classPanel(), unitsPanel());
   main.append(h("div", { class: "home-grid" }, path, rail));
-  setTimeout(() => { const c = main.querySelector(".node.current"); if (c) c.scrollIntoView({ block: "center" }); }, 50);
+  setTimeout(() => { const c = main.querySelector(".is-current"); if (c) c.scrollIntoView({ block: "center" }); }, 50);
 }
-function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.round(x * .82)); return `rgb(${f(n >> 16)}, ${f((n >> 8) & 255)}, ${f(n & 255)})`; }
+function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.round(x * .8)); return `rgb(${f(n >> 16)}, ${f((n >> 8) & 255)}, ${f(n & 255)})`; }
+
+function openChest(u, ready, opened) {
+  const ru = getLang() === "ru";
+  if (opened) return toast(ru ? "Этот сундук уже открыт" : "You've already opened this chest");
+  if (!ready) return toast(ru ? "Пройдите все темы раздела, чтобы открыть сундук" : "Finish every topic in this unit to open the chest");
+  const p = prog(); p.chests = (p.chests || []).concat(u.id); profile.xp += 20; dailyXp(); p.daily.xp += 20; save();
+  sound.done(); confetti();
+  modal({ title: ru ? "Сундук открыт!" : "Chest opened!", body: h("div", { class: "center" }, mascot("cheer", 130), h("h2", { style: { color: "var(--yellow-d)" } }, "+20 XP"), h("p", { class: "muted" }, `${tn(u)} — ${u.ky}`)), actions: [{ label: t("continue"), kind: "primary", onClick: () => render() }] });
+}
+
+function guidebook(u) {
+  const li = getLang() === "ru" ? 2 : 1;
+  modal({ title: `${tn(u)} · ${u.ky}`, wide: true, body: h("div", {}, u.topics.map(id => {
+    const tp = TOPICS[id];
+    return h("div", { class: "panel" }, h("div", { class: "panel-head" }, h("h3", {}, tn(tp)), h("span", { class: "muted" }, tp.ky)),
+      h("p", { style: { marginTop: 0 } }, tn(tp.tip)),
+      h("div", { class: "row wrap" }, tp.words.slice(0, 8).map(w => h("span", { class: "pill" }, h("span", { class: "ky" }, w[0]), " — ", w[li].split("|")[0]))),
+      tp.sentences[0] ? h("p", { class: "small", style: { marginBottom: 0 } }, h("b", { class: "ky" }, tp.sentences[0][0]), " — ", tp.sentences[0][li].split("|")[0]) : null);
+  })) });
+}
 
 let openPop = null;
-document.addEventListener("click", () => { if (openPop) { openPop.remove(); openPop = null; } });
+document.addEventListener("click", () => { if (openPop) { if (openPop.parentNode) openPop.parentNode.style.zIndex = ""; openPop.remove(); openPop = null; } });
 function openNodePop(wrap, id, u, unlocked) {
-  if (openPop) openPop.remove();
+  if (openPop) { if (openPop.parentNode) openPop.parentNode.style.zIndex = ""; openPop.remove(); }
   const tp = TOPICS[id]; const crowns = topicCrowns(id);
   let level = Math.min(crowns, LEVELS - 1);
   const pop = h("div", { class: "pop", style: { "--c": unlocked ? u.color : "#afafaf" }, onClick: (e) => e.stopPropagation() });
@@ -319,7 +397,7 @@ function openNodePop(wrap, id, u, unlocked) {
       h("button", { class: "btn", onClick: () => startTopic(id, level) }, t("startLesson")),
       h("button", { class: "link-btn", style: { color: "#fff", width: "100%", marginTop: "6px" }, onClick: () => showTopicWords(id) }, t("words")));
   }
-  wrap.append(pop); openPop = pop;
+  wrap.style.zIndex = "40"; wrap.append(pop); openPop = pop;
 }
 
 function startTopic(id, level, jump = false) {
@@ -333,8 +411,7 @@ function startTopic(id, level, jump = false) {
     onReport: reportDialog,
     onDone: (res) => {
       if (jump && res.acc < 80 && !res.failed) toast("Almost! Score 80% to jump ahead.", "bad");
-      awardLesson(res, { topicId: (jump && res.acc < 80) ? null : id, level });
-      render();
+      afterLesson(awardLesson(res, { topicId: (jump && res.acc < 80) ? null : id, level }));
     },
     onQuit: () => render(),
   });
@@ -346,24 +423,50 @@ function noHearts() {
   ] });
 }
 
+function streakPanel() {
+  const st = streakAlive(); const ru = getLang() === "ru";
+  return h("div", { class: "panel" }, h("div", { class: "panel-head" }, h("span", { style: { color: st ? "var(--orange)" : "var(--ink-3)" } }, icon("flame")), h("h3", {}, `${st} ${ru ? "дн. подряд" : "day streak"}`)), weekRow());
+}
 function goalPanel() {
   const p = prog(); const x = dailyXp(); const pct = Math.min(100, Math.round(100 * x / p.goal));
-  return h("div", { class: "panel" }, h("div", { class: "row" }, h("h3", { style: { margin: 0 } }, t("dailyGoal")), h("span", { class: "spacer" }), h("span", { class: "muted small" }, `${x}/${p.goal} XP`)),
-    h("div", { class: "row", style: { marginTop: "12px" } }, icon("bolt", ""), h("div", { class: "goal-bar", style: { flex: 1 } }, h("i", { style: { width: pct + "%" } }))),
-    pct >= 100 ? h("p", { class: "small", style: { color: "var(--green-d)", fontWeight: 800, marginBottom: 0 } }, "Бүгүнкү максат аткарылды! Goal reached!") : null);
+  return h("div", { class: "panel goal-card" }, h("div", {},
+    h("h3", { style: { margin: "0 0 4px" } }, t("dailyGoal")), h("div", { class: "muted small", style: { marginBottom: "10px", fontWeight: 800 } }, `${x} / ${p.goal} XP`),
+    h("div", { class: "goal-bar" }, h("i", { style: { width: pct + "%" } })),
+    pct >= 100 ? h("p", { class: "small", style: { color: "var(--green-d)", fontWeight: 900, margin: "8px 0 0" } }, "Азамат! Goal reached!") : null),
+    mascot(pct >= 100 ? "cheer" : "happy", 76));
+}
+function wordOfDay() {
+  const d = today(); let hsh = 0; for (const ch of d) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+  const id = TOPIC_ORDER[hsh % TOPIC_ORDER.length]; const tp = TOPICS[id]; const w = tp.words[hsh % tp.words.length];
+  const li = getLang() === "ru" ? 2 : 1;
+  return h("div", { class: "panel wotd" }, h("div", { class: "ornament", style: { backgroundImage: ornamentUrl("rgba(255,255,255,.12)") } }),
+    h("div", { class: "wk" }, getLang() === "ru" ? "Слово дня" : "Word of the day"),
+    h("div", { class: "w" }, w[0]), h("div", { class: "tl" }, translit(w[0])), h("div", { class: "tr" }, w[li].split("|")[0]),
+    kyVoice() ? h("button", { class: "icon-btn", style: { color: "#fff" }, onClick: () => speakKy(w[0]) }, icon("speaker")) : null);
 }
 function classPanel() {
   if (guest) return null;
   const pending = classes.flatMap(c => c.homework.filter(hw => !hw.submission && new Date(hw.due_at) > new Date()).map(hw => ({ hw, c })));
-  return h("div", { class: "panel" }, h("h3", {}, t("homework")),
-    pending.length ? h("div", { class: "list" }, pending.slice(0, 4).map(({ hw, c }) => h("div", { class: "item click", onClick: () => startHomework(hw, c) }, icon("pen"), h("div", { class: "grow" }, h("div", { class: "title" }, hw.title), h("div", { class: "sub due-soon" }, `${t("dueIn")} ${relTime(hw.due_at, getLang())}`)), icon("right"))))
+  return h("div", { class: "panel" }, h("div", { class: "panel-head" }, h("span", { style: { color: "var(--purple-d)" } }, icon("pen")), h("h3", {}, t("homework"))),
+    pending.length ? h("div", { class: "list" }, pending.slice(0, 4).map(({ hw, c }) => h("div", { class: "item click", onClick: () => startHomework(hw, c) }, h("div", { class: "grow" }, h("div", { class: "title" }, hw.title), h("div", { class: "sub due-soon" }, `${t("dueIn")} ${relTime(hw.due_at, getLang())}`)), icon("right"))))
       : h("p", { class: "muted small", style: { margin: 0 } }, classes.length ? t("noHomework") : t("noClasses")),
     !classes.length ? h("button", { class: "btn sm block", style: { marginTop: "12px" }, onClick: () => { view = "class"; render(); } }, t("joinClass")) : null);
 }
 function unitsPanel() {
   const done = TOPIC_ORDER.filter(id => topicCrowns(id) > 0).length;
-  return h("div", { class: "panel" }, h("h3", {}, t("topicsDone")), h("div", { class: "row" }, h("div", { class: "bar", style: { flex: 1 } }, h("i", { style: { width: Math.round(100 * done / TOPIC_ORDER.length) + "%" } })), h("b", {}, `${done}/${TOPIC_ORDER.length}`)));
+  return h("div", { class: "panel" }, h("div", { class: "panel-head" }, h("span", { style: { color: "var(--yellow-d)" } }, icon("crown")), h("h3", {}, t("topicsDone"))), h("div", { class: "row" }, h("div", { class: "bar", style: { flex: 1 } }, h("i", { style: { width: Math.round(100 * done / TOPIC_ORDER.length) + "%" } })), h("b", {}, `${done}/${TOPIC_ORDER.length}`)));
 }
+
+// Celebration screen when a lesson extends the daily streak.
+function streakScreen(then) {
+  const ru = getLang() === "ru";
+  const root = h("div", { class: "lesson" }, h("div", { class: "lesson-body" }, h("div", { class: "lesson-inner streak-screen" },
+    h("div", { class: "big-flame" }, icon("flame")), h("div", { class: "n" }, streakAlive()),
+    h("h2", {}, ru ? "дней подряд!" : "day streak!"), h("p", { class: "muted" }, ru ? "Возвращайтесь завтра, чтобы продолжить серию." : "Come back tomorrow to keep it going."), weekRow())),
+    h("div", { class: "lesson-foot" }, h("div", { class: "inner" }, h("span"), h("button", { class: "btn primary", onClick: () => { root.remove(); then(); } }, t("continue")))));
+  document.body.append(root); sound.done();
+}
+function afterLesson(info) { if (info && info.firstToday) streakScreen(render); else render(); }
 
 function showTopicWords(id) {
   if (openPop) { openPop.remove(); openPop = null; }
@@ -402,7 +505,7 @@ function startReview(mistakesOnly) {
   let topics = learned.length ? learned : [TOPIC_ORDER[0]];
   if (mistakesOnly) { const m = [...new Set((prog().mistakes || []).map(x => x.split(":")[0]))].filter(x => TOPICS[x]); if (m.length) topics = m; }
   const ex = buildLesson(shuffle(topics).slice(0, 6), { count: 12, level: 1, lang: getLang() });
-  runLesson({ exercises: ex, mode: "practice", hearts: null, onReport: reportDialog, onDone: (res) => { awardLesson(res, { review: true }); render(); }, onQuit: render });
+  runLesson({ exercises: ex, mode: "practice", hearts: null, onReport: reportDialog, onDone: (res) => afterLesson(awardLesson(res, { review: true })), onQuit: render });
 }
 function flashcards() {
   const pool = shuffle(allWords(getLang()).filter(w => isUnlocked(w.topic))).slice(0, 20);
@@ -558,7 +661,9 @@ async function leaderboard(c, host) {
   const { data: mem } = await client.from("classroom_members").select("student_id").eq("classroom_id", c.id);
   const ids = (mem || []).map(m => m.student_id);
   const { data: ps } = ids.length ? await client.from("profiles").select("id,full_name,xp,streak,avatar_color").in("id", ids).order("xp", { ascending: false }) : { data: [] };
-  host.replaceChildren(h("div", {}, (ps || []).map((p, i) => h("div", { class: "lb-row" + (p.id === user.id ? " me" : "") }, h("span", { class: "lb-rank" + (i < 3 ? ` top${i + 1}` : "") }, i < 3 ? icon("trophy") : i + 1), avatar(p.full_name, p.avatar_color), h("b", { class: "grow" }, p.full_name), h("span", { class: "stat flame small" }, icon("flame"), p.streak), h("span", { class: "stat xp" }, icon("bolt"), p.xp)))));
+  const list = ps || [];
+  const podium = list.length >= 2 ? h("div", { class: "podium" }, [1, 0, 2].map(i => list[i] ? h("div", { class: `p p${i + 1}` }, avatar(list[i].full_name, list[i].avatar_color, i === 0 ? 58 : 46), h("b", {}, list[i].full_name), h("span", { class: "xp" }, `${list[i].xp} XP`), h("div", { class: "step" }, i + 1)) : h("div"))) : null;
+  host.replaceChildren(podium || h("span"), h("div", {}, list.map((p, i) => h("div", { class: "lb-row" + (p.id === user.id ? " me" : "") }, h("span", { class: "lb-rank" + (i < 3 ? ` top${i + 1}` : "") }, i < 3 ? icon("trophy") : i + 1), avatar(p.full_name, p.avatar_color), h("b", { class: "grow" }, p.full_name), h("span", { class: "stat flame small" }, icon("flame"), p.streak), h("span", { class: "stat xp" }, icon("bolt"), p.xp)))));
 }
 function presList(c, host) {
   if (!c.presentations.length) { host.append(h("p", { class: "muted" }, "—")); return; }
@@ -567,16 +672,22 @@ function presList(c, host) {
 
 // ───────────────────────── Profile ─────────────────────────
 function viewProfile(main) {
-  const p = prog();
+  const p = prog(); const ru = getLang() === "ru";
   const wordsLearned = Object.values(p.words).filter(v => v > 0).length;
-  main.append(h("div", { class: "row wrap", style: { gap: "18px", marginBottom: "20px" } }, avatar(profile.full_name, profile.avatar_color, 84),
-    h("div", { class: "grow" }, h("h1", { class: "page-title" }, profile.full_name), h("div", { class: "muted" }, guest ? "Guest" : user.email))));
-  main.append(h("h2", { class: "section-title" }, t("stats")), h("div", { class: "grid" },
-    stat("flame", streakAlive(), t("streak"), "var(--orange)"), stat("bolt", profile.xp, "XP", "var(--yellow-d)"),
-    stat("book", wordsLearned, t("wordsLearned"), "var(--blue)"), stat("crown", TOPIC_ORDER.filter(id => topicCrowns(id) > 0).length, t("topicsDone"), "var(--green)")));
-  main.append(h("h2", { class: "section-title" }, t("achievements")), h("div", { class: "grid" }, ACHIEVEMENTS.map(a => {
+  main.append(h("div", { class: "profile-banner", style: { backgroundColor: profile.avatar_color || "var(--blue)", backgroundImage: ornamentUrl() } },
+    avatar(profile.full_name, "rgba(0,0,0,.18)", 92),
+    h("div", { class: "grow" }, h("h1", {}, profile.full_name), h("div", { class: "muted" }, guest ? "Guest" : user.email), h("div", { class: "muted small", style: { marginTop: "4px" } }, `${p.lessons || 0} ${ru ? "уроков пройдено" : "lessons completed"}`)),
+    mascot("wave", 110)));
+  main.append(h("h2", { class: "section-title" }, t("stats")), h("div", { class: "grid", style: { gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" } },
+    statTile("flame", streakAlive(), t("streak"), "var(--orange)"), statTile("bolt", profile.xp, "XP", "var(--yellow-d)"),
+    statTile("book", wordsLearned, t("wordsLearned"), "var(--blue)"), statTile("crown", TOPIC_ORDER.filter(id => topicCrowns(id) > 0).length, t("topicsDone"), "var(--green)")));
+  // activity calendar: last 5 weeks
+  const days = p.days || {}; const now = new Date(); const start = new Date(now); start.setDate(now.getDate() - ((now.getDay() + 6) % 7) - 28);
+  const cells = []; for (let i = 0; i < 35; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const k = d.toISOString().slice(0, 10); const v = days[k] || 0; cells.push(h("span", { class: "c" + (v >= 30 ? " l3" : v >= 15 ? " l2" : v > 0 ? " l1" : ""), title: `${k}: ${v} XP` })); }
+  main.append(h("h2", { class: "section-title" }, ru ? "Активность" : "Activity"), h("div", { class: "panel" }, h("div", { class: "cal" }, cells)));
+  main.append(h("h2", { class: "section-title" }, t("achievements")), h("div", { class: "grid", style: { gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" } }, ACHIEVEMENTS.map(a => {
     const got = p.achievements.includes(a.id);
-    return h("div", { class: "card row", style: { opacity: got ? 1 : .45 } }, h("span", { style: { fontSize: "30px", color: got ? "var(--yellow-d)" : "var(--ink-3)" } }, icon(a.icon)), h("b", {}, tn(a)));
+    return h("div", { class: "badge-tile" + (got ? " got" : "") }, h("span", { class: "medal" }, icon(a.icon)), h("b", {}, tn(a)));
   })));
   const nameIn = h("input", { class: "input", value: profile.full_name, maxlength: 80 });
   main.append(h("h2", { class: "section-title" }, t("settings")), h("div", { class: "panel stack" },
@@ -590,7 +701,7 @@ function viewProfile(main) {
     ? h("button", { class: "btn primary", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} renderAuth("signup"); } }, t("signUp"))
     : h("button", { class: "btn ghost", onClick: () => client.auth.signOut() }, icon("logout"), t("signOut"))));
 }
-function stat(ic, v, label, color) { return h("div", { class: "card row" }, h("span", { style: { fontSize: "30px", color } }, icon(ic)), h("div", {}, h("div", { style: { fontSize: "24px", fontWeight: 900 } }, v), h("div", { class: "muted small" }, label))); }
+function statTile(ic, v, label, color) { return h("div", { class: "stat-tile" }, h("span", { style: { color } }, icon(ic)), h("div", {}, h("div", { class: "v" }, v), h("div", { class: "muted small" }, label))); }
 
 function themeSeg() {
   let cur = "auto"; try { cur = localStorage.getItem("lk.theme") || "auto"; } catch {}

@@ -1,6 +1,6 @@
 // LearnKyrgyz — teacher app
 import { sb, SITES } from "../assets/js/config.js";
-import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg } from "../assets/js/ui.js";
+import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, ornamentUrl, mountains } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
 import { buildLesson, customExercise, translit, shuffle, gradeFor } from "../assets/js/engine.js";
@@ -30,11 +30,15 @@ function renderAuth(mode, msg) {
   const email = h("input", { class: "input", type: "email", required: true, autocomplete: "email" });
   const pw = h("input", { class: "input", type: "password", required: true, minlength: 6, autocomplete: signup ? "new-password" : "current-password" });
   const btn = h("button", { class: "btn purple block", type: "submit" }, signup ? "Create teacher account" : t("signIn"));
-  app.replaceChildren(h("div", { class: "auth" }, h("div", { class: "auth-box" },
-    h("div", { class: "brand teacher", style: { justifyContent: "center" } }, "Learn", h("b", {}, "Kyrgyz"), h("span", { class: "pill", style: { marginLeft: "6px" } }, "Teacher")),
-    mascot(signup ? "happy" : "wave", 120),
+  const art = h("div", { class: "auth-art" }, mountains(),
+    h("div", { class: "art-copy" }, h("h2", {}, "Teach Kyrgyz with superpowers."), h("p", {}, "Classes, homework with due dates, an automatic gradebook, live video lessons and presentations.")),
+    h("div", { class: "art-letters" }, ["5", "4", "3", "Ң"].map((l, i) => h("span", { class: "letter-tile", style: { left: [12, 74, 20, 82][i] + "%", top: [34, 30, 52, 48][i] + "%", animationDelay: i * .5 + "s" } }, l))),
+    h("div", { class: "art-mascot" }, mascot("wave", 210), h("span", { class: "bubble", style: { left: "-80px", top: "40px" } }, "Саламатсызбы!")));
+  app.replaceChildren(h("div", { class: "auth-split" }, art, h("div", { class: "auth" }, h("div", { class: "auth-box" },
+    h("div", { style: { display: "flex", justifyContent: "center" } }, brandEl()),
+    mascot(signup ? "happy" : "wave", 100),
     h("h1", {}, signup ? "Set up your classroom" : "Welcome back, teacher"),
-    h("p", { class: "muted" }, "Classes, homework with due dates, gradebook, live video lessons and presentations — all for teaching Kyrgyz."),
+    h("p", { class: "muted" }, "Everything you need to teach Kyrgyz in one place."),
     h("form", { onSubmit: async (e) => {
       e.preventDefault(); btn.disabled = true; err.classList.add("hidden");
       try {
@@ -54,7 +58,7 @@ function renderAuth(mode, msg) {
       h("label", { class: "field" }, h("span", {}, t("email")), email),
       h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),
     h("p", { class: "small muted" }, signup ? t("haveAccount") : "New teacher?", " ", h("button", { class: "link-btn", onClick: () => renderAuth(signup ? "signin" : "signup") }, signup ? t("signIn") : "Create account")),
-    h("p", { class: "small muted" }, "Student? ", h("a", { href: SITES.student }, "Open the student app")))));
+    h("p", { class: "small muted" }, "Student? ", h("a", { href: SITES.student }, "Open the student app"))))));
 }
 
 async function signedIn(u) {
@@ -78,11 +82,12 @@ async function loadClasses() {
 }
 
 // ───────────────────────── shell ─────────────────────────
+function brandEl() { return h("div", { class: "brand teacher" }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz")); }
 function render() {
   const nav = [["classes", "users", "Classes"], ["topics", "book", "Topics"], ["questions", "pen", "My questions"], ["slides", "slides", "Presentations"], ["account", "settings", "Account"]];
   const main = h("main", { class: "main" });
   app.replaceChildren(h("div", { class: "shell teacher-app" },
-    h("nav", { class: "side" }, h("div", { class: "brand teacher" }, "Learn", h("b", {}, "Kyrgyz")),
+    h("nav", { class: "side" }, brandEl(),
       nav.map(([id, ic, label]) => h("button", { class: "nav-btn" + (view === id ? " on" : ""), onClick: () => { view = id; if (id === "classes") currentClass = null; render(); } }, icon(ic), h("span", { class: "lbl" }, label))),
       h("div", { class: "spacer" }), h("div", { class: "side-foot row", style: { padding: "0 8px" } }, avatar(profile.full_name, "#a560e8", 32), h("span", { class: "small" }, profile.full_name))),
     main));
@@ -92,17 +97,39 @@ function render() {
 
 // ───────────────────────── Classes ─────────────────────────
 function viewClasses(main) {
-  main.append(h("div", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", { class: "page-title" }, `Салам, ${profile.full_name.split(" ")[0]}!`), h("p", { class: "page-sub" }, "Your classrooms")),
-    h("button", { class: "btn purple", onClick: classDialog }, icon("plus"), "New class")));
-  if (!classes.length) { main.append(h("div", { class: "empty" }, mascot("wave", 130), h("h2", {}, "Create your first classroom"), h("p", {}, "You'll get a join code and a link to share with students."), h("button", { class: "btn purple", onClick: classDialog }, icon("plus"), "New class"))); return; }
+  main.append(h("div", { class: "hero-strip", style: { backgroundImage: ornamentUrl() } },
+    h("div", {}, h("h1", {}, `Саламатсызбы, ${profile.full_name.split(" ")[0]}!`), h("p", {}, classes.length ? "Here's how your classes are doing." : "Let's set up your first classroom.")),
+    mascot("wave", 120)));
+  const stats = h("div", { class: "dash-stats" });
+  main.append(stats);
+  main.append(h("div", { class: "row wrap", style: { marginBottom: "14px" } }, h("h2", { class: "grow", style: { margin: 0 } }, "Your classes"), h("button", { class: "btn purple", onClick: classDialog }, icon("plus"), "New class")));
+  if (!classes.length) { main.append(h("div", { class: "empty" }, mascot("cheer", 130), h("h2", {}, "Create your first classroom"), h("p", {}, "You'll get a join code and a link to share with students."), h("button", { class: "btn purple", onClick: classDialog }, icon("plus"), "New class"))); fillStats(stats, [], [], []); return; }
   const grid = h("div", { class: "grid" });
-  for (const c of classes) {
-    const card = h("div", { class: "card click", style: { borderTop: `8px solid ${c.color}` }, onClick: () => { currentClass = c; classTab = "students"; render(); } },
-      h("h2", { style: { margin: "0 0 4px" } }, c.name), h("p", { class: "muted", style: { margin: "0 0 12px" } }, c.description || "—"),
-      h("div", { class: "row" }, h("span", { class: "pill" }, "Code ", h("b", {}, c.join_code)), h("span", { class: "spacer" }), icon("right")));
-    grid.append(card);
-  }
   main.append(grid);
+  (async () => {
+    const ids = classes.map(c => c.id);
+    const [{ data: mem }, { data: hws }] = await Promise.all([client.from("classroom_members").select("classroom_id,student_id").in("classroom_id", ids), client.from("homework").select("id,classroom_id,due_at").in("classroom_id", ids)]);
+    const sIds = [...new Set((mem || []).map(m => m.student_id))];
+    const { data: ps } = sIds.length ? await client.from("profiles").select("id,full_name,avatar_color").in("id", sIds) : { data: [] };
+    const { data: subs } = (hws || []).length ? await client.from("submissions").select("homework_id,grade,teacher_grade,submitted_at").in("homework_id", hws.map(x => x.id)) : { data: [] };
+    fillStats(stats, mem || [], hws || [], subs || []);
+    for (const c of classes) {
+      const members = (mem || []).filter(m => m.classroom_id === c.id).map(m => (ps || []).find(p => p.id === m.student_id)).filter(Boolean);
+      const open = (hws || []).filter(x => x.classroom_id === c.id && new Date(x.due_at) > new Date()).length;
+      grid.append(h("div", { class: "card click class-card", onClick: () => { currentClass = c; classTab = "students"; render(); } },
+        h("div", { class: "cc-head", style: { backgroundColor: c.color, backgroundImage: ornamentUrl() } }, h("h2", {}, c.name)),
+        h("div", { class: "cc-body" }, h("p", { class: "muted", style: { margin: "0 0 12px" } }, c.description || "—"),
+          h("div", { class: "row" }, h("div", { class: "avatar-stack" }, members.slice(0, 5).map(m => avatar(m.full_name, m.avatar_color, 30))), h("span", { class: "small muted" }, `${members.length} student${members.length === 1 ? "" : "s"}`), h("span", { class: "spacer" }), open ? h("span", { class: "pill blue" }, `${open} open`) : null, h("span", { class: "pill" }, h("b", {}, c.join_code))))));
+    }
+  })();
+}
+function fillStats(host, mem, hws, subs) {
+  const students = new Set(mem.map(m => m.student_id)).size;
+  const open = hws.filter(x => new Date(x.due_at) > new Date()).length;
+  const gs = subs.map(x => x.teacher_grade || x.grade).filter(Boolean);
+  const avg = gs.length ? (gs.reduce((a, b) => a + b, 0) / gs.length).toFixed(1) : "—";
+  const card = (bg, ic, v, l) => h("div", { class: "dash-stat", style: { background: bg } }, h("span", { style: { fontSize: "26px" } }, icon(ic)), h("div", { class: "v" }, v), h("div", { class: "l" }, l));
+  host.replaceChildren(card("var(--purple-d)", "users", classes.length, "Classes"), card("var(--blue)", "user", students, "Students"), card("var(--orange)", "pen", open, "Open homework"), card("var(--green)", "star", avg, "Average grade"));
 }
 
 function classDialog(existing) {

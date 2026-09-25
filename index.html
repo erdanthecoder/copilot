@@ -7,63 +7,104 @@
 <meta name="description" content="The fun way to learn Kyrgyz. Game-like lessons for students; classrooms, homework, live lessons and presentations for teachers.">
 <meta name="theme-color" content="#58cc02">
 <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
-<nav class="land-nav">
-  <div class="brand" style="padding:0">Learn<b>Kyrgyz</b></div>
-  <span class="spacer"></span>
-  <a class="btn ghost sm" id="teacher-top">For teachers</a>
-</nav>
-<section class="land-hero">
-  <div>
-    <h1>The fun way to learn <em>Kyrgyz</em>.</h1>
-    <p>Bite-sized lessons, streaks and XP for students. Classrooms, homework with due dates, a gradebook, live video lessons and presentations for teachers.</p>
-    <div class="stack" style="max-width:360px">
-      <a class="btn primary block" id="go-student">I'm a student — start learning</a>
-      <a class="btn purple block" id="go-teacher">I'm a teacher — set up a class</a>
+<div class="land-top" id="top">
+  <nav class="land-nav">
+    <div id="brand"></div>
+    <span class="spacer"></span>
+    <a class="btn ghost sm" id="teacher-top">For teachers</a>
+    <a class="btn primary sm" id="student-top">Start learning</a>
+  </nav>
+  <section class="land-hero">
+    <div>
+      <div class="kicker">Кыргыз тилин үйрөнөбүз</div>
+      <h1>The free, fun way to learn <em>Kyrgyz</em>.</h1>
+      <p>Bite-sized lessons with streaks, XP and a snow leopard in a kalpak. Teachers get classrooms, homework with due dates, a gradebook and live video lessons.</p>
+      <div class="stack" style="max-width:380px">
+        <a class="btn primary block" id="go-student">I'm a student — start learning</a>
+        <a class="btn purple block" id="go-teacher">I'm a teacher — set up a class</a>
+      </div>
     </div>
-    <p class="small muted" id="stats"></p>
-  </div>
-  <div class="center" id="hero-mascot"></div>
+    <div style="position:relative" id="phone-wrap"></div>
+  </section>
+</div>
+<div class="stat-band" id="stats"></div>
+
+<section class="section">
+  <div class="kicker">Why it works</div>
+  <h2>Learning that feels like playing</h2>
+  <p class="muted" style="max-width:640px">Every lesson is a mix of short, randomised challenges. You earn XP, keep your streak alive and unlock new topics as you go.</p>
+  <div class="land-feats" id="feats" style="padding:12px 0 0"></div>
 </section>
-<section class="land-feats" id="feats"></section>
-<section style="max-width:1100px;margin:0 auto;padding:10px 20px 60px">
-  <h2 class="section-title">Every topic</h2>
-  <p class="muted">All quizzes are randomised from these topics. Students can write sentences; teachers add their own questions too.</p>
+
+<section class="section">
+  <div class="kicker" style="color:var(--purple-d)">For teachers</div>
+  <h2>Run your Kyrgyz class in three steps</h2>
+  <div class="steps" style="margin-top:16px">
+    <div class="st"><h3>Create a class</h3><p class="muted">Share the join code or an invite link. Students join in seconds.</p></div>
+    <div class="st"><h3>Set homework</h3><p class="muted">Pick from every topic, add your own questions and writing tasks, choose the due date.</p></div>
+    <div class="st"><h3>Teach live &amp; grade</h3><p class="muted">Video or voice lessons, live slides with quizzes, and an automatic 5-point gradebook. Missed homework = 2.</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="kicker">The whole curriculum</div>
+  <h2>Every topic, from А to Ү</h2>
+  <p class="muted">All quizzes are randomised from these topics. Students can also write their own sentences.</p>
   <div id="catalog"></div>
 </section>
-<footer class="center small muted" style="padding:30px 16px 40px">
-  LearnKyrgyz · Кыргыз тилин үйрөнөбүз · Content follows standard literary Kyrgyz. Spotted a mistake? Use “Report a mistake” in the app.
+
+<div style="padding:0 20px"><div class="cta-band" id="cta"></div></div>
+<footer class="center small muted" style="padding:20px 16px 40px">
+  LearnKyrgyz · Content follows standard literary Kyrgyz. Spotted a mistake? Use “Report a mistake” in the app.
 </footer>
 <script type="module">
 import { SITES } from "./assets/js/config.js";
-import { h, icon, mascot } from "./assets/js/ui.js";
+import { h, icon, mascot, mountains, ornamentUrl } from "./assets/js/ui.js";
 import { UNITS, TOPICS, TOPIC_ORDER } from "./assets/js/curriculum.js";
-document.getElementById("go-student").href = SITES.student;
-document.getElementById("go-teacher").href = SITES.teacher;
-document.getElementById("teacher-top").href = SITES.teacher;
-document.getElementById("hero-mascot").append(mascot("wave", 300));
+for (const id of ["go-student", "student-top"]) document.getElementById(id).href = SITES.student;
+for (const id of ["go-teacher", "teacher-top"]) document.getElementById(id).href = SITES.teacher;
+document.getElementById("top").prepend(mountains());
+document.getElementById("brand").append(h("div", { class: "brand", style: { padding: 0 } }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz")));
+
+// Phone mock-up with a playable mini exercise.
+const opts = [["Thank you", true], ["Hello", false], ["Goodbye", false]];
+const optEls = opts.map(([t, ok]) => h("button", { class: "opt", onClick: (e) => { optEls.forEach(o => o.classList.remove("right", "wrong", "sel")); e.currentTarget.classList.add(ok ? "right" : "wrong"); } }, t));
+document.getElementById("phone-wrap").append(
+  h("div", { class: "phone" }, h("div", { class: "phone-screen" },
+    h("div", { class: "ph-bar" }, h("i")),
+    h("h5", {}, "Select the correct meaning"),
+    h("div", { class: "prompt-row", style: { margin: 0 } }, mascot("happy", 70), h("div", { class: "speech", style: { fontSize: "18px" } }, h("span", { class: "ky" }, "Рахмат"), h("span", { class: "tl" }, "Rakhmat"))),
+    h("div", { class: "options" }, optEls),
+    h("button", { class: "btn primary block ph-check" }, "Check"))),
+  h("div", { class: "phone-float f1" }, icon("flame"), "7 day streak"),
+  h("div", { class: "phone-float f2" }, icon("bolt"), "+15 XP"),
+  h("div", { class: "phone-float f3" }, icon("crown"), "Topic mastered"));
+
 const words = TOPIC_ORDER.reduce((a, id) => a + TOPICS[id].words.length, 0);
 const sents = TOPIC_ORDER.reduce((a, id) => a + TOPICS[id].sentences.length, 0);
-document.getElementById("stats").textContent = `${TOPIC_ORDER.length} topics · ${words} words · ${sents} sentences · A1 → B1`;
+document.getElementById("stats").append(...[[TOPIC_ORDER.length, "topics"], [words.toLocaleString("en"), "words"], [sents, "sentences"], ["A1 → B1", "levels"]].map(([v, l]) => h("div", { class: "sb" }, h("b", {}, v), h("span", {}, l))));
+
 const feats = [
-  ["star", "var(--green)", "Game-like lessons", "Streaks, XP, hearts, crowns and a snow-leopard coach. Five minutes a day adds up."],
-  ["shuffle", "var(--blue)", "Always randomised", "Choose, match, build sentences, fill gaps, read passages and type full sentences in Kyrgyz."],
+  ["star", "var(--green)", "Game-like lessons", "Streaks, XP, hearts, crowns, treasure chests and a snow-leopard coach."],
+  ["shuffle", "var(--blue)", "Always randomised", "Choose, match, build sentences, fill gaps, read stories and type full sentences in Kyrgyz."],
   ["pen", "var(--purple-d)", "Homework with due dates", "Teachers pick topics, add their own questions and writing tasks, and choose the deadline."],
   ["grid", "var(--orange)", "Russian 5-point grades", "Automatic 5 / 4 / 3 / 2 grades. Not submitted by the deadline? That's a 2."],
   ["cam", "var(--red)", "Live voice & video", "Teachers start a call from the class page; students get a Join banner instantly."],
-  ["slides", "var(--yellow-d)", "Presentations", "Build slides with word cards and quiz questions, share them, or present live."],
+  ["slides", "var(--yellow-d)", "Live presentations", "Word cards and quiz slides that students follow — and answer — on their own screens."],
 ];
-document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, icon(ic), h("h3", {}, t), h("p", {}, d))));
+document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
+
 const cat = document.getElementById("catalog");
 for (const [i, u] of UNITS.entries()) {
-  cat.append(h("div", { class: "unit-head", style: { background: u.color, margin: "18px 0 10px" } }, h("div", {}, h("h2", {}, `${i + 1}. ${u.en}`), h("p", {}, u.ky)), h("span", { class: "lvl" }, u.level)),
+  cat.append(h("div", { class: "unit-head", style: { backgroundColor: u.color, backgroundImage: ornamentUrl(), margin: "18px 0 10px" } }, h("div", {}, h("p", { style: { margin: 0, fontSize: "12px", fontWeight: 900, letterSpacing: ".8px", textTransform: "uppercase" } }, `Unit ${i + 1} · ${u.level}`), h("h2", {}, u.en), h("p", {}, u.ky))),
     h("div", { class: "row wrap" }, u.topics.map(id => h("span", { class: "pill" }, TOPICS[id].en, " · ", h("span", { class: "ky" }, TOPICS[id].ky)))));
 }
+const cta = document.getElementById("cta");
+cta.style.backgroundImage = ornamentUrl();
+cta.append(mascot("cheer", 110), h("div", { class: "grow" }, h("h2", {}, "Ready? Баштайлы!"), h("p", { style: { margin: "4px 0 0", fontWeight: 700 } }, "Free for students and teachers.")), h("a", { class: "btn", href: SITES.student }, "Start learning"));
 </script>
 </body>
 </html>

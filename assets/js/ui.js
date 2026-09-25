@@ -81,41 +81,64 @@ export function icon(name, cls = "") {
   return span;
 }
 
-// Илбирс — the snow leopard mascot. mood: happy | sad | wow | wave | think
-export function mascot(mood = "happy", size = 120) {
+// Илбирс — the snow leopard mascot, wearing a Kyrgyz kalpak.
+// mood: happy | sad | wow | wave | think | cheer
+export function mascot(mood = "happy", size = 120, { hat = true } = {}) {
+  const smile = '<path d="M50 78 q10 11 20 0" fill="#c2415c" stroke="#3b3f46" stroke-width="2.5" stroke-linejoin="round"/><path d="M55 84 q5 4 10 0" fill="#ff8fa3"/>';
   const mouth = {
-    happy: '<path d="M50 78 q10 10 20 0" fill="#c2415c" stroke="#3b3f46" stroke-width="2.5"/><path d="M55 83 q5 4 10 0" fill="#ff8fa3"/>',
-    wave: '<path d="M50 78 q10 10 20 0" fill="#c2415c" stroke="#3b3f46" stroke-width="2.5"/><path d="M55 83 q5 4 10 0" fill="#ff8fa3"/>',
-    sad: '<path d="M52 83 q8 -7 16 0" fill="none" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>',
-    wow: '<ellipse cx="60" cy="81" rx="5" ry="6" fill="#c2415c" stroke="#3b3f46" stroke-width="2"/>',
-    think: '<path d="M53 81 h14" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>',
-  }[mood] || "";
-  const brows = mood === "sad" ? '<path d="M36 47 l12 4M84 47 l-12 4" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>' : mood === "think" ? '<path d="M37 48 l11 -2M72 45 l11 3" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>' : "";
-  const paw = mood === "wave" ? '<g class="m-wave"><ellipse cx="101" cy="72" rx="9" ry="11" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2"/><circle cx="98" cy="66" r="2" fill="#5b6470"/><circle cx="104" cy="67" r="2" fill="#5b6470"/></g>' : "";
+    happy: smile, wave: smile, cheer: '<path d="M48 77 q12 16 24 0 z" fill="#c2415c" stroke="#3b3f46" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 85 q6 5 12 0" fill="#ff8fa3"/>',
+    sad: '<path d="M52 84 q8 -7 16 0" fill="none" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>',
+    wow: '<ellipse cx="60" cy="81" rx="5" ry="6.5" fill="#c2415c" stroke="#3b3f46" stroke-width="2"/>',
+    think: '<path d="M53 81 q7 -3 14 1" fill="none" stroke="#3b3f46" stroke-width="2.5" stroke-linecap="round"/>',
+  }[mood] || smile;
+  const brows = mood === "sad" ? '<path d="M35 45 l12 5M85 45 l-12 5" stroke="#3b3f46" stroke-width="2.6" stroke-linecap="round"/>'
+    : mood === "think" ? '<path d="M36 47 l11 -3M72 43 l12 4" stroke="#3b3f46" stroke-width="2.6" stroke-linecap="round"/>'
+    : mood === "wow" ? '<path d="M36 42 q7 -5 13 0M71 42 q7 -5 13 0" fill="none" stroke="#3b3f46" stroke-width="2.4" stroke-linecap="round"/>' : "";
+  const eyes = mood === "cheer"
+    ? '<path d="M36 60 q8 -9 16 0M68 60 q8 -9 16 0" fill="none" stroke="#3b3f46" stroke-width="3.2" stroke-linecap="round"/>'
+    : `<ellipse cx="44" cy="58" rx="9" ry="10" fill="#fff" stroke="#3b3f46" stroke-width="2"/><ellipse cx="76" cy="58" rx="9" ry="10" fill="#fff" stroke="#3b3f46" stroke-width="2"/>
+       <circle cx="${mood === "think" ? 47 : 45}" cy="${mood === "sad" ? 62 : 60}" r="5.6" fill="#35a7b8"/><circle cx="${mood === "think" ? 78 : 75}" cy="${mood === "sad" ? 62 : 60}" r="5.6" fill="#35a7b8"/>
+       <circle cx="${mood === "think" ? 47 : 45}" cy="${mood === "sad" ? 62 : 60}" r="2.7" fill="#1f2328"/><circle cx="${mood === "think" ? 78 : 75}" cy="${mood === "sad" ? 62 : 60}" r="2.7" fill="#1f2328"/>
+       <circle cx="47.5" cy="57" r="1.7" fill="#fff"/><circle cx="77.5" cy="57" r="1.7" fill="#fff"/>`;
+  const pawR = '<ellipse rx="9" ry="11" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2"/><circle cx="-3" cy="-6" r="2" fill="#6b7480"/><circle cx="3" cy="-5" r="2" fill="#6b7480"/>';
+  const paws = mood === "wave" ? `<g transform="translate(103 70)"><g class="m-wave">${pawR}</g></g>`
+    : mood === "cheer" ? `<g transform="translate(14 58) rotate(-20)"><g class="m-cheer">${pawR}</g></g><g transform="translate(106 58) rotate(20)"><g class="m-cheer">${pawR}</g></g>` : "";
+  const hatSvg = hat ? `<g class="m-hat" transform="rotate(-6 60 30)">
+      <path d="M33 36 C34 16 46 -2 58 -7 Q61 -8.5 64 -6.5 C76 -1 86 16 87 36 Z" fill="#fdfdf8" stroke="#c9ccc2" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M61 -6 Q56 14 58 33M61 -6 Q70 12 74 32" fill="none" stroke="#e4e5dc" stroke-width="1.5"/>
+      <path d="M31 38 Q60 27 89 38 L87 31 Q60 21 33 31 Z" fill="#1f2328"/>
+      <path d="M36 34.5 l3 -2.4 l3 2 l3 -2.4 l3 2 l3 -2.4 M66 31 l3 2.4 l3 -2 l3 2.4 l3 -2 l3 2.4" fill="none" stroke="#fdfdf8" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M55 30 L60 22 L65 30" fill="#fdfdf8" stroke="#1f2328" stroke-width="1.4"/>
+      <path d="M61 -7 q2 -5 -1 -9" fill="none" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/><circle cx="60" cy="-16" r="2.4" fill="#1f2328"/></g>` : "";
   const wrap = document.createElement("span");
   wrap.className = "mascot mood-" + mood;
-  wrap.innerHTML = `<svg viewBox="0 0 120 120" width="${size}" height="${size}" aria-label="Ilbirs the snow leopard" role="img">
+  wrap.innerHTML = `<svg viewBox="0 ${hat ? -24 : 0} 120 ${hat ? 144 : 120}" width="${size}" height="${Math.round(size * (hat ? 144 : 120) / 120)}" aria-label="Ilbirs the snow leopard" role="img">
     <ellipse cx="60" cy="112" rx="34" ry="5" fill="rgba(0,0,0,.08)"/>
-    <path d="M22 40 q-6 -26 18 -18 z" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2"/>
-    <path d="M98 40 q6 -26 -18 -18 z" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2"/>
-    <path d="M27 36 q-2 -12 9 -9 z" fill="#ffb3c1"/><path d="M93 36 q2 -12 -9 -9 z" fill="#ffb3c1"/>
+    <path d="M24 42 q-9 -27 18 -19 z" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M96 42 q9 -27 -18 -19 z" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M28 37 q-3 -12 9 -10 z" fill="#ffb3c1"/><path d="M92 37 q3 -12 -9 -10 z" fill="#ffb3c1"/>
     <ellipse cx="60" cy="66" rx="44" ry="41" fill="#eef2f6" stroke="#b9c3cf" stroke-width="2"/>
-    <g fill="#6b7480"><circle cx="34" cy="38" r="3.2"/><circle cx="42" cy="31" r="2.4"/><circle cx="78" cy="31" r="2.4"/><circle cx="86" cy="38" r="3.2"/><circle cx="60" cy="30" r="2.8"/><circle cx="24" cy="62" r="3"/><circle cx="96" cy="62" r="3"/><circle cx="28" cy="76" r="2.2"/><circle cx="92" cy="76" r="2.2"/></g>
-    <g fill="none" stroke="#6b7480" stroke-width="2.2"><path d="M50 36 a4 4 0 1 1 6 3"/><path d="M70 36 a4 4 0 1 0 -6 3"/></g>
-    <ellipse cx="60" cy="80" rx="20" ry="15" fill="#ffffff"/>
+    <g fill="#6b7480"><circle cx="24" cy="62" r="3"/><circle cx="96" cy="62" r="3"/><circle cx="28" cy="76" r="2.2"/><circle cx="92" cy="76" r="2.2"/><circle cx="31" cy="48" r="2.4"/><circle cx="89" cy="48" r="2.4"/></g>
+    <g fill="none" stroke="#6b7480" stroke-width="2.2"><path d="M24 70 a4 4 0 1 1 5 3"/><path d="M96 70 a4 4 0 1 0 -5 3"/></g>
+    <ellipse cx="60" cy="81" rx="20" ry="15" fill="#ffffff"/>
     ${brows}
-    <g class="m-eyes"><ellipse cx="44" cy="58" rx="9" ry="10" fill="#fff" stroke="#3b3f46" stroke-width="2"/><ellipse cx="76" cy="58" rx="9" ry="10" fill="#fff" stroke="#3b3f46" stroke-width="2"/>
-    <circle cx="45" cy="60" r="5.5" fill="#35a7b8"/><circle cx="75" cy="60" r="5.5" fill="#35a7b8"/>
-    <circle cx="45" cy="60" r="2.6" fill="#1f2328"/><circle cx="75" cy="60" r="2.6" fill="#1f2328"/>
-    <circle cx="47" cy="57.5" r="1.6" fill="#fff"/><circle cx="77" cy="57.5" r="1.6" fill="#fff"/></g>
+    <g class="m-eyes">${eyes}</g>
     <path d="M55 70 h10 l-5 5 z" fill="#ff8fa3" stroke="#3b3f46" stroke-width="1.5" stroke-linejoin="round"/>
     <path d="M60 75 v3" stroke="#3b3f46" stroke-width="2"/>
     ${mouth}
     <g stroke="#b9c3cf" stroke-width="1.5" stroke-linecap="round"><path d="M38 76 l-14 -2M38 80 l-13 3M82 76 l14 -2M82 80 l13 3"/></g>
-    <circle cx="34" cy="72" r="5" fill="#ffc2cf" opacity=".6"/><circle cx="86" cy="72" r="5" fill="#ffc2cf" opacity=".6"/>
-    ${paw}
+    <circle cx="33" cy="71" r="5" fill="#ffc2cf" opacity=".65"/><circle cx="87" cy="71" r="5" fill="#ffc2cf" opacity=".65"/>
+    ${hatSvg}
+    ${paws}
   </svg>`;
   return wrap;
+}
+
+// Kyrgyz ram's-horn ornament (кочкор мүйүз) as a CSS background image.
+export function ornamentUrl(color = "rgba(255,255,255,.16)") {
+  const c = encodeURIComponent(color);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='40' viewBox='0 0 80 40'><g fill='none' stroke='${c}' stroke-width='3' stroke-linecap='round'><path d='M40 36 C40 20 30 10 20 12 C12 14 12 26 20 26 C25 26 25 20 21 20'/><path d='M40 36 C40 20 50 10 60 12 C68 14 68 26 60 26 C55 26 55 20 59 20'/></g></svg>`;
+  return `url("data:image/svg+xml,${svg.replace(/"/g, "'").replace(/#/g, "%23")}")`;
 }
 
 // ── sounds (synthesised, no files) ──
@@ -220,4 +243,35 @@ export function kyKeys(input) {
 export function errMsg(e) {
   const m = (e && (e.message || e.error_description || e.msg)) || String(e);
   return m.replace(/^.*?ERROR:\s*/, "");
+}
+
+// Ala-Too mountain skyline with snow caps — used as scenery on landing and sign-in screens.
+export function mountains({ sun = true } = {}) {
+  const el = document.createElement("div");
+  el.className = "scenery";
+  el.innerHTML = `<svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky-1)"/><stop offset="1" style="stop-color:var(--sky-2)"/></linearGradient></defs>
+    <rect width="800" height="300" fill="url(#skyg)"/>
+    ${sun ? '<circle cx="640" cy="80" r="38" fill="#ffd84d"/><g stroke="#ffd84d" stroke-width="6" stroke-linecap="round" opacity=".7"><path d="M640 22v-12M640 150v-12M582 80h-12M710 80h-12M599 39l-8-8M689 129l-8-8M599 121l-8 8M689 31l-8 8"/></g>' : ""}
+    <path d="M0 210 L90 120 L150 170 L250 70 L330 150 L400 100 L480 170 L560 90 L650 160 L720 120 L800 170 V300 H0Z" style="fill:var(--mt-far)"/>
+    <path d="M250 70 L222 98 L236 94 L250 106 L262 92 L278 98Z M560 90 L536 114 L550 110 L562 120 L572 108 L586 116Z M90 120 L70 140 L84 136 L94 144 L104 134Z" fill="#fff" opacity=".9"/>
+    <path d="M0 250 L120 170 L200 220 L300 150 L390 215 L470 175 L560 225 L660 165 L800 235 V300 H0Z" style="fill:var(--mt-mid)"/>
+    <path d="M0 300 V265 Q200 235 400 262 T800 255 V300Z" style="fill:var(--mt-near)"/>
+  </svg>`;
+  return el;
+}
+
+// Circular progress ring around path nodes.
+export function ring(pct, size = 96, color = "var(--yellow)") {
+  const r = size / 2 - 5, c = 2 * Math.PI * r;
+  const el = document.createElement("span");
+  el.className = "ring";
+  el.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="8"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" style="stroke:${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.min(1, pct))}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+  return el;
+}
+
+// Animate a number counting up inside an element.
+export function countUp(el, to, ms = 900, suffix = "") {
+  const t0 = performance.now();
+  (function f(t) { const k = Math.min(1, (t - t0) / ms); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + suffix; if (k < 1) requestAnimationFrame(f); })(t0);
 }

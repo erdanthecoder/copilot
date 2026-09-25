@@ -1,5 +1,5 @@
 // Full-screen lesson player (Duolingo-style) used for practice, homework and teacher previews.
-import { h, icon, mascot, sound, confetti, modal, kyKeys, speakKy, kyVoice } from "./ui.js";
+import { h, icon, mascot, sound, confetti, modal, kyKeys, speakKy, kyVoice, countUp } from "./ui.js";
 import { checkTyped, normalize, translit, shuffle } from "./engine.js";
 import { t, getLang } from "./i18n.js";
 import { TOPICS } from "./curriculum.js";
@@ -88,10 +88,11 @@ export function runLesson(opts) {
       body.querySelector(".ex-card")?.classList.add("shake");
       if (homework) doneCount++;
       else queue.push({ ex: current.ex, i, retry: true });
-      if (hearts != null && !retry) { hearts = Math.max(0, hearts - 1); heartEl.lastChild.textContent = hearts; opts.onHeart && opts.onHeart(hearts); }
+      if (hearts != null && !retry) { hearts = Math.max(0, hearts - 1); heartEl.lastChild.textContent = hearts; heartEl.classList.remove("lost"); void heartEl.offsetWidth; heartEl.classList.add("lost"); opts.onHeart && opts.onHeart(hearts); }
     }
     if (r.ok && homework) doneCount++;
     progress();
+    bar.parentNode.classList.toggle("hot", streak >= 3);
     const sol = r.ok ? (r.note || "") : r.solution;
     const explain = !r.ok ? (ex.explain || (ex.item?.topic && TOPICS[ex.item.topic]?.tip?.[lang]) || "") : "";
     const reportBtn = ex.item && !ex.item.custom && opts.onReport ? h("button", { class: "link-btn small", onClick: () => opts.onReport(ex.item) }, icon("flag"), " ", t("report")) : null;
@@ -149,13 +150,14 @@ export function runLesson(opts) {
     const mins = Math.floor(res.secs / 60), s = res.secs % 60;
     const moodTitle = res.acc >= 90 ? t("lessonComplete") : res.acc >= 60 ? t("lessonComplete") : t("lessonComplete");
     body.replaceChildren(h("div", { class: "results" },
-      mascot(res.acc >= 60 ? "happy" : "think", 150),
+      mascot(res.acc >= 90 ? "cheer" : res.acc >= 60 ? "happy" : "think", 150),
       h("h1", {}, moodTitle),
       opts.resultExtra ? opts.resultExtra(res) : null,
       h("div", { class: "res-cards" },
-        h("div", { class: "res-card", style: { "--c": "var(--yellow)" } }, h("b", {}, t("totalXp")), h("span", {}, icon("bolt"), res.xp)),
-        h("div", { class: "res-card", style: { "--c": "var(--green)" } }, h("b", {}, t("accuracy")), h("span", {}, icon("target"), res.acc + "%")),
+        h("div", { class: "res-card", style: { "--c": "var(--yellow)" } }, h("b", {}, t("totalXp")), h("span", {}, icon("bolt"), h("span", { class: "cu", "data-to": res.xp }, "0"))),
+        h("div", { class: "res-card", style: { "--c": "var(--green)" } }, h("b", {}, t("accuracy")), h("span", {}, icon("target"), h("span", { class: "cu", "data-to": res.acc, "data-suffix": "%" }, "0%"))),
         h("div", { class: "res-card", style: { "--c": "var(--blue)" } }, h("b", {}, t("time")), h("span", {}, icon("clock"), `${mins}:${String(s).padStart(2, "0")}`)))));
+    body.querySelectorAll(".cu").forEach(el => countUp(el, +el.dataset.to, 900, el.dataset.suffix || ""));
     setFoot("", [h("span"), h("button", { class: "btn primary", onClick: () => { cleanup(); opts.onDone && opts.onDone(res); } }, t("continue"))]);
   }
 
@@ -167,7 +169,7 @@ export function runLesson(opts) {
       h("span", { class: "tl" }, translit(s)));
   }
   function promptBubble(text, isKy) {
-    return h("div", { class: "prompt-row" }, mascot("happy", 90), h("div", { class: "speech" }, isKy ? kyText(text) : text));
+    return h("div", { class: "prompt-row" }, mascot(isKy ? "think" : "happy", 96), h("div", { class: "speech" }, isKy ? kyText(text) : text));
   }
 
   function render(ex) {
@@ -191,7 +193,7 @@ export function runLesson(opts) {
   function renderChoose(ex, card) {
     const promptIsKy = ex.promptLang === "ky";
     const custom = ex.promptLang === "mixed";
-    card.append(h("h2", { class: "ex-title" }, custom ? ex.prompt : promptIsKy ? t("selectMeaning") : `${t("selectKy")} “${ex.prompt}”`));
+    card.append(h("h2", { class: "ex-title" }, custom ? ex.prompt : promptIsKy ? t("selectMeaning") : t("selectKy").replace(/[:\s]+$/, "")));
     if (!custom) card.append(promptBubble(ex.prompt, promptIsKy));
     const o = optionButtons(ex, ex.options, ex.optionLang === "ky", () => setReady(true));
     card.append(h("div", { class: "options" + (ex.options.every(x => x.length < 18) ? " two" : "") }, o.btns));
