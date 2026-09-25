@@ -13,7 +13,7 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 ## Features
 
 **Students**
-- A learning path of 18 units and 79 topics (A1 → B1), with 827 words, 345 sentences and 6 reading passages. Each topic has easy, medium and hard levels and earns crowns.
+- A learning path of 24 units and 99 topics (A1 → B1), with 1,005 words, 437 sentences and 8 reading passages. Each topic has easy, medium and hard levels and earns crowns.
 - Randomised exercises: pick the meaning, pick the Kyrgyz, match pairs, build sentences from tiles, fill in the blank, reading comprehension, and typing whole sentences in Kyrgyz. There's an on-screen ң ө ү keyboard. Small typos are forgiven, and a missing special letter is flagged.
 - XP, daily goal, streaks, hearts (they refill over time or through practice), combo counters, achievements, confetti, sounds, and Ilbirs the snow-leopard mascot.
 - Practice modes: mixed review, mistakes review, flashcards, and a searchable word list with transliteration.

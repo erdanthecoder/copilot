@@ -7,6 +7,7 @@
 */
 
 import { EXTRA_UNITS, EXTRA_TOPICS, AREAS, TOPIC_AREA } from "./curriculum-extra.js";
+import { MORE_UNITS, MORE_TOPICS, MORE_AREAS } from "./curriculum-more.js";
 export { AREAS, TOPIC_AREA };
 
 const BASE_UNITS = [
@@ -1304,9 +1305,10 @@ export const TOPICS = {
   },
 };
 
-Object.assign(TOPICS, EXTRA_TOPICS);
-const PATH = ["u1", "u2", "u3", "u10", "u4", "u11", "u5", "u6", "u12", "u7", "u13", "u14", "u15", "u18", "u8", "u16", "u9", "u17"];
-const byId = Object.fromEntries(BASE_UNITS.concat(EXTRA_UNITS).map(u => [u.id, u]));
+Object.assign(TOPICS, EXTRA_TOPICS, MORE_TOPICS);
+Object.assign(TOPIC_AREA, MORE_AREAS);
+const PATH = ["u1", "u2", "u23", "u3", "u10", "u19", "u4", "u11", "u5", "u6", "u12", "u20", "u7", "u13", "u14", "u22", "u15", "u21", "u18", "u8", "u16", "u24", "u9", "u17"];
+const byId = Object.fromEntries(BASE_UNITS.concat(EXTRA_UNITS, MORE_UNITS).map(u => [u.id, u]));
 export const UNITS = PATH.map(id => byId[id]);
 
 export const TOPIC_ORDER = UNITS.flatMap(u => u.topics);
