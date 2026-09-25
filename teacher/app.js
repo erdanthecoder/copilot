@@ -5,6 +5,7 @@ import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
 import { buildLesson, customExercise, translit, shuffle, gradeFor } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
+import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { openMeeting } from "../assets/js/call.js";
 import { renderSlide, presentLive, SLIDE_TYPES, blankSlide } from "../assets/js/present.js";
 
@@ -43,10 +44,7 @@ function renderAuth(mode, msg) {
       e.preventDefault(); btn.disabled = true; err.classList.add("hidden");
       try {
         if (signup) {
-          const { data, error } = await client.auth.signUp({ email: email.value.trim(), password: pw.value, options: { data: { role: "teacher", full_name: name.value.trim(), learn_from: getLang() }, emailRedirectTo: location.href.split("#")[0] } });
-          if (error) throw error;
-          if (!data.session) return renderAuth("signin", t("checkEmail"));
-          signedIn(data.user);
+          signedIn(await signUpWithPassword({ email: email.value.trim(), password: pw.value, fullName: name.value.trim(), role: "teacher", learnFrom: getLang() }));
         } else {
           const { data, error } = await client.auth.signInWithPassword({ email: email.value.trim(), password: pw.value });
           if (error) throw error;
@@ -54,6 +52,7 @@ function renderAuth(mode, msg) {
         }
       } catch (ex) { err.textContent = errMsg(ex); err.classList.remove("hidden"); btn.disabled = false; }
     } }, msg ? h("div", { class: "auth-ok" }, msg) : null, err,
+      googleBlock({ role: "teacher", learnFrom: getLang, onSignedIn: (u) => signedIn(u), onError: (e) => { err.textContent = errMsg(e); err.classList.remove("hidden"); } }),
       signup ? h("label", { class: "field" }, h("span", {}, "Name students will see"), name) : null,
       h("label", { class: "field" }, h("span", {}, t("email")), email),
       h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),

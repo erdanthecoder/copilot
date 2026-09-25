@@ -606,3 +606,6 @@ body { letter-spacing: .1px; }
 .hero-strip .mascot { margin: -6px 0 -24px auto; }
 @media (max-width: 560px) { .land-nav .btn.ghost { display: none; } .hero-strip .mascot { display: none; } .phone { aspect-ratio: 9 / 16; } }
 .phone { aspect-ratio: 9 / 17; }
+.google-btn { color: var(--ink) !important; gap: 12px; }
+.google-btn svg { flex: none; }
+.google-block { margin: 16px 0 4px; }

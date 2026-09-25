@@ -41,11 +41,13 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 
 ## Setup still needed (one-time)
 
-1. **Supabase email confirmation.** Supabase's built-in email sender only sends to your own team's addresses. So either
-   - turn off **Authentication → Sign In / Providers → Email → "Confirm email"** (simplest for a classroom), or
-   - add your own SMTP server under **Authentication → Emails → SMTP Settings**.
+1. **Sign-up needs no email confirmation.** Accounts are created by the `auth-bridge` edge function (`supabase/functions/auth-bridge`), which makes confirmed users. So you don't need to change Supabase's email settings.
 2. **Supabase URL configuration** (Authentication → URL Configuration): set the Site URL to `https://studentlrnkyrgyz.web.app`. Add these redirect URLs: `https://learnkyrgyz.web.app/**`, `https://studentlrnkyrgyz.web.app/**`, `https://teachlrnkyrgyz.web.app/**`, `https://erdanthecoder.github.io/**`.
 3. **Firebase Hosting (the three `.web.app` addresses):** create a Firebase project and its first site, `learnkyrgyz`. Then add a GitHub secret `FIREBASE_SERVICE_ACCOUNT` containing a service-account JSON key with the *Firebase Admin* role (Firebase console → Project settings → Service accounts → Generate new private key). On every push, the `firebase.yml` workflow reads the project ID from the key, creates `studentlrnkyrgyz` and `teachlrnkyrgyz` if they are missing, and deploys all three sites.
+
+## Google sign-in
+
+"Continue with Google" uses **Firebase Authentication**, and the `auth-bridge` edge function turns it into a Supabase session. To turn it on, open the Firebase console → Authentication → Sign-in method → enable **Google**. The deploy workflow registers the web app and adds all three `.web.app` domains to Firebase's authorized domains. The button only appears on the Firebase-hosted sites, not on the GitHub Pages preview.
 
 ## Kyrgyz content
 

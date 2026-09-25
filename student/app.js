@@ -5,6 +5,7 @@ import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
 import { buildLesson, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
+import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { openMeeting } from "../assets/js/call.js";
 import { watchPresentations, openLiveViewer, openSlideshow } from "../assets/js/present.js";
 
@@ -116,6 +117,7 @@ function renderAuth(mode = "welcome", msg = null) {
     content = [mascot("wave", 130), h("h1", {}, t("welcomeTitle")), h("p", { class: "muted" }, t("welcomeText")),
       h("p", { class: "small muted" }, t("pickLang")), langSeg,
       h("div", { class: "stack", style: { marginTop: "22px" } },
+        googleBlock({ role: "student", learnFrom: getLang, label: getLang() === "ru" ? "Продолжить с Google" : "Continue with Google", orLabel: getLang() === "ru" ? "или" : "or", onSignedIn: async (u) => { await migrateGuest(u); signedIn(u); }, onError: (e) => toast(errMsg(e), "bad") }),
         h("button", { class: "btn primary block", onClick: () => renderAuth("signup") }, t("signUp")),
         h("button", { class: "btn ghost block", onClick: () => renderAuth("signin") }, t("signIn")),
         h("button", { class: "link-btn", onClick: startGuest }, t("guest")))];
@@ -130,11 +132,9 @@ function renderAuth(mode = "welcome", msg = null) {
         e.preventDefault(); btn.disabled = true; err.classList.add("hidden");
         try {
           if (signup) {
-            const { data, error } = await client.auth.signUp({ email: email.value.trim(), password: pw.value, options: { data: { role: "student", full_name: name.value.trim(), learn_from: getLang() }, emailRedirectTo: location.href.split("#")[0] } });
-            if (error) throw error;
-            if (!data.session) return renderAuth("signin", t("checkEmail"));
-            await migrateGuest(data.user);
-            signedIn(data.user);
+            const u = await signUpWithPassword({ email: email.value.trim(), password: pw.value, fullName: name.value.trim(), role: "student", learnFrom: getLang() });
+            await migrateGuest(u);
+            signedIn(u);
           } else {
             const { data, error } = await client.auth.signInWithPassword({ email: email.value.trim(), password: pw.value });
             if (error) throw error;
@@ -143,6 +143,7 @@ function renderAuth(mode = "welcome", msg = null) {
         } catch (ex) { setErr(errMsg(ex)); btn.disabled = false; }
       } },
         msg ? h("div", { class: "auth-ok" }, msg) : null, err,
+        googleBlock({ role: "student", learnFrom: getLang, label: getLang() === "ru" ? "Продолжить с Google" : "Continue with Google", orLabel: getLang() === "ru" ? "или" : "or", onSignedIn: async (u) => { await migrateGuest(u); signedIn(u); }, onError: (e) => toast(errMsg(e), "bad") }),
         signup ? h("label", { class: "field" }, h("span", {}, t("fullName")), name) : null,
         h("label", { class: "field" }, h("span", {}, t("email")), email),
         h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),

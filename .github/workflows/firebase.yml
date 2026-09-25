@@ -41,6 +41,12 @@ jobs:
               && echo "Site $site exists" \
               || firebase hosting:sites:create "$site" --project "$PROJECT" --non-interactive
           done
+          # A registered web app makes /__/firebase/init.json available for Google sign-in.
+          if [ "$(firebase apps:list WEB --project "$PROJECT" --json | jq '.result | length')" = "0" ]; then
+            firebase apps:create WEB "LearnKyrgyz" --project "$PROJECT"
+          fi
+          npm i --no-save google-auth-library@9 >/dev/null
+          node scripts/firebase-auth-domains.mjs "$PROJECT"
           firebase use --add "$PROJECT" --alias default >/dev/null 2>&1 || true
           firebase target:clear hosting home --project "$PROJECT" >/dev/null 2>&1 || true
           firebase target:clear hosting student --project "$PROJECT" >/dev/null 2>&1 || true
