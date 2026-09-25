@@ -2,6 +2,7 @@
 // live (over a private Realtime channel), and live quiz slides.
 import { h, icon, toast, sound } from "./ui.js";
 import { translit } from "./engine.js";
+import { mountPptxSlide } from "./pptx.js";
 
 export const SLIDE_TYPES = {
   title: { label: "Title", icon: "star" },
@@ -10,6 +11,8 @@ export const SLIDE_TYPES = {
   image: { label: "Image", icon: "image" },
   quiz: { label: "Quiz question", icon: "question" },
 };
+// Slides imported from PowerPoint (not added by hand).
+export const IMPORTED_TYPES = { pptx: { label: "PowerPoint slide", icon: "slides" } };
 export function blankSlide(type) {
   return {
     title: { type, title: "Сабакка кош келиңиздер!", subtitle: "Welcome to the lesson" },
@@ -24,6 +27,7 @@ export function blankSlide(type) {
 export function renderSlide(s, opts = {}) {
   const stage = h("div", { class: "slide-stage" });
   let inner;
+  if (s && s.type === "pptx") { mountPptxSlide(stage, s.url, s.index); return stage; }
   if (!s) inner = h("div", { class: "slide" });
   else if (s.type === "title") inner = h("div", { class: "slide title-slide" }, h("h1", {}, s.title || ""), s.subtitle ? h("p", {}, s.subtitle) : null);
   else if (s.type === "text") inner = h("div", { class: "slide" }, h("h2", {}, s.title || ""), h("ul", {}, (s.bullets || []).filter(Boolean).map(b => h("li", {}, b))));

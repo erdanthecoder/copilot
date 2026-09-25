@@ -7,7 +7,8 @@ import { buildLesson, customExercise, translit, shuffle, gradeFor } from "../ass
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { openMeeting } from "../assets/js/call.js";
-import { renderSlide, presentLive, SLIDE_TYPES, blankSlide } from "../assets/js/present.js";
+import { renderSlide, presentLive, SLIDE_TYPES, IMPORTED_TYPES, blankSlide } from "../assets/js/present.js";
+import { loadDeck, officeViewerUrl, deckUrlOf } from "../assets/js/pptx.js";
 
 const client = sb();
 const app = $("#app");
@@ -423,11 +424,42 @@ async function tabLive(body, c) {
 // ───────────────────────── Presentations ─────────────────────────
 async function loadPres() { const { data } = await client.from("presentations").select("*").eq("teacher_id", user.id).order("updated_at", { ascending: false }); return data || []; }
 
+// Upload a PowerPoint file: store it, read its slides, and create a presentation.
+function uploadPptx(classroomId) {
+  const input = h("input", { type: "file", accept: ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation", style: { display: "none" } });
+  input.addEventListener("change", async () => {
+    const file = input.files[0]; input.remove();
+    if (!file) return;
+    if (!/\.pptx$/i.test(file.name)) return toast("Please choose a .pptx file (PowerPoint 2007 or newer). For .ppt, open it in PowerPoint and “Save As” .pptx.", "bad");
+    if (file.size > 50 * 1024 * 1024) return toast("That file is bigger than 50 MB. Try compressing the pictures in PowerPoint (File → Compress Pictures).", "bad");
+    const prog = modal({ title: "Uploading PowerPoint…", body: h("div", { class: "center" }, mascot("think", 100), h("p", { class: "muted" }, file.name), h("p", {}, "Reading your slides…")) });
+    try {
+      const buf = await file.arrayBuffer();
+      const deck = await loadDeck(buf);
+      if (!deck.count) throw new Error("No slides found in this file.");
+      const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+      const up = await client.storage.from("slides").upload(path, file, { contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation", upsert: false });
+      if (up.error) throw up.error;
+      const url = client.storage.from("slides").getPublicUrl(path).data.publicUrl;
+      const slides = Array.from({ length: deck.count }, (_, i) => ({ type: "pptx", url, index: i, title: deck.titles[i] || `Slide ${i + 1}` }));
+      const row = { title: file.name.replace(/\.pptx$/i, "").slice(0, 120) || "PowerPoint", slides, classroom_id: classroomId || null, shared: false };
+      const { data, error } = await client.from("presentations").insert(row).select().single();
+      if (error) throw error;
+      prog.close();
+      toast(`Imported ${deck.count} slides`, "good");
+      render();
+      editPresentation(data);
+    } catch (e) { prog.close(); toast(errMsg(e), "bad"); }
+  });
+  document.body.append(input); input.click();
+}
+
 async function tabClassSlides(body, c) {
   const all = await loadPres();
   const mine = all.filter(p => p.classroom_id === c.id);
   body.append(h("div", { class: "row wrap", style: { marginBottom: "14px" } }, h("p", { class: "muted grow", style: { margin: 0 } }, "Shared presentations appear in students' Classroom tab. “Present live” makes their screens follow yours."),
-    h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: c.id, shared: false }) }, icon("plus"), "New")));
+    h("div", { class: "row wrap" }, h("button", { class: "btn ghost", onClick: () => uploadPptx(c.id) }, icon("share"), "Upload PowerPoint"),
+      h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: c.id, shared: false }) }, icon("plus"), "New"))));
   presGrid(body, mine.length ? mine : [], c);
   const others = all.filter(p => p.classroom_id !== c.id);
   if (others.length) { body.append(h("h3", { class: "section-title" }, "Your other presentations")); presGrid(body, others, c); }
@@ -439,12 +471,14 @@ function presGrid(body, list, cls) {
     h("h3", { style: { margin: "0 0 4px" } }, p.title), h("div", { class: "row wrap small muted" }, `${p.slides.length} slides`, p.shared ? h("span", { class: "pill green" }, "Shared") : h("span", { class: "pill" }, "Private"), p.classroom_id ? h("span", { class: "pill" }, classes.find(c => c.id === p.classroom_id)?.name || "") : null),
     h("div", { class: "row wrap", style: { marginTop: "12px" } },
       h("button", { class: "btn purple sm", onClick: () => { const cid = cls?.id || p.classroom_id; if (!cid) return toast("Assign this presentation to a class first (Edit → Class)", "bad"); presentLive({ client, pres: p, classroomId: cid, me: { id: user.id, name: profile.full_name } }); } }, icon("play"), "Present live"),
-      h("button", { class: "btn ghost sm", onClick: () => editPresentation(p) }, icon("edit"), "Edit"))))));
+      h("button", { class: "btn ghost sm", onClick: () => editPresentation(p) }, icon("edit"), "Edit"),
+      deckUrlOf(p) ? h("a", { class: "btn ghost sm", href: officeViewerUrl(deckUrlOf(p)), target: "_blank", rel: "noopener" }, icon("eye"), "Original") : null)))));
 }
 
 function viewSlides(main) {
   main.append(h("div", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", { class: "page-title" }, "Presentations"), h("p", { class: "page-sub" }, "Build slides with Kyrgyz word cards and quiz questions, share them with a class, or present live.")),
-    h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: classes[0]?.id || null, shared: false }) }, icon("plus"), "New")));
+    h("div", { class: "row wrap" }, h("button", { class: "btn ghost", onClick: () => uploadPptx(classes[0]?.id || null) }, icon("share"), "Upload PowerPoint (.pptx)"),
+      h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: classes[0]?.id || null, shared: false }) }, icon("plus"), "New"))));
   const host = h("div"); main.append(host);
   loadPres().then(list => presGrid(host, list, null));
 }
@@ -469,10 +503,11 @@ function editPresentation(p0) {
     return wrap;
   };
   const drawForm = () => {
-    const s = p.slides[idx]; form.replaceChildren(h("div", { class: "row" }, h("b", { class: "grow" }, `Slide ${idx + 1} · ${SLIDE_TYPES[s.type].label}`),
+    const s = p.slides[idx]; form.replaceChildren(h("div", { class: "row" }, h("b", { class: "grow" }, `Slide ${idx + 1} · ${(SLIDE_TYPES[s.type] || IMPORTED_TYPES[s.type]).label}`),
       h("button", { class: "icon-btn", title: "Move left", onClick: () => { if (idx > 0) { [p.slides[idx - 1], p.slides[idx]] = [p.slides[idx], p.slides[idx - 1]]; idx--; drawAll(); } } }, icon("left")),
       h("button", { class: "icon-btn", title: "Move right", onClick: () => { if (idx < p.slides.length - 1) { [p.slides[idx + 1], p.slides[idx]] = [p.slides[idx], p.slides[idx + 1]]; idx++; drawAll(); } } }, icon("right")),
       h("button", { class: "icon-btn", title: "Delete slide", onClick: () => { if (p.slides.length > 1) { p.slides.splice(idx, 1); idx = Math.max(0, idx - 1); drawAll(); } } }, icon("trash"))));
+    if (s.type === "pptx") form.append(h("p", { class: "muted" }, `From your PowerPoint file (slide ${s.index + 1}). To change its content, edit it in PowerPoint and upload again. You can add quiz or word slides between PowerPoint slides with the buttons above.`));
     if (s.type === "title") form.append(field("Title", "title", { ky: true }), field("Subtitle", "subtitle"));
     if (s.type === "text") form.append(field("Heading", "title", { ky: true }), field("Bullet points (one per line)", "bullets", { area: true, value: (s.bullets || []).join("\n"), set: (v) => s.bullets = v.split("\n") }));
     if (s.type === "word") {

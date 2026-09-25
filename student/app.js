@@ -10,6 +10,7 @@ import { voice } from "../assets/js/speech.js";
 import { DIALOGUES, LISTEN_GOAL, openDialogue, dialogueExplainer } from "../assets/js/dialogues.js";
 import { openMeeting } from "../assets/js/call.js";
 import { watchPresentations, openLiveViewer, openSlideshow } from "../assets/js/present.js";
+import { officeViewerUrl, deckUrlOf } from "../assets/js/pptx.js";
 
 const client = sb();
 const app = $("#app");
@@ -736,7 +737,9 @@ async function leaderboard(c, host) {
 }
 function presList(c, host) {
   if (!c.presentations.length) { host.append(h("p", { class: "muted" }, "—")); return; }
-  host.append(h("div", { class: "list" }, c.presentations.map(p => h("div", { class: "item click", onClick: () => openSlideshow(p) }, icon("slides"), h("div", { class: "grow" }, h("div", { class: "title" }, p.title), h("div", { class: "sub" }, `${(p.slides || []).length} slides`)), h("button", { class: "btn sm" }, t("open"))))));
+  host.append(h("div", { class: "list" }, c.presentations.map(p => h("div", { class: "item click", onClick: () => openSlideshow(p) }, icon("slides"), h("div", { class: "grow" }, h("div", { class: "title" }, p.title), h("div", { class: "sub" }, `${(p.slides || []).length} slides`)),
+    deckUrlOf(p) ? h("a", { class: "btn ghost sm", href: officeViewerUrl(deckUrlOf(p)), target: "_blank", rel: "noopener", onClick: (e) => e.stopPropagation() }, "PowerPoint") : null,
+    h("button", { class: "btn sm" }, t("open"))))));
 }
 
 // ───────────────────────── Profile ─────────────────────────
