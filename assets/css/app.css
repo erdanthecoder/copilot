@@ -692,3 +692,5 @@ body { letter-spacing: .1px; }
 .dlg-play { min-width: 190px; }
 .dlg-card h3 { font-size: 22px; }
 @media (max-width: 560px) { .dlg-bubble { max-width: 70%; } .dlg-ky { font-size: 18px; } .dlg-play { min-width: 0; } }
+.dlg-voice { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; font-weight: 800; color: var(--blue-d); background: var(--blue-l); padding: 3px 10px; border-radius: 99px; }
+.dlg-stages button:last-child { color: var(--purple-d); }

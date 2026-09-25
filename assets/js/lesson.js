@@ -234,8 +234,8 @@ export function runLesson(opts) {
   function renderChoose(ex, card) {
     const promptIsKy = ex.promptLang === "ky";
     const custom = ex.promptLang === "mixed";
-    card.append(h("h2", { class: "ex-title" }, custom ? ex.prompt : promptIsKy ? t("selectMeaning") : t("selectKy").replace(/[:\s]+$/, "")));
-    if (!custom) card.append(promptBubble(ex.prompt, promptIsKy));
+    card.append(h("h2", { class: "ex-title" }, ex.title || (custom ? ex.prompt : promptIsKy ? t("selectMeaning") : t("selectKy").replace(/[:\s]+$/, ""))));
+    if (!custom || ex.title) card.append(promptBubble(ex.prompt, promptIsKy));
     const o = optionButtons(ex, ex.options, ex.optionLang === "ky", () => setReady(true));
     card.append(h("div", { class: "options" + (ex.options.every(x => x.length < 18) ? " two" : "") }, o.btns));
     checkFn = () => {

@@ -2,8 +2,9 @@
 // many times — first reading along with the translation, then shadowing line by
 // line, then by ear only, and finally saying it yourself.
 import { h, icon, mascot, sound, toast } from "./ui.js";
-import { sayKy, sayKyAsync, stopSpeaking, voice } from "./speech.js";
-import { translit, glossKy } from "./engine.js";
+import { sayKy, sayKyAsync, stopSpeaking, voice, voiceInfo, ensureVoices } from "./speech.js";
+import { runLesson } from "./lesson.js";
+import { translit, glossKy, shuffle } from "./engine.js";
 import { getLang } from "./i18n.js";
 
 // Each line: [speaker, Kyrgyz, English, Russian]
@@ -105,7 +106,28 @@ const STAGES = [
   { en: "Shadowing", ru: "Повторять за диктором" },
   { en: "Ears only", ru: "Только на слух" },
   { en: "Say it", ru: "Сказать самому" },
+  { en: "Check yourself", ru: "Проверь себя" },
 ];
+
+// Quiz built from the dialogue: meanings of lines and "which reply fits?".
+function dialogueQuiz(d, lang) {
+  const li = lang === "ru" ? 3 : 2; const ru = lang === "ru";
+  const L = d.lines; const out = [];
+  const others = (i, col) => shuffle(L.map((x, j) => j).filter(j => j !== i && L[j][col] !== L[i][col])).slice(0, 3).map(j => L[j][col]);
+  for (const i of shuffle(L.map((_, i) => i)).slice(0, 4)) {
+    const opts = shuffle([L[i][li], ...others(i, li)]);
+    out.push({ type: "choose", prompt: L[i][1], promptLang: "ky", options: opts, answer: opts.indexOf(L[i][li]), item: { id: `${d.id}:l${i}`, custom: true } });
+  }
+  for (const i of shuffle(L.map((_, i) => i).slice(0, -1)).slice(0, 3)) {
+    const opts = shuffle([L[i + 1][1], ...others(i + 1, 1)]);
+    out.push({ type: "choose", title: ru ? "Какой ответ подходит?" : "Which reply fits?", prompt: L[i][1], promptLang: "ky", options: opts, optionLang: "ky", answer: opts.indexOf(L[i + 1][1]), item: { id: `${d.id}:r${i}`, custom: true } });
+  }
+  for (const i of shuffle(L.map((_, i) => i)).slice(0, 3)) {
+    const opts = shuffle([L[i][1], ...others(i, 1)]);
+    out.push({ type: "choose", prompt: L[i][li], promptLang: lang, options: opts, optionLang: "ky", answer: opts.indexOf(L[i][1]), item: { id: `${d.id}:k${i}`, custom: true } });
+  }
+  return shuffle(out);
+}
 
 function hintText(text, lang) {
   return text.split(/(\s+)/).map(part => {
@@ -151,7 +173,11 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
     counter.replaceChildren(h("span", { class: "mini-bar" }, h("i", { style: { width: pct + "%" } })), `${prog.listens}/${LISTEN_GOAL} ${ru ? "прослушиваний" : "listens"}`);
   }
   function drawStages() {
-    stageBar.replaceChildren(...STAGES.map((s, i) => h("button", { class: stage === i ? "on" : "", onClick: () => { stop(); stage = i; prog.stage = Math.max(prog.stage, i); save(); revealed.clear(); draw(); } }, `${i + 1}. ${ru ? s.ru : s.en}`)));
+    stageBar.replaceChildren(...STAGES.map((s, i) => h("button", { class: stage === i ? "on" : "", onClick: () => {
+      stop();
+      if (i === 4) { runLesson({ exercises: dialogueQuiz(d, lang), mode: "practice", hearts: null, onDone: (res) => { if (res.acc >= 80) { prog.quiz = Math.max(prog.quiz || 0, res.acc); save(); } }, onQuit: () => {} }); return; }
+      stage = i; prog.stage = Math.max(prog.stage, i); save(); revealed.clear(); draw();
+    } }, `${i + 1}. ${ru ? s.ru : s.en}`)));
     const tips = ru ? [
       "Слушайте диалог и читайте вместе с переводом. Нажмите на любое слово, чтобы узнать его значение. Слушайте много раз — по методу Замяткина цель в десятки повторений.",
       "После каждой фразы есть пауза — повторите фразу вслух, копируя интонацию.",
@@ -163,7 +189,10 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
       "The text is hidden. Listen and understand by ear. Tap a line to peek.",
       "Look at the translation and say the line in Kyrgyz. Then tap to check.",
     ];
-    tip.replaceChildren(mascot(["happy", "wave", "think", "cheer"][stage], 64), h("p", {}, tips[stage]));
+    const vi = voiceInfo();
+    tip.replaceChildren(mascot(["happy", "wave", "think", "cheer"][stage], 64), h("div", {}, h("p", {}, tips[stage]),
+      h("div", { class: "dlg-voice" }, icon("speaker"), vi ? `${ru ? "Голос" : "Voice"}: ${vi.label}` : (ru ? "На этом устройстве нет голосов для озвучки" : "This device has no speech voices"))));
+    return;
   }
   function draw() {
     drawStages(); drawCounter();
@@ -187,6 +216,8 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
   }
 
   async function play() {
+    await ensureVoices();
+    if (!voice.enabled) { voice.set(true); toast(ru ? "Озвучка включена" : "Voice turned on"); }
     if (!voice.available()) toast(ru ? "На устройстве нет голоса — будет подсветка без звука" : "No voice on this device — lines will highlight silently");
     playing = true; stopFlag = false; draw();
     do {
