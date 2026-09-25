@@ -1,7 +1,9 @@
 name: Deploy to Firebase Hosting
 
 # Deploys learnkyrgyz.web.app, studentlrnkyrgyz.web.app and teachlrnkyrgyz.web.app.
-# Needs a repository secret FIREBASE_SERVICE_ACCOUNT (see README). Skips itself until it exists.
+# Needs one repository secret, FIREBASE_SERVICE_ACCOUNT (a service-account JSON key).
+# The Firebase project ID is read from that key, and the student/teacher
+# sites are created automatically if they don't exist yet.
 on:
   push:
     branches: ["claude/erdan-offline-writing-app-7sgntw"]
@@ -17,14 +19,34 @@ jobs:
       - name: Skip (no Firebase secret yet)
         if: env.HAS_FIREBASE != 'true'
         run: echo "FIREBASE_SERVICE_ACCOUNT secret is not set — skipping Firebase deploy."
+      - uses: actions/setup-node@v4
+        if: env.HAS_FIREBASE == 'true'
+        with:
+          node-version: 20
       - name: Build the three sites
         if: env.HAS_FIREBASE == 'true'
         run: ./scripts/build-firebase.sh
-      - name: Deploy
+      - name: Create sites (if needed) and deploy
         if: env.HAS_FIREBASE == 'true'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: learnkyrgyz
-          channelId: live
+        env:
+          SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA_KEY" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          PROJECT=$(jq -r .project_id "$RUNNER_TEMP/sa.json")
+          echo "Firebase project: $PROJECT"
+          npm i -g firebase-tools@14 >/dev/null
+          for site in learnkyrgyz studentlrnkyrgyz teachlrnkyrgyz; do
+            firebase hosting:sites:get "$site" --project "$PROJECT" >/dev/null 2>&1 \
+              && echo "Site $site exists" \
+              || firebase hosting:sites:create "$site" --project "$PROJECT" --non-interactive
+          done
+          firebase use --add "$PROJECT" --alias default >/dev/null 2>&1 || true
+          firebase target:clear hosting home --project "$PROJECT" >/dev/null 2>&1 || true
+          firebase target:clear hosting student --project "$PROJECT" >/dev/null 2>&1 || true
+          firebase target:clear hosting teacher --project "$PROJECT" >/dev/null 2>&1 || true
+          firebase target:apply hosting home learnkyrgyz --project "$PROJECT"
+          firebase target:apply hosting student studentlrnkyrgyz --project "$PROJECT"
+          firebase target:apply hosting teacher teachlrnkyrgyz --project "$PROJECT"
+          firebase deploy --only hosting --project "$PROJECT" --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

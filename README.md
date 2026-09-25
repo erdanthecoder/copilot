@@ -45,11 +45,7 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
    - turn off **Authentication → Sign In / Providers → Email → "Confirm email"** (simplest for a classroom), or
    - add your own SMTP server under **Authentication → Emails → SMTP Settings**.
 2. **Supabase URL configuration** (Authentication → URL Configuration): set the Site URL to `https://studentlrnkyrgyz.web.app`. Add these redirect URLs: `https://learnkyrgyz.web.app/**`, `https://studentlrnkyrgyz.web.app/**`, `https://teachlrnkyrgyz.web.app/**`, `https://erdanthecoder.github.io/**`.
-3. **Firebase Hosting (the three `.web.app` addresses):**
-   1. Create a Firebase project with the ID `learnkyrgyz`. If that ID is taken, use another one and change it in `.firebaserc` and `.github/workflows/firebase.yml`.
-   2. Under Hosting → *Add another site*, create the sites `learnkyrgyz`, `studentlrnkyrgyz` and `teachlrnkyrgyz`. Site names are global, so they may already be taken.
-   3. Deploy from a computer: `npm i -g firebase-tools && firebase login && ./scripts/build-firebase.sh && firebase deploy --only hosting`
-   4. Or deploy automatically: add a GitHub secret `FIREBASE_SERVICE_ACCOUNT` containing a service-account JSON key with the *Firebase Hosting Admin* role. The workflow `firebase.yml` then deploys on every push.
+3. **Firebase Hosting (the three `.web.app` addresses):** create a Firebase project and its first site, `learnkyrgyz`. Then add a GitHub secret `FIREBASE_SERVICE_ACCOUNT` containing a service-account JSON key with the *Firebase Admin* role (Firebase console → Project settings → Service accounts → Generate new private key). On every push, the `firebase.yml` workflow reads the project ID from the key, creates `studentlrnkyrgyz` and `teachlrnkyrgyz` if they are missing, and deploys all three sites.
 
 ## Kyrgyz content
 
