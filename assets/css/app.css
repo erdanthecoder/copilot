@@ -699,3 +699,10 @@ body { letter-spacing: .1px; }
 .pptx-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #888; font-weight: 800; font-size: 3cqw; }
 .slide-thumbs { align-items: flex-start; }
 .pptx-holder.letterbox { background: #1f2328; }
+.upload-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; border: 3px dashed var(--purple); border-radius: 22px; padding: 20px 22px; background: #faf3ff; cursor: pointer; transition: transform .1s, background .15s; }
+.upload-card:hover { background: #f3e5ff; }
+.upload-card h3 { margin: 0 0 4px; font-size: 20px; }
+.upload-card p { margin: 0; }
+.upload-card .up-ic { width: 64px; height: 64px; border-radius: 18px; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 32px; box-shadow: 0 4px 0 var(--purple-d); flex: none; }
+:root[data-theme="dark"] .upload-card { background: #231a2d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .upload-card { background: #231a2d; } }

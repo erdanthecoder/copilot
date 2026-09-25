@@ -45,7 +45,7 @@
   <div class="steps" style="margin-top:16px">
     <div class="st"><h3>Create a class</h3><p class="muted">Share the join code or an invite link. Students join in seconds.</p></div>
     <div class="st"><h3>Set homework</h3><p class="muted">Pick from every topic, add your own questions and writing tasks, choose the due date.</p></div>
-    <div class="st"><h3>Teach live &amp; grade</h3><p class="muted">Video or voice lessons, live slides with quizzes, and an automatic 5-point gradebook. Missed homework = 2.</p></div>
+    <div class="st"><h3>Teach live &amp; grade</h3><p class="muted">Video or voice lessons, your PowerPoint slides shown live, and an automatic 5-point gradebook. Missed homework = 2.</p></div>
   </div>
 </section>
 
@@ -93,7 +93,7 @@ const feats = [
   ["pen", "var(--purple-d)", "Homework with due dates", "Teachers pick topics, add their own questions and writing tasks, and choose the deadline."],
   ["grid", "var(--orange)", "Russian 5-point grades", "Automatic 5 / 4 / 3 / 2 grades. Not submitted by the deadline? That's a 2."],
   ["cam", "var(--red)", "Live voice & video", "Teachers start a call from the class page; students get a Join banner instantly."],
-  ["slides", "var(--yellow-d)", "Live presentations", "Word cards and quiz slides that students follow — and answer — on their own screens."],
+  ["slides", "var(--yellow-d)", "PowerPoint presentations", "Upload your PowerPoint and present it live — students follow your slides on their own screens."],
 ];
 document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
 

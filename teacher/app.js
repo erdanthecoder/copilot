@@ -7,7 +7,7 @@ import { buildLesson, customExercise, translit, shuffle, gradeFor } from "../ass
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { openMeeting } from "../assets/js/call.js";
-import { renderSlide, presentLive, SLIDE_TYPES, IMPORTED_TYPES, blankSlide } from "../assets/js/present.js";
+import { renderSlide, presentLive } from "../assets/js/present.js";
 import { loadDeck, officeViewerUrl, deckUrlOf } from "../assets/js/pptx.js";
 
 const client = sb();
@@ -413,7 +413,7 @@ async function tabLive(body, c) {
   body.append(h("div", { class: "grid" },
     h("div", { class: "card" }, h("div", { style: { fontSize: "36px", color: "var(--blue)" } }, icon("cam")), h("h3", {}, "Video lesson"), h("p", { class: "muted" }, "Camera, microphone and screen sharing. Students in this class get a “Join” banner instantly."), h("button", { class: "btn block", onClick: () => start("video") }, "Start video lesson")),
     h("div", { class: "card" }, h("div", { style: { fontSize: "36px", color: "var(--green)" } }, icon("mic")), h("h3", {}, "Voice lesson"), h("p", { class: "muted" }, "Audio only — great for pronunciation practice and slow connections."), h("button", { class: "btn primary block", onClick: () => start("voice") }, "Start voice lesson")),
-    h("div", { class: "card" }, h("div", { style: { fontSize: "36px", color: "var(--purple-d)" } }, icon("slides")), h("h3", {}, "Present slides"), h("p", { class: "muted" }, "Students follow your slides live on their devices and answer quiz slides."), h("button", { class: "btn purple block", onClick: () => { classTab = "slides"; render(); } }, "Choose presentation"))),
+    h("div", { class: "card" }, h("div", { style: { fontSize: "36px", color: "var(--purple-d)" } }, icon("slides")), h("h3", {}, "Present PowerPoint"), h("p", { class: "muted" }, "Upload your PowerPoint and present it — students follow your slides live on their devices."), h("button", { class: "btn purple block", onClick: () => { classTab = "slides"; render(); } }, "Choose presentation"))),
     h("label", { class: "field", style: { marginTop: "16px", maxWidth: "420px" } }, h("span", {}, "Lesson title"), title),
     h("p", { class: "small muted" }, "Calls connect browsers directly (peer-to-peer). Best for up to ~8 students; some school or mobile networks block direct connections."));
   if ((live || []).length) body.prepend(h("div", { class: "live-banner" }, h("span", { class: "live-dot" }), h("b", { class: "grow" }, `A lesson is live: ${live[0].title}`),
@@ -448,102 +448,69 @@ function uploadPptx(classroomId) {
       prog.close();
       toast(`Imported ${deck.count} slides`, "good");
       render();
-      editPresentation(data);
+      presSettings(data);
     } catch (e) { prog.close(); toast(errMsg(e), "bad"); }
   });
   document.body.append(input); input.click();
 }
 
+function uploadCard(classroomId) {
+  return h("div", { class: "upload-card", onClick: () => uploadPptx(classroomId) },
+    h("span", { class: "up-ic" }, icon("slides")),
+    h("div", { class: "grow" }, h("h3", {}, "Upload a PowerPoint"), h("p", { class: "muted" }, "Choose a .pptx file made in PowerPoint. Students can open it, and you can present it live so their screens follow yours.")),
+    h("button", { class: "btn purple" }, icon("plus"), "Upload .pptx"));
+}
+
 async function tabClassSlides(body, c) {
   const all = await loadPres();
   const mine = all.filter(p => p.classroom_id === c.id);
-  body.append(h("div", { class: "row wrap", style: { marginBottom: "14px" } }, h("p", { class: "muted grow", style: { margin: 0 } }, "Shared presentations appear in students' Classroom tab. “Present live” makes their screens follow yours."),
-    h("div", { class: "row wrap" }, h("button", { class: "btn ghost", onClick: () => uploadPptx(c.id) }, icon("share"), "Upload PowerPoint"),
-      h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: c.id, shared: false }) }, icon("plus"), "New"))));
-  presGrid(body, mine.length ? mine : [], c);
+  body.append(uploadCard(c.id));
+  presGrid(body, mine, c);
   const others = all.filter(p => p.classroom_id !== c.id);
   if (others.length) { body.append(h("h3", { class: "section-title" }, "Your other presentations")); presGrid(body, others, c); }
 }
 function presGrid(body, list, cls) {
-  if (!list.length) { body.append(h("p", { class: "muted" }, "None yet.")); return; }
-  body.append(h("div", { class: "grid" }, list.map(p => h("div", { class: "card" },
+  if (!list.length) { body.append(h("p", { class: "muted", style: { marginTop: "16px" } }, "No presentations yet — upload your first PowerPoint above.")); return; }
+  body.append(h("div", { class: "grid", style: { marginTop: "16px" } }, list.map(p => h("div", { class: "card" },
     h("div", { style: { marginBottom: "10px" } }, renderSlide(p.slides[0])),
     h("h3", { style: { margin: "0 0 4px" } }, p.title), h("div", { class: "row wrap small muted" }, `${p.slides.length} slides`, p.shared ? h("span", { class: "pill green" }, "Shared") : h("span", { class: "pill" }, "Private"), p.classroom_id ? h("span", { class: "pill" }, classes.find(c => c.id === p.classroom_id)?.name || "") : null),
     h("div", { class: "row wrap", style: { marginTop: "12px" } },
-      h("button", { class: "btn purple sm", onClick: () => { const cid = cls?.id || p.classroom_id; if (!cid) return toast("Assign this presentation to a class first (Edit → Class)", "bad"); presentLive({ client, pres: p, classroomId: cid, me: { id: user.id, name: profile.full_name } }); } }, icon("play"), "Present live"),
-      h("button", { class: "btn ghost sm", onClick: () => editPresentation(p) }, icon("edit"), "Edit"),
+      h("button", { class: "btn purple sm", onClick: () => { const cid = cls?.id || p.classroom_id; if (!cid) return toast("Choose a class for this presentation first (Settings → Class)", "bad"); presentLive({ client, pres: p, classroomId: cid, me: { id: user.id, name: profile.full_name } }); } }, icon("play"), "Present live"),
+      h("button", { class: "btn ghost sm", onClick: () => presSettings(p) }, icon("settings"), "Settings"),
       deckUrlOf(p) ? h("a", { class: "btn ghost sm", href: officeViewerUrl(deckUrlOf(p)), target: "_blank", rel: "noopener" }, icon("eye"), "Original") : null)))));
 }
 
 function viewSlides(main) {
-  main.append(h("div", { class: "row wrap" }, h("div", { class: "grow" }, h("h1", { class: "page-title" }, "Presentations"), h("p", { class: "page-sub" }, "Build slides with Kyrgyz word cards and quiz questions, share them with a class, or present live.")),
-    h("div", { class: "row wrap" }, h("button", { class: "btn ghost", onClick: () => uploadPptx(classes[0]?.id || null) }, icon("share"), "Upload PowerPoint (.pptx)"),
-      h("button", { class: "btn purple", onClick: () => editPresentation({ title: "New presentation", slides: [blankSlide("title")], classroom_id: classes[0]?.id || null, shared: false }) }, icon("plus"), "New"))));
+  main.append(h("h1", { class: "page-title" }, "Presentations"), h("p", { class: "page-sub" }, "Upload your PowerPoint presentations, share them with a class, or present them live."), uploadCard(classes[0]?.id || null));
   const host = h("div"); main.append(host);
   loadPres().then(list => presGrid(host, list, null));
 }
 
-function editPresentation(p0) {
-  const p = JSON.parse(JSON.stringify(p0));
-  let idx = 0;
+// Title, class, sharing and delete — the slides themselves come from PowerPoint.
+function presSettings(p) {
   const title = h("input", { class: "input", value: p.title, maxlength: 120 });
   const classSel = h("select", { class: "input" }, h("option", { value: "" }, "— No class —"), classes.map(c => h("option", { value: c.id, selected: c.id === p.classroom_id }, c.name)));
   const shared = h("input", { type: "checkbox", checked: !!p.shared });
-  const thumbs = h("div", { class: "slide-thumbs" });
-  const form = h("div", { class: "stack" });
-  const preview = h("div");
-  const drawThumbs = () => thumbs.replaceChildren(...p.slides.map((s, i) => h("div", { class: "th" + (i === idx ? " on" : ""), onClick: () => { idx = i; drawAll(); } }, renderSlide(s))),
-    h("div", { class: "row", style: { flexDirection: "column", gap: "6px" } }, Object.entries(SLIDE_TYPES).map(([k, v]) => h("button", { class: "btn ghost sm", title: "Add " + v.label, onClick: () => { p.slides.splice(idx + 1, 0, blankSlide(k)); idx++; drawAll(); } }, icon(v.icon), v.label))));
-  const field = (label, key, opts = {}) => {
-    const s = p.slides[idx];
-    const el = opts.area ? h("textarea", { class: "input", rows: 4 }, opts.value ?? s[key] ?? "") : h("input", { class: "input", value: opts.value ?? s[key] ?? "" });
-    el.addEventListener("input", () => { opts.set ? opts.set(el.value) : (s[key] = el.value); drawPreview(); drawThumbs(); });
-    const wrap = h("label", { class: "field" }, h("span", {}, label), el);
-    if (opts.ky) wrap.append(kyKeys(el));
-    return wrap;
-  };
-  const drawForm = () => {
-    const s = p.slides[idx]; form.replaceChildren(h("div", { class: "row" }, h("b", { class: "grow" }, `Slide ${idx + 1} · ${(SLIDE_TYPES[s.type] || IMPORTED_TYPES[s.type]).label}`),
-      h("button", { class: "icon-btn", title: "Move left", onClick: () => { if (idx > 0) { [p.slides[idx - 1], p.slides[idx]] = [p.slides[idx], p.slides[idx - 1]]; idx--; drawAll(); } } }, icon("left")),
-      h("button", { class: "icon-btn", title: "Move right", onClick: () => { if (idx < p.slides.length - 1) { [p.slides[idx + 1], p.slides[idx]] = [p.slides[idx], p.slides[idx + 1]]; idx++; drawAll(); } } }, icon("right")),
-      h("button", { class: "icon-btn", title: "Delete slide", onClick: () => { if (p.slides.length > 1) { p.slides.splice(idx, 1); idx = Math.max(0, idx - 1); drawAll(); } } }, icon("trash"))));
-    if (s.type === "pptx") form.append(h("p", { class: "muted" }, `From your PowerPoint file (slide ${s.index + 1}). To change its content, edit it in PowerPoint and upload again. You can add quiz or word slides between PowerPoint slides with the buttons above.`));
-    if (s.type === "title") form.append(field("Title", "title", { ky: true }), field("Subtitle", "subtitle"));
-    if (s.type === "text") form.append(field("Heading", "title", { ky: true }), field("Bullet points (one per line)", "bullets", { area: true, value: (s.bullets || []).join("\n"), set: (v) => s.bullets = v.split("\n") }));
-    if (s.type === "word") {
-      form.append(field("Kyrgyz word or phrase", "ky", { ky: true }), field("Translation", "tr"), field("Note / example", "note"));
-      const pickTopic = h("select", { class: "input", onChange: (e) => { const [tid, wi] = e.target.value.split("|"); const w = TOPICS[tid].words[+wi]; s.ky = w[0]; s.tr = w[getLang() === "ru" ? 2 : 1].split("|")[0]; drawForm(); drawPreview(); drawThumbs(); } },
-        h("option", { value: "" }, "…or pick from the curriculum"), TOPIC_ORDER.map(tid => h("optgroup", { label: tn(TOPICS[tid]) }, TOPICS[tid].words.map((w, wi) => h("option", { value: `${tid}|${wi}` }, `${w[0]} — ${w[1].split("|")[0]}`)))));
-      form.append(pickTopic);
-    }
-    if (s.type === "image") form.append(field("Heading", "title"), field("Image URL (https://…)", "url"), field("Caption", "caption"));
-    if (s.type === "quiz") {
-      form.append(field("Question", "question", { ky: true }));
-      s.options = s.options || ["", "", "", ""];
-      s.options.forEach((o, i) => {
-        const radio = h("input", { type: "radio", name: "ans", checked: s.answer === i, onChange: () => { s.answer = i; drawPreview(); } });
-        const inp = h("input", { class: "input", value: o, placeholder: `Option ${String.fromCharCode(65 + i)}`, onInput: (e) => { s.options[i] = e.target.value; drawPreview(); drawThumbs(); } });
-        form.append(h("div", { class: "row" }, radio, inp));
-      });
-      form.append(h("p", { class: "small muted" }, "Select the correct answer with the radio button."));
-    }
-  };
-  const drawPreview = () => preview.replaceChildren(renderSlide(p.slides[idx], { reveal: true }));
-  const drawAll = () => { drawThumbs(); drawForm(); drawPreview(); };
-  drawAll();
-  modal({ title: p.id ? "Edit presentation" : "New presentation", wide: true, body: h("div", {},
+  modal({ title: "Presentation settings", wide: true, body: h("div", {},
     h("div", { class: "row wrap" }, h("label", { class: "field grow" }, h("span", {}, "Title"), title), h("label", { class: "field" }, h("span", {}, "Class"), classSel)),
     h("label", { class: "row", style: { marginBottom: "14px" } }, shared, "Share with students in this class (they can open it any time)"),
-    thumbs, h("div", { class: "editor-grid", style: { marginTop: "14px" } }, form, preview)), actions: [
-    p.id ? { label: "Delete", kind: "danger", onClick: async () => { if (!(await confirmBox("Delete presentation?", p.title, "Delete", true))) return false; await client.from("presentations").delete().eq("id", p.id); render(); } } : null,
+    h("p", { class: "small muted" }, "To change the slides, edit the file in PowerPoint and upload it again."),
+    h("div", { class: "slide-thumbs" }, p.slides.map(s => h("div", { class: "th" }, renderSlide(s))))), actions: [
+    { label: "Delete", kind: "danger", onClick: async () => {
+      if (!(await confirmBox("Delete presentation?", p.title, "Delete", true))) return false;
+      await client.from("presentations").delete().eq("id", p.id);
+      const url = deckUrlOf(p); const m = url && url.match(/\/object\/public\/slides\/(.+)$/);
+      if (m && !(await loadPres()).some(x => deckUrlOf(x) === url)) await client.storage.from("slides").remove([decodeURIComponent(m[1])]);
+      render();
+    } },
     { label: t("cancel"), kind: "ghost" },
     { label: t("save"), kind: "purple", onClick: async () => {
-      const row = { title: title.value.trim() || "Untitled", slides: p.slides, classroom_id: classSel.value || null, shared: shared.checked && !!classSel.value };
-      const { error } = p.id ? await client.from("presentations").update(row).eq("id", p.id) : await client.from("presentations").insert(row);
+      const row = { title: title.value.trim() || "Untitled", classroom_id: classSel.value || null, shared: shared.checked && !!classSel.value };
+      const { error } = await client.from("presentations").update(row).eq("id", p.id);
       if (error) { toast(errMsg(error), "bad"); return false; }
       toast("Saved", "good"); render();
     } },
-  ].filter(Boolean) });
+  ] });
 }
 
 // ───────────────────────── Topic catalogue ─────────────────────────

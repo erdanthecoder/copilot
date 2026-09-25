@@ -30,7 +30,7 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Homework: pick topics, set the number of questions and difficulty, attach question sets, add writing tasks (students write sentences and you read them), and **choose the due date and time**.
 - Gradebook on the Russian 5-point scale: ≥90% → 5, ≥75% → 4, ≥50% → 3, otherwise 2. **Homework not submitted by the due date counts as 2.** You can override any grade and add a comment. Per-homework reports show the grade spread and the hardest questions. Exports to CSV.
 - Live lessons: **video or voice calls** with the whole class, including screen sharing, raise hand and chat.
-- Presentations: **upload your PowerPoint (.pptx)**, and each slide appears in the app. You can mix in quiz and word-card slides, share the deck, or present it live. "Original" opens the exact file in Microsoft's online viewer. You can also build slides in the app: title, text, Kyrgyz word-card, image and quiz slides. Share them with a class, or **present live** so students' screens follow yours and they can answer quiz slides in real time.
+- Presentations: **upload your PowerPoint (.pptx)**. Share it with a class, or present it live and students' screens follow yours. "Original" opens the exact file in Microsoft's online viewer. (Presentations come only from PowerPoint; there is no in-app slide builder.)
 
 ## How it works
 
