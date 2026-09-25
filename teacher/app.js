@@ -244,7 +244,7 @@ async function homeworkDialog({ classroom, hw = null, topics = [] }) {
   const count = h("input", { class: "input", type: "number", min: 0, max: 60, value: hw?.question_count ?? 12, style: { maxWidth: "120px" } });
   let diff = hw?.difficulty ?? 1;
   const diffSeg = h("div", { class: "seg" });
-  const drawDiff = () => diffSeg.replaceChildren(...["Easy (mostly choices)", "Medium", "Hard (lots of typing)"].map((l, i) => h("button", { type: "button", class: diff === i ? "on" : "", onClick: () => { diff = i; drawDiff(); } }, l)));
+  const drawDiff = () => diffSeg.replaceChildren(...["Words only (easiest)", "Words & phrases", "Sentences & typing"].map((l, i) => h("button", { type: "button", class: diff === i ? "on" : "", onClick: () => { diff = i; drawDiff(); } }, l)));
   drawDiff();
   const due = h("input", { class: "input", type: "datetime-local", value: toLocalInput(hw ? new Date(hw.due_at) : defaultDue()), style: { maxWidth: "260px" } });
   let classId = classroom?.id || classes[0]?.id;

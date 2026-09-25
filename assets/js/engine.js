@@ -1,5 +1,5 @@
 // Exercise generation and answer checking. Pure logic — no DOM.
-import { TOPICS, TOPIC_ORDER } from "./curriculum.js";
+import { TOPICS, TOPIC_ORDER, TOPIC_AREA } from "./curriculum.js";
 
 export const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -155,63 +155,98 @@ export function makeExercise(kind, item, P, lang, all) {
   opts: { count, level, lang, review:[topicIds] }
 */
 /*
-  Lessons ramp gently from very easy to a little harder:
-    learn the word (intro card) -> pick its meaning -> pick the Kyrgyz -> match pairs
-    -> short sentences with tiles / fill-in -> typing (from level 1 up).
-  Level 0 sticks to each topic's first, most basic words and short sentences.
+  Three steps per topic, each gentle:
+    level 0 "Learn words"    — teaches 4-5 new words at a time (new-word cards), then only
+                                picks meanings / Kyrgyz words and matches pairs. No sentences.
+    level 1 "Practise words" — all the topic's words: pick, match, type the translation.
+                                Phrase topics (greetings, grammar…) add their phrases as picks.
+    level 2 "Sentences"      — sentence tiles, fill-in and typing in Kyrgyz.
   Everything is freshly randomised on every call, so each student gets a different lesson.
+  `known` (a Set of word ids) lets level 0 continue with the next unlearned words.
 */
-const STAGES = {
-  0: [[0.34, "w", ["choose-ky"]], [0.6, "w", ["choose-ky", "choose-tr"]], [0.82, "s", ["choose-ky", "build-tr"]], [1, "s", ["build-tr", "blank"]]],
-  1: [[0.25, "w", ["choose-ky", "choose-tr"]], [0.5, "s", ["build-tr", "blank"]], [0.78, "s", ["build-ky", "build-tr"]], [1, "mix", ["type-tr", "build-ky"]]],
-  2: [[0.2, "w", ["choose-tr"]], [0.45, "s", ["build-ky", "blank"]], [0.75, "mix", ["type-tr", "build-ky"]], [1, "mix", ["type-ky", "type-tr"]]],
-};
-export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intro = false } = {}) {
+const STAGES2 = [[0.2, "w", ["choose-tr", "choose-ky"]], [0.45, "s", ["build-tr", "blank"]], [0.75, "s", ["build-ky", "build-tr"]], [1, "mix", ["type-tr", "type-ky"]]];
+export function nextWordBatch(topicIds, known, size = 5) {
+  const words = pool(topicIds).words;
+  return known ? words.filter(w => !known.has(w.id)).slice(0, size) : shuffle(words).slice(0, size);
+}
+export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intro = false, known = null } = {}) {
   const P = pool(topicIds), all = allPool();
   const lv = Math.max(0, Math.min(2, level));
-  const basicWords = lv === 0 ? topicIds.flatMap(id => P.words.filter(w => w.topic === id).slice(0, 8)) : P.words;
-  const words = shuffle(basicWords.length ? basicWords : P.words);
-  const shortSents = P.sentences.filter(x => tokens(first(x.ky)).length <= (lv === 0 ? 5 : 8));
-  const sents = shuffle(lv === 0 && shortSents.length ? shortSents : P.sentences);
-  const stages = STAGES[lv];
-  const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.45), count > 10 ? Math.round(count * 0.7) : -1]) : new Set();
+  const phraseTopic = topicIds.some(id => (TOPIC_AREA[id] || "vocab") !== "vocab");
   const plan = [];
-  let wi = 0, si = 0, taught = 0;
-  const nextWord = () => words.length ? words[wi++ % words.length] : null;
-  const nextSent = () => sents.length ? sents[si++ % sents.length] : null;
-  for (let i = 0; i < count; i++) {
-    if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
-    const p = count > 1 ? i / (count - 1) : 0;
-    const [, what, kinds] = stages.find(st => p <= st[0]) || stages[stages.length - 1];
-    const useSentence = what === "s" ? sents.length > 0 : what === "mix" ? sents.length > 0 && Math.random() < 0.5 : !words.length;
-    if (useSentence) {
-      const x = nextSent();
-      let kind = pick(kinds);
-      if (tokens(first(x.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = lv === 0 ? "choose-ky" : pick(["choose-ky", "choose-tr"]);
-      plan.push(makeExercise(kind, x, P, lang, all));
-    } else {
-      const w = nextWord();
-      // Teach the first few new words before asking about them.
-      if (intro && taught < 3 && i < count / 2) {
-        taught++;
-        const ex = P.sentences.find(x => normalize(x.ky).split(" ").includes(normalize(first(w.ky))));
-        plan.push({ type: "intro", ky: first(w.ky), tr: first(w[lang]), example: ex ? [first(ex.ky), first(ex[lang])] : null, item: w });
-        plan.push(makeExercise("choose-ky", w, P, lang, all));
-        continue;
+  const scored = () => plan.filter(x => x && x.type !== "intro").length;
+  const pushNoRepeat = (kinds, set) => {
+    const last = plan[plan.length - 1];
+    let w = pick(set), guard = 0;
+    while (set.length > 1 && last && last.item === w && guard++ < 5) w = pick(set);
+    plan.push(makeExercise(pick(kinds), w, P, lang, all));
+  };
+
+  if (lv === 0) {
+    let fresh = nextWordBatch(topicIds, known, 5);
+    if (!fresh.length) fresh = shuffle(P.words).slice(0, 5); // everything known: review
+    const review = shuffle(P.words.filter(w => !fresh.includes(w) && (!known || known.has(w.id)))).slice(0, Math.max(0, 5 - fresh.length));
+    const set = fresh.concat(review);
+    const small = { words: set, sentences: [] };
+    for (const w of fresh) {
+      if (intro) plan.push(introCard(w, P, lang));
+      plan.push(makeExercise("choose-ky", w, small, lang, all));
+    }
+    let matched = 0;
+    while (scored() < count) {
+      if (set.length >= 4 && matched < 2 && (scored() === Math.round(count * 0.55) || scored() === count - 1)) { plan.push(makeExercise("match", null, small, lang, all)); matched++; continue; }
+      const w = pick(set); const last = plan[plan.length - 1];
+      if (set.length > 1 && last && last.item === w) continue;
+      plan.push(makeExercise(scored() < count * 0.5 ? pick(["choose-ky", "choose-tr"]) : pick(["choose-tr", "choose-tr", "choose-ky"]), w, small, lang, all));
+    }
+  } else if (lv === 1) {
+    const words = shuffle(P.words);
+    const phrases = phraseTopic ? shuffle(P.sentences) : [];
+    let wi = 0, pi = 0;
+    const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.35), Math.round(count * 0.7)]) : new Set();
+    for (let i = 0; i < count; i++) {
+      if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
+      const p = count > 1 ? i / (count - 1) : 0;
+      if (phrases.length && i % 3 === 2) { plan.push(makeExercise(p < 0.6 ? "choose-ky" : "choose-tr", phrases[pi++ % phrases.length], P, lang, all)); continue; }
+      const w = words[wi++ % words.length];
+      plan.push(makeExercise(p < 0.4 ? pick(["choose-ky", "choose-tr"]) : p < 0.8 ? pick(["choose-tr", "choose-ky", "type-tr"]) : pick(["type-tr", "choose-tr"]), w, P, lang, all));
+    }
+  } else {
+    const words = shuffle(P.words), sents = shuffle(P.sentences);
+    let wi = 0, si = 0;
+    const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.3)]) : new Set();
+    for (let i = 0; i < count; i++) {
+      if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
+      const p = count > 1 ? i / (count - 1) : 0;
+      const [, what, kinds] = STAGES2.find(st => p <= st[0]) || STAGES2[STAGES2.length - 1];
+      const useSentence = sents.length && (what === "s" || (what === "mix" && Math.random() < 0.6) || !words.length);
+      if (useSentence) {
+        const x = sents[si++ % sents.length];
+        let kind = pick(kinds);
+        if (tokens(first(x.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = pick(["choose-ky", "type-tr"]);
+        plan.push(makeExercise(kind, x, P, lang, all));
+      } else {
+        let kind = pick(kinds);
+        if (kind.startsWith("build") || kind === "blank") kind = "type-ky";
+        plan.push(makeExercise(kind, words[wi++ % words.length], P, lang, all));
       }
-      let kind = pick(kinds);
-      if (kind.startsWith("build") || kind === "blank") kind = "choose-tr";
-      plan.push(makeExercise(kind, w, P, lang, all));
     }
   }
   // Reading topics: swap some exercises for comprehension questions.
   const reads = readingExercises(topicIds, lang);
-  if (reads.length) {
+  if (reads.length && lv === 0) {
+    plan.push(...shuffle(reads).slice(0, 2));
+  } else if (reads.length) {
     const n = Math.min(reads.length, Math.max(2, Math.round(count / 3)));
     const rq = shuffle(reads).slice(0, n);
     for (let i = 0; i < rq.length; i++) plan.splice(Math.min(plan.length, 1 + i * 3), 1, rq[i]);
   }
   return plan.filter(Boolean);
+}
+
+function introCard(w, P, lang) {
+  const ex = P.sentences.find(x => normalize(x.ky).split(" ").includes(normalize(first(w.ky))));
+  return { type: "intro", ky: first(w.ky), tr: first(w[lang]), example: ex ? [first(ex.ky), first(ex[lang])] : null, item: w };
 }
 
 export function readingExercises(topicIds, lang) {

@@ -48,6 +48,16 @@ function streakAlive() {
 }
 function dailyXp() { const p = prog(); if (p.daily.date !== today()) p.daily = { date: today(), xp: 0 }; return p.daily.xp; }
 function topicCrowns(id) { return (prog().topics[id] || {}).level || 0; }
+// Words a student has already been taught (via new-word cards or practice).
+function seenSet() { return new Set(Object.keys(prog().seen || {})); }
+function wordsLearned(id) { const seen = prog().seen || {}; return TOPICS[id].words.filter((_, i) => seen[`${id}:w${i}`]).length; }
+function markSeen(exercises) {
+  const p = prog(); p.seen = p.seen || {};
+  for (const x of exercises) {
+    if (x && x.item && x.item.id && x.item.id.includes(":w")) p.seen[x.item.id] = 1;
+    if (x && x.pairs) x.pairs.forEach(pr => { if (pr.item && pr.item.id) p.seen[pr.item.id] = 1; });
+  }
+}
 function isUnlocked(id) {
   const i = TOPIC_ORDER.indexOf(id);
   if (i <= 0) return true;
@@ -71,7 +81,10 @@ function awardLesson(res, { topicId = null, level = 0, review = false } = {}) {
   profile.last_active = today();
   if (topicId && !res.failed) {
     const tp = p.topics[topicId] = p.topics[topicId] || { level: 0, lessons: 0 };
-    tp.lessons++; if (level >= tp.level) tp.level = Math.min(LEVELS, level + 1);
+    tp.lessons++;
+    // "Learn words" only completes once every word in the topic has been taught.
+    const allTaught = wordsLearned(topicId) >= TOPICS[topicId].words.length;
+    if (level >= tp.level && (level > 0 || allTaught)) tp.level = Math.min(LEVELS, level + 1);
   }
   for (const a of res.answers) if (a && a.id && a.id.includes(":w")) p.words[a.id] = (p.words[a.id] || 0) + (a.ok ? 1 : 0);
   p.mistakes = [...new Set(res.mistakes.concat(p.mistakes || []))].slice(0, 60);
@@ -338,7 +351,7 @@ function viewLearn(main) {
       const node = h("button", { class: "node" + (!unlocked ? " locked" : crowns >= LEVELS ? " done" : ""), style: { "--c": unlocked && crowns < LEVELS ? u.color : undefined, "--cd": unlocked && crowns < LEVELS ? shade(u.color) : undefined }, "aria-label": tn(tp) },
         icon(!unlocked ? "lock" : crowns >= LEVELS ? "crown" : tp.passages ? "book" : isCur ? "star" : crowns ? "check" : "star"));
       const wrap = h("div", { class: "node-wrap" + (isCur ? " is-current" : ""), style: { transform: `translateX(${offset}px)` } },
-        unlocked && crowns < LEVELS ? ring(crowns / LEVELS, 100, crowns ? "var(--yellow)" : "var(--line)") : null,
+        unlocked && crowns < LEVELS ? ring(crowns ? crowns / LEVELS : wordsLearned(id) / tp.words.length / LEVELS, 100, "var(--yellow)") : null,
         isCur ? h("div", { class: "start-bubble" }, t("start")) : null,
         node, crowns ? h("span", { class: "node-crowns" }, icon("crown"), crowns) : null,
         h("div", { class: "node-label" }, tn(tp)));
@@ -391,9 +404,11 @@ function openNodePop(wrap, id, u, unlocked) {
     pop.append(h("h3", {}, tn(tp)), h("p", {}, t("lockedText")), h("button", { class: "btn", onClick: () => startTopic(id, 0, true) }, "Jump here"));
   } else {
     const lvls = h("div", { class: "levels" });
-    const drawLv = () => lvls.replaceChildren(...[t("easy"), t("medium"), t("hard")].map((lb, i) => h("button", { class: level === i ? "on" : "", onClick: () => { level = i; drawLv(); } }, lb)));
+    const drawLv = () => lvls.replaceChildren(...[t("lvLearn"), t("lvPractise"), t("lvSentences")].map((lb, i) => h("button", { class: level === i ? "on" : "", disabled: i > crowns, title: i > crowns ? t("locked") : "", onClick: () => { level = i; drawLv(); } }, i > crowns ? icon("lock") : null, lb)));
     drawLv();
+    const learned = wordsLearned(id), totalW = tp.words.length;
     pop.append(h("h3", {}, tn(tp)), h("p", {}, tp.ky + ` · ${crowns}/${LEVELS} `, icon("crown")), lvls,
+      crowns === 0 ? h("div", { class: "pop-words" }, h("div", { class: "mini" }, h("i", { style: { width: Math.round(100 * learned / totalW) + "%" } })), `${learned}/${totalW} ${t("words").toLowerCase()}`) : null,
       h("p", { class: "small", style: { fontWeight: 600 } }, tn(tp.tip)),
       h("button", { class: "btn", onClick: () => startTopic(id, level) }, t("startLesson")),
       h("button", { class: "link-btn", style: { color: "#fff", width: "100%", marginTop: "6px" }, onClick: () => showTopicWords(id) }, t("words")));
@@ -405,13 +420,14 @@ function startTopic(id, level, jump = false) {
   if (openPop) { openPop.remove(); openPop = null; }
   regenHearts();
   if (profile.hearts <= 0) return noHearts();
-  const ex = buildLesson([id], { count: jump ? 14 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level === 0 });
+  const ex = buildLesson([id], { count: jump ? 14 : level === 0 ? 10 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level === 0, known: seenSet() });
   runLesson({
     exercises: ex, mode: "practice", hearts: profile.hearts,
     onHeart: (n) => { profile.hearts = n; if (n < MAX_HEARTS && !prog().heartsAt) prog().heartsAt = Date.now(); save(); },
     onReport: reportDialog,
     onDone: (res) => {
       if (jump && res.acc < 80 && !res.failed) toast("Almost! Score 80% to jump ahead.", "bad");
+      if (!res.failed) markSeen(ex);
       afterLesson(awardLesson(res, { topicId: (jump && res.acc < 80) ? null : id, level }));
     },
     onQuit: () => render(),

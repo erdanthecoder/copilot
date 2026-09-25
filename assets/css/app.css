@@ -641,3 +641,8 @@ body { letter-spacing: .1px; }
   .nav-btn.on .ic { transform: scale(1.1); }
   .main { padding-bottom: 120px; }
 }
+.pop .levels button { font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.pop .levels button[disabled] { opacity: .55; cursor: not-allowed; }
+.pop-words { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; margin: -2px 0 10px; }
+.pop-words .mini { flex: 1; height: 8px; background: rgba(255,255,255,.3); border-radius: 9px; overflow: hidden; }
+.pop-words .mini i { display: block; height: 100%; background: #fff; border-radius: 9px; }
