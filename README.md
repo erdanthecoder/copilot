@@ -1,45 +1,60 @@
-# Obsition
+# LearnKyrgyz
 
-A single-file, offline-first, rich-text writing app with a Notion/Obsidian-inspired sidebar, mind maps, and optional account sync across devices.
+A Duolingo-style app for learning Kyrgyz, with a teacher side for classrooms, homework, grades, live lessons and presentations.
 
-## Usage
+| Site | What it is | Folder |
+|---|---|---|
+| **learnkyrgyz.web.app** | Landing page and full topic list | `index.html` |
+| **studentlrnkyrgyz.web.app** | The student game: learning path, lessons, XP, streaks, hearts, practice, classroom and homework | `student/` |
+| **teachlrnkyrgyz.web.app** | The teacher app: classes, invites, topic catalogue, own questions, homework, gradebook, live calls, presentations | `teacher/` |
 
-Open `index.html` by double-clicking it (or opening it in any browser, including Safari on iPad). Everything — HTML, CSS, and JavaScript — lives in that one file. No install, no build step.
+Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` · `/teacher/`
 
-- Organize writing into **folders and files**, nested as deep as you like — like Notion. Click **+ New** (at the root, or on any folder) to add a file, mind map, or folder. Each top-level folder gets an automatic color dot; each file shows a breadcrumb trail of its ancestor folders above its title.
-- Two file types: a **rich text document** (headings, bold/italic/underline, bulleted/numbered lists, checklists, quotes, tables, highlight color, text color) or a **Mind Map** (draggable, connectable idea nodes on a canvas — works with mouse or touch, Obsidian-style).
-- Work **autosaves** to the browser's local storage whenever it's available. If storage is blocked (private browsing, restricted settings, etc.), the app keeps working entirely in memory and shows a notice so you know to export.
-- Use **Export** to download everything as one `.json` file, and **Import** to load it back in — a manual backup/transfer option that always works, sync or no sync.
-- Toggle **light/dark** theme from the sidebar.
-- The app works with **no account at all** ("Continue without an account") — local-only, fully offline.
+## Features
 
-## Mind maps
+**Students**
+- A learning path of 18 units and 79 topics (A1 → B1), with 827 words, 345 sentences and 6 reading passages. Each topic has easy, medium and hard levels and earns crowns.
+- Randomised exercises: pick the meaning, pick the Kyrgyz, match pairs, build sentences from tiles, fill in the blank, reading comprehension, and typing whole sentences in Kyrgyz. There's an on-screen ң ө ү keyboard. Small typos are forgiven, and a missing special letter is flagged.
+- XP, daily goal, streaks, hearts (they refill over time or through practice), combo counters, achievements, confetti, sounds, and Ilbirs the snow-leopard mascot.
+- Practice modes: mixed review, mistakes review, flashcards, and a searchable word list with transliteration.
+- Explanations in English or Russian, plus light and dark themes.
+- Classroom: join by code, invite link or email invite. Homework shows its due date and grade. There's a class leaderboard, shared presentations, a "Join" banner when the teacher starts a live lesson, and "Follow" for live slides.
+- Guest mode, so people can try it without an account. Guest progress moves into the account on sign-up.
 
-Add a mind map from **+ New → New mind map** (root or inside any folder). Double-click empty canvas space to add a node, drag a node's body to move it, drag the small blue dot on a node onto another node to connect them, and click a connection line to remove it. Mind map data lives in the same file object as everything else, so it rides along with autosave, export/import, and account sync automatically.
+**Teachers**
+- Classrooms with a join code, an invite link and email invites. You can see each student's XP, streak and topics done, and remove students.
+- Topic catalogue organised Dr Frost–style (Level → Area → Topic): Vocabulary, Grammar, Speaking & phrases, Culture & country, Reading. You can view, try or assign any topic.
+- **My questions**: write your own multiple-choice, true/false, typed-answer and sentence-building questions, or auto-generate editable questions from a topic.
+- Homework: pick topics, set the number of questions and difficulty, attach question sets, add writing tasks (students write sentences and you read them), and **choose the due date and time**.
+- Gradebook on the Russian 5-point scale: ≥90% → 5, ≥75% → 4, ≥50% → 3, otherwise 2. **Homework not submitted by the due date counts as 2.** You can override any grade and add a comment. Per-homework reports show the grade spread and the hardest questions. Exports to CSV.
+- Live lessons: **video or voice calls** with the whole class, including screen sharing, raise hand and chat.
+- Presentations: title, text, Kyrgyz word-card, image and quiz slides. Share them with a class, or **present live** so students' screens follow yours and they can answer quiz slides in real time.
 
-## Account sync (optional)
+## How it works
 
-Signing in syncs your notebooks between devices using Firebase (free tier): email/password or Google sign-in, and a Realtime Database document per account. It's offline-first — edits always land locally first and sync in the background when a connection is available; a blocked or failing network never stops you from writing.
+- Plain HTML, CSS and ES modules with no build step. `assets/vendor/supabase.js` is the vendored supabase-js (v2.117.2).
+- Backend: Supabase project `lzamxwqxnzcrazyuipjx` (Postgres, Auth, Realtime). The schema is in `supabase/migrations/`.
+  - Row-level security on every table. Students only see their own classes, homework and submissions, and only classmates' names and XP.
+  - Grades are calculated by a database trigger. Students can't edit a submission after sending it, and can't submit after the due date. Teachers can only change `teacher_grade` and `teacher_comment`.
+  - Live calls and slides run on **private** Realtime channels (`class:<id>:…`) that only members of that class can join.
+- Calls are peer-to-peer WebRTC with public STUN servers. They work well for up to about 8 people. Some school or mobile networks block direct connections; adding a TURN server in `assets/js/call.js` fixes that.
 
-To turn sync on, open `index.html` and fill in `FIREBASE_CONFIG` and (optionally) `GOOGLE_CLIENT_ID` near the top of the `<script>` block, in the "FIREBASE CONFIGURATION" section, using values from your own free Firebase project (Authentication with Email/Password + Google providers enabled, and a Realtime Database). Until those are filled in, the app runs exactly as before — no login screen, fully local.
+## Setup still needed (one-time)
 
-Realtime Database security rules should restrict each account to its own data:
+1. **Supabase email confirmation.** Supabase's built-in email sender only sends to your own team's addresses. So either
+   - turn off **Authentication → Sign In / Providers → Email → "Confirm email"** (simplest for a classroom), or
+   - add your own SMTP server under **Authentication → Emails → SMTP Settings**.
+2. **Supabase URL configuration** (Authentication → URL Configuration): set the Site URL to `https://studentlrnkyrgyz.web.app`. Add these redirect URLs: `https://learnkyrgyz.web.app/**`, `https://studentlrnkyrgyz.web.app/**`, `https://teachlrnkyrgyz.web.app/**`, `https://erdanthecoder.github.io/**`.
+3. **Firebase Hosting (the three `.web.app` addresses):**
+   1. Create a Firebase project with the ID `learnkyrgyz`. If that ID is taken, use another one and change it in `.firebaserc` and `.github/workflows/firebase.yml`.
+   2. Under Hosting → *Add another site*, create the sites `learnkyrgyz`, `studentlrnkyrgyz` and `teachlrnkyrgyz`. Site names are global, so they may already be taken.
+   3. Deploy from a computer: `npm i -g firebase-tools && firebase login && ./scripts/build-firebase.sh && firebase deploy --only hosting`
+   4. Or deploy automatically: add a GitHub secret `FIREBASE_SERVICE_ACCOUNT` containing a service-account JSON key with the *Firebase Hosting Admin* role. The workflow `firebase.yml` then deploys on every push.
 
-```json
-{
-  "rules": {
-    "users": {
-      "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
-      }
-    }
-  }
-}
-```
+## Kyrgyz content
 
-Note: Google sign-in uses a redirect to Google's OAuth endpoint, which requires the app to be served from an `http(s)://` URL registered with Google (e.g. GitHub Pages) — it's hidden automatically when opened as a local `file://` page. Email/password sign-in works everywhere, including as a local file.
+All curriculum data is in `assets/js/curriculum.js` and `assets/js/curriculum-extra.js`. Each entry is `[Kyrgyz, English, Russian]`, and `|` separates accepted alternative answers. The content follows standard literary Kyrgyz. A native-speaker teacher should still review it before classroom use. Students can press **Report a mistake**, and reports go to the `vocab_reports` table.
 
-## Notes for maintenance
+## Database migrations
 
-`index.html` is organized into clearly commented sections: Firebase configuration, local storage layer, state, data helpers, rendering, mutations, editor toolbar, mind map, export/import, theme, and account sync (Firebase Auth + Realtime Database, both called directly via `fetch()` against their REST APIs — no SDK download, so the file stays dependency-free). There are no build tools or external dependencies to update.
+`supabase/migrations/0001_init.sql` … `0004_homework_difficulty.sql` are already applied to the live project. To rebuild elsewhere, run them in order.

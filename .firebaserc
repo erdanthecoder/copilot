@@ -1,0 +1,12 @@
+{
+  "projects": { "default": "learnkyrgyz" },
+  "targets": {
+    "learnkyrgyz": {
+      "hosting": {
+        "home": ["learnkyrgyz"],
+        "student": ["studentlrnkyrgyz"],
+        "teacher": ["teachlrnkyrgyz"]
+      }
+    }
+  }
+}

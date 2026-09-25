@@ -1,0 +1,30 @@
+name: Deploy to Firebase Hosting
+
+# Deploys learnkyrgyz.web.app, studentlrnkyrgyz.web.app and teachlrnkyrgyz.web.app.
+# Needs a repository secret FIREBASE_SERVICE_ACCOUNT (see README). Skips itself until it exists.
+on:
+  push:
+    branches: ["claude/erdan-offline-writing-app-7sgntw"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip (no Firebase secret yet)
+        if: env.HAS_FIREBASE != 'true'
+        run: echo "FIREBASE_SERVICE_ACCOUNT secret is not set — skipping Firebase deploy."
+      - name: Build the three sites
+        if: env.HAS_FIREBASE == 'true'
+        run: ./scripts/build-firebase.sh
+      - name: Deploy
+        if: env.HAS_FIREBASE == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: learnkyrgyz
+          channelId: live
