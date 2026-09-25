@@ -17,6 +17,8 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Randomised exercises: pick the meaning, pick the Kyrgyz, match pairs, build sentences from tiles, fill in the blank, reading comprehension, and typing whole sentences in Kyrgyz. There's an on-screen ң ө ү keyboard. Small typos are forgiven, and a missing special letter is flagged.
 - XP, daily goal, streaks, hearts (they refill over time or through practice), combo counters, achievements, confetti, sounds, and Ilbirs the snow-leopard mascot.
 - Practice modes: mixed review, mistakes review, flashcards, and a searchable word list with transliteration.
+- Optional **Zamyatkin dialogues** (turn on in Profile): 10 short Kyrgyz dialogues in four stages (listen & read → shadowing → ears only → say it), with a listen counter (goal 30) and tap-for-meaning on every word.
+- Kyrgyz is spoken aloud when shown or tapped. It uses a Kyrgyz voice if the device has one, otherwise a Turkish voice reading Turkish spelling as a close approximation.
 - Explanations in English or Russian, plus light and dark themes.
 - Classroom: join by code, invite link or email invite. Homework shows its due date and grade. There's a class leaderboard, shared presentations, a "Join" banner when the teacher starts a live lesson, and "Follow" for live slides.
 - Guest mode, so people can try it without an account. Guest progress moves into the account on sign-up.

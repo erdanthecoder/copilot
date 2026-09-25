@@ -7,6 +7,7 @@ import { buildLesson, customExercise, allWords, shuffle, translit } from "../ass
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { voice } from "../assets/js/speech.js";
+import { DIALOGUES, LISTEN_GOAL, openDialogue, dialogueExplainer } from "../assets/js/dialogues.js";
 import { openMeeting } from "../assets/js/call.js";
 import { watchPresentations, openLiveViewer, openSlideshow } from "../assets/js/present.js";
 
@@ -35,7 +36,13 @@ function save() {
     if (error) console.warn(error);
   }, 400);
 }
-function prog() { profile.progress = Object.assign(defaultProgress(), profile.progress || {}); return profile.progress; }
+// Fill in missing fields in place, so references to the progress object stay valid.
+function prog() {
+  const pr = profile.progress = profile.progress || {};
+  const d = defaultProgress();
+  for (const k of Object.keys(d)) if (!(k in pr)) pr[k] = d[k];
+  return pr;
+}
 function regenHearts() {
   const p = prog();
   if (profile.hearts >= MAX_HEARTS) { p.heartsAt = Date.now(); return; }
@@ -277,7 +284,7 @@ export function brandEl() {
 }
 function render() {
   regenHearts();
-  const nav = [["learn", "home", t("learn")], ["practice", "target", t("practice")], ["class", "users", t("classroom")], ["profile", "user", t("profile")]];
+  const nav = [["learn", "home", t("learn")], ["practice", "target", t("practice")], prog().zamyatkin ? ["dialogues", "chat", getLang() === "ru" ? "Диалоги" : "Dialogues"] : null, ["class", "users", t("classroom")], ["profile", "user", t("profile")]].filter(Boolean);
   const main = h("main", { class: "main" });
   app.replaceChildren(h("div", { class: "shell student-app" },
     h("nav", { class: "side" }, brandEl(),
@@ -287,7 +294,7 @@ function render() {
     main));
   main.append(topbar(), h("div", { id: "banners" }, banners()));
   if (guest) main.append(h("div", { class: "panel row", style: { background: "var(--blue-l)", borderColor: "transparent" } }, icon("user"), h("span", { class: "grow" }, t("guestNote")), h("button", { class: "btn sm", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} guest = false; renderAuth("signup"); } }, t("signUp"))));
-  ({ learn: viewLearn, practice: viewPractice, class: viewClass, profile: viewProfile })[view](main);
+  ({ learn: viewLearn, practice: viewPractice, dialogues: viewDialogues, class: viewClass, profile: viewProfile })[view](main);
   window.scrollTo(0, 0);
 }
 
@@ -503,7 +510,8 @@ function viewPractice(main) {
   main.append(h("div", { class: "grid" },
     practiceCard("shuffle", t("mixedReview"), `${learned.length} ${t("topicsDone").toLowerCase()}`, "var(--green)", () => startReview(false), !learned.length),
     practiceCard("target", t("mistakes"), `${(prog().mistakes || []).length}`, "var(--red)", () => startReview(true), !(prog().mistakes || []).length),
-    practiceCard("grid", t("flashcards"), t("tapToFlip"), "var(--blue)", flashcards, false)));
+    practiceCard("grid", t("flashcards"), t("tapToFlip"), "var(--blue)", flashcards, false),
+    practiceCard("chat", getLang() === "ru" ? "Диалоги Замяткина" : "Zamyatkin dialogues", getLang() === "ru" ? "Слушайте и повторяйте диалоги" : "Listen to and repeat real dialogues", "var(--purple-d)", () => { view = "dialogues"; render(); }, false)));
   const q = h("input", { class: "input", placeholder: t("searchWords"), onInput: () => draw() });
   const list = h("div", { class: "card", style: { padding: 0 } });
   const words = allWords(getLang());
@@ -538,6 +546,26 @@ function flashcards() {
   };
   draw();
   modal({ title: t("flashcards"), body: box });
+}
+
+// ───────────────────────── Zamyatkin dialogues (optional) ─────────────────────────
+function viewDialogues(main) {
+  const ru = getLang() === "ru"; const p = prog(); p.dialogs = p.dialogs || {};
+  main.append(h("div", { class: "hero-strip", style: { backgroundColor: "var(--purple-d)", backgroundImage: ornamentUrl() } },
+    h("div", {}, h("h1", {}, ru ? "Диалоги по Замяткину" : "Zamyatkin dialogues"), h("p", {}, dialogueExplainer(ru))), mascot("cheer", 110)));
+  if (!p.zamyatkin) main.append(h("div", { class: "panel row wrap" }, h("span", { class: "grow" }, ru ? "Хотите, чтобы вкладка «Диалоги» всегда была в меню?" : "Want a Dialogues tab in the menu?"), h("button", { class: "btn purple sm", onClick: () => { p.zamyatkin = true; save(); render(); } }, ru ? "Включить" : "Turn on")));
+  main.append(h("div", { class: "grid" }, DIALOGUES.map(d => {
+    const dp = p.dialogs[d.id] || {}; const n = dp.listens || 0; const pct = Math.min(100, Math.round(100 * n / LISTEN_GOAL));
+    return h("div", { class: "card click dlg-card", onClick: () => openDialogue({ dialogue: d, progress: dp, onProgress: (np) => {
+      const before = (p.dialogs[d.id] || {}).listens || 0;
+      p.dialogs[d.id] = np;
+      if (np.listens > before) { profile.xp += 2; dailyXp(); p.daily.xp += 2; p.days = p.days || {}; p.days[today()] = (p.days[today()] || 0) + 2; if (profile.last_active !== today()) { const dd = profile.last_active ? Math.round((new Date(today()) - new Date(profile.last_active)) / 86400000) : 99; profile.streak = dd === 1 ? profile.streak + 1 : 1; profile.last_active = today(); } }
+      save();
+    } }) },
+      h("div", { class: "row" }, h("span", { class: "lvl-tag" }, d.level), h("span", { class: "grow" }), n >= LISTEN_GOAL ? h("span", { class: "pill green" }, icon("check"), ru ? "Освоен" : "Mastered") : null),
+      h("h3", { style: { margin: "8px 0 2px" } }, d.ky), h("p", { class: "muted", style: { margin: "0 0 12px" } }, ru ? d.ru : d.en),
+      h("div", { class: "row" }, h("div", { class: "bar", style: { flex: 1 } }, h("i", { style: { width: pct + "%", background: "var(--purple)" } })), h("b", { class: "small" }, `${n}/${LISTEN_GOAL}`)));
+  })));
 }
 
 // ───────────────────────── Classroom ─────────────────────────
@@ -738,7 +766,8 @@ function viewProfile(main) {
     h("div", {}, h("div", { class: "muted small", style: { fontWeight: 800, marginBottom: "6px" } }, t("dailyGoal")), h("div", { class: "seg" }, [10, 20, 30, 50].map(g => h("button", { class: p.goal === g ? "on" : "", onClick: () => { p.goal = g; save(); render(); } }, `${g} XP`)))),
     h("div", {}, h("div", { class: "muted small", style: { fontWeight: 800, marginBottom: "6px" } }, t("theme")), themeSeg()),
     h("label", { class: "row" }, h("input", { type: "checkbox", checked: sound.enabled, onChange: (e) => sound.set(e.target.checked) }), t("sound")),
-    h("label", { class: "row" }, h("input", { type: "checkbox", checked: voice.enabled, onChange: (e) => voice.set(e.target.checked) }), getLang() === "ru" ? "Озвучивать кыргызские слова" : "Speak Kyrgyz words aloud")));
+    h("label", { class: "row" }, h("input", { type: "checkbox", checked: voice.enabled, onChange: (e) => voice.set(e.target.checked) }), getLang() === "ru" ? "Озвучивать кыргызские слова" : "Speak Kyrgyz words aloud"),
+    h("label", { class: "row" }, h("input", { type: "checkbox", checked: !!p.zamyatkin, onChange: (e) => { p.zamyatkin = e.target.checked; save(); render(); } }), getLang() === "ru" ? "Метод Замяткина: показывать вкладку «Диалоги»" : "Zamyatkin method: show the Dialogues tab")));
   main.append(h("div", { style: { marginTop: "20px" } }, guest
     ? h("button", { class: "btn primary", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} renderAuth("signup"); } }, t("signUp"))
     : h("button", { class: "btn ghost", onClick: () => client.auth.signOut() }, icon("logout"), t("signOut"))));

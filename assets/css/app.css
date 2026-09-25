@@ -661,3 +661,34 @@ body { letter-spacing: .1px; }
 .speech .ky-line .tl { display: block; }
 .intro-word.long { font-size: clamp(26px, 6vw, 38px); flex-wrap: wrap; }
 .intro-card .hint-pop { font-size: 15px; letter-spacing: 0; }
+/* Zamyatkin dialogue player */
+.dlg-title { font-weight: 900; font-size: 18px; }
+.dlg-count { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: var(--ink-2); margin-top: 4px; }
+.dlg-count .mini-bar { width: 120px; height: 8px; background: var(--line); border-radius: 9px; overflow: hidden; }
+.dlg-count .mini-bar i { display: block; height: 100%; background: var(--purple); border-radius: 9px; }
+.dlg-inner { max-width: 760px; }
+.dlg-stages { display: flex; flex-wrap: wrap; margin-bottom: 14px; }
+.dlg-stages button { flex: 1; min-width: 130px; }
+.dlg-tip { display: flex; gap: 12px; align-items: center; background: var(--bg-2); border: 2px solid var(--line); border-radius: 18px; padding: 10px 14px; margin-bottom: 18px; }
+.dlg-tip p { margin: 0; font-weight: 700; color: var(--ink-2); font-size: 15px; }
+.dlg-lines { display: grid; gap: 12px; padding-bottom: 20px; }
+.dlg-line { display: flex; align-items: flex-end; gap: 10px; }
+.dlg-line.s1 { flex-direction: row-reverse; }
+.dlg-who { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; flex: none; background: var(--blue); box-shadow: 0 3px 0 var(--blue-d); }
+.dlg-line.s1 .dlg-who { background: var(--purple); box-shadow: 0 3px 0 var(--purple-d); }
+.dlg-bubble { max-width: 76%; border: 2px solid var(--line); border-radius: 18px 18px 18px 6px; padding: 10px 14px; background: var(--card); transition: transform .15s, border-color .15s, box-shadow .15s; }
+.dlg-line.s1 .dlg-bubble { border-radius: 18px 18px 6px 18px; }
+.dlg-name { font-size: 12px; font-weight: 900; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; }
+.dlg-ky { font-size: 20px; font-weight: 800; margin-top: 2px; }
+.dlg-ky.blurred { filter: blur(6px); user-select: none; cursor: pointer; }
+.dlg-line.hidden-text .dlg-bubble { cursor: pointer; }
+.dlg-tl { font-size: 13px; color: var(--ink-3); font-weight: 700; }
+.dlg-tr { font-size: 15px; color: var(--blue-d); font-weight: 700; margin-top: 4px; }
+.dlg-line.now .dlg-bubble { border-color: var(--green); box-shadow: 0 0 0 4px var(--green-l); transform: scale(1.02); }
+.dlg-line.your-turn .dlg-bubble { border-color: var(--orange); box-shadow: 0 0 0 4px rgba(255,150,0,.2); }
+
+.dlg-line .speak-btn { width: 38px; height: 38px; font-size: 18px; }
+.dlg-controls .seg button { padding: 7px 10px; }
+.dlg-play { min-width: 190px; }
+.dlg-card h3 { font-size: 22px; }
+@media (max-width: 560px) { .dlg-bubble { max-width: 70%; } .dlg-ky { font-size: 18px; } .dlg-play { min-width: 0; } }

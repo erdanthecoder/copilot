@@ -34,3 +34,20 @@ export function sayKy(text, { force = false } = {}) {
   try { speechSynthesis.cancel(); speechSynthesis.speak(u); } catch { return false; }
   return true;
 }
+
+// Speak and resolve when finished (for dialogue playback). Resolves after an
+// estimated duration if no voice is available, so read-along still works silently.
+export function sayKyAsync(text, { pitch = 1.05, rate = 0.82 } = {}) {
+  return new Promise((resolve) => {
+    const est = Math.max(1200, text.length * 95);
+    const v = voice.enabled && "speechSynthesis" in window ? pickVoice() : null;
+    if (!v) { setTimeout(resolve, est); return; }
+    const u = new SpeechSynthesisUtterance(v.mode === "ky" ? text : toTurkishSpelling(text));
+    u.voice = v.voice; u.lang = v.voice.lang; u.rate = rate; u.pitch = pitch;
+    let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, est * 3 + 2000);
+    try { speechSynthesis.speak(u); } catch { fin(); }
+  });
+}
+export function stopSpeaking() { try { speechSynthesis.cancel(); } catch {} }
