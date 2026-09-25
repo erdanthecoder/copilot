@@ -14,8 +14,10 @@ import { TOPICS } from "./curriculum.js";
 export function runLesson(opts) {
   const lang = getLang();
   const homework = opts.mode === "homework";
-  const queue = opts.exercises.map((ex, i) => ({ ex, i, retry: false }));
-  const total = queue.length;
+  // "intro" cards teach a new word and aren't scored; everything else is.
+  let scoredIdx = 0;
+  const queue = opts.exercises.map((ex) => ({ ex, i: ex.type === "intro" ? -1 : scoredIdx++, retry: false }));
+  const total = scoredIdx;
   const answers = new Array(total).fill(null);
   let hearts = opts.hearts ?? null;
   let doneCount = 0, streak = 0, bestStreak = 0;
@@ -132,8 +134,15 @@ export function runLesson(opts) {
     current = queue.shift();
     state = "answer";
     exStart = Date.now();
-    body.replaceChildren(render(current.ex));
     try { if (localStorage.getItem("lk.debug")) window.__lkEx = current.ex; } catch {}
+    if (current.ex.type === "intro") {
+      state = "feedback";
+      body.replaceChildren(renderIntro(current.ex));
+      sound.tap();
+      setFoot("", [h("span"), h("button", { class: "btn primary", onClick: next }, t("continue"))]);
+      return;
+    }
+    body.replaceChildren(render(current.ex));
     answerFoot();
     const f = body.querySelector("textarea"); if (f) setTimeout(() => f.focus(), 50);
   }
@@ -170,6 +179,17 @@ export function runLesson(opts) {
   }
   function promptBubble(text, isKy) {
     return h("div", { class: "prompt-row" }, mascot(isKy ? "think" : "happy", 96), h("div", { class: "speech" }, isKy ? kyText(text) : text));
+  }
+
+  function renderIntro(ex) {
+    const v = kyVoice();
+    return h("div", { class: "ex-card intro-card" },
+      h("div", { class: "intro-kicker" }, icon("star"), lang === "ru" ? "Новое слово" : "New word"),
+      mascot("wave", 110),
+      h("div", { class: "intro-word" }, ex.ky, v ? h("button", { class: "icon-btn", "aria-label": "Listen", onClick: () => speakKy(ex.ky) }, icon("speaker")) : null),
+      h("div", { class: "intro-tl" }, translit(ex.ky)),
+      h("div", { class: "intro-tr" }, ex.tr),
+      ex.example ? h("div", { class: "intro-ex" }, h("span", { class: "ky" }, ex.example[0]), h("span", {}, ex.example[1])) : null);
   }
 
   function render(ex) {

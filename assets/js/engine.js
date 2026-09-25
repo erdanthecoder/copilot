@@ -154,27 +154,54 @@ export function makeExercise(kind, item, P, lang, all) {
   Build a lesson. level 0..2 increases difficulty (more typing, more sentences).
   opts: { count, level, lang, review:[topicIds] }
 */
-export function buildLesson(topicIds, { count = 12, level = 0, lang = "en" } = {}) {
+/*
+  Lessons ramp gently from very easy to a little harder:
+    learn the word (intro card) -> pick its meaning -> pick the Kyrgyz -> match pairs
+    -> short sentences with tiles / fill-in -> typing (from level 1 up).
+  Level 0 sticks to each topic's first, most basic words and short sentences.
+  Everything is freshly randomised on every call, so each student gets a different lesson.
+*/
+const STAGES = {
+  0: [[0.34, "w", ["choose-ky"]], [0.6, "w", ["choose-ky", "choose-tr"]], [0.82, "s", ["choose-ky", "build-tr"]], [1, "s", ["build-tr", "blank"]]],
+  1: [[0.25, "w", ["choose-ky", "choose-tr"]], [0.5, "s", ["build-tr", "blank"]], [0.78, "s", ["build-ky", "build-tr"]], [1, "mix", ["type-tr", "build-ky"]]],
+  2: [[0.2, "w", ["choose-tr"]], [0.45, "s", ["build-ky", "blank"]], [0.75, "mix", ["type-tr", "build-ky"]], [1, "mix", ["type-ky", "type-tr"]]],
+};
+export function buildLesson(topicIds, { count = 12, level = 0, lang = "en", intro = false } = {}) {
   const P = pool(topicIds), all = allPool();
+  const lv = Math.max(0, Math.min(2, level));
+  const basicWords = lv === 0 ? topicIds.flatMap(id => P.words.filter(w => w.topic === id).slice(0, 8)) : P.words;
+  const words = shuffle(basicWords.length ? basicWords : P.words);
+  const shortSents = P.sentences.filter(x => tokens(first(x.ky)).length <= (lv === 0 ? 5 : 8));
+  const sents = shuffle(lv === 0 && shortSents.length ? shortSents : P.sentences);
+  const stages = STAGES[lv];
+  const matchAt = P.words.length >= 4 ? new Set([Math.round(count * 0.45), count > 10 ? Math.round(count * 0.7) : -1]) : new Set();
   const plan = [];
-  const wordKinds = level === 0 ? ["choose-ky", "choose-tr", "choose-ky", "type-tr"] : level === 1 ? ["choose-tr", "type-ky", "choose-ky", "type-tr"] : ["type-ky", "type-ky", "choose-tr", "type-tr"];
-  const sentKinds = level === 0 ? ["build-tr", "build-ky", "blank"] : level === 1 ? ["build-ky", "blank", "build-tr", "type-tr"] : ["type-ky", "build-ky", "blank", "type-tr"];
-  const words = shuffle(P.words), sents = shuffle(P.sentences);
-  let wi = 0, si = 0;
-  const sentenceShare = level === 0 ? 0.35 : level === 1 ? 0.45 : 0.55;
-  const matchAt = P.words.length >= 4 ? new Set([2, count > 9 ? count - 3 : -1]) : new Set();
+  let wi = 0, si = 0, taught = 0;
+  const nextWord = () => words.length ? words[wi++ % words.length] : null;
+  const nextSent = () => sents.length ? sents[si++ % sents.length] : null;
   for (let i = 0; i < count; i++) {
     if (matchAt.has(i)) { plan.push(makeExercise("match", null, P, lang, all)); continue; }
-    const useSentence = sents.length && (Math.random() < sentenceShare || !words.length);
+    const p = count > 1 ? i / (count - 1) : 0;
+    const [, what, kinds] = stages.find(st => p <= st[0]) || stages[stages.length - 1];
+    const useSentence = what === "s" ? sents.length > 0 : what === "mix" ? sents.length > 0 && Math.random() < 0.5 : !words.length;
     if (useSentence) {
-      const s = sents[si++ % sents.length];
-      let kind = pick(sentKinds);
-      // Very short sentences make trivial tile puzzles / blanks — ask for the meaning instead.
-      if (tokens(first(s.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = pick(["choose-ky", "choose-tr", "type-ky"]);
-      plan.push(makeExercise(kind, s, P, lang, all));
+      const x = nextSent();
+      let kind = pick(kinds);
+      if (tokens(first(x.ky)).length < 3 && (kind.startsWith("build") || kind === "blank")) kind = lv === 0 ? "choose-ky" : pick(["choose-ky", "choose-tr"]);
+      plan.push(makeExercise(kind, x, P, lang, all));
     } else {
-      const w = words[wi++ % words.length];
-      plan.push(makeExercise(pick(wordKinds), w, P, lang, all));
+      const w = nextWord();
+      // Teach the first few new words before asking about them.
+      if (intro && taught < 3 && i < count / 2) {
+        taught++;
+        const ex = P.sentences.find(x => normalize(x.ky).split(" ").includes(normalize(first(w.ky))));
+        plan.push({ type: "intro", ky: first(w.ky), tr: first(w[lang]), example: ex ? [first(ex.ky), first(ex[lang])] : null, item: w });
+        plan.push(makeExercise("choose-ky", w, P, lang, all));
+        continue;
+      }
+      let kind = pick(kinds);
+      if (kind.startsWith("build") || kind === "blank") kind = "choose-tr";
+      plan.push(makeExercise(kind, w, P, lang, all));
     }
   }
   // Reading topics: swap some exercises for comprehension questions.

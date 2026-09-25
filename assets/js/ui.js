@@ -142,26 +142,43 @@ export function ornamentUrl(color = "rgba(255,255,255,.16)") {
 }
 
 // ── sounds (synthesised, no files) ──
-let actx = null;
-function ctx() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch { actx = null; } return actx; }
-function tone(freq, start, dur, type = "sine", vol = 0.18) {
-  const c = ctx(); if (!c) return;
-  const o = c.createOscillator(), g = c.createGain();
-  o.type = type; o.frequency.value = freq;
-  g.gain.setValueAtTime(0, c.currentTime + start);
-  g.gain.linearRampToValueAtTime(vol, c.currentTime + start + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
-  o.connect(g); g.connect(c.destination); o.start(c.currentTime + start); o.stop(c.currentTime + start + dur + 0.05);
+// Soft, rounded tones: sine waves through a gentle low-pass filter with slow
+// attack/release, so nothing clicks or buzzes.
+let actx = null, master = null;
+function ctx() {
+  try {
+    if (!actx) {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400; lp.Q.value = 0.3;
+      master = actx.createGain(); master.gain.value = 0.55;
+      master.connect(lp); lp.connect(actx.destination);
+    }
+    if (actx.state === "suspended") actx.resume();
+  } catch { actx = null; }
+  return actx;
 }
+function tone(freq, start, dur, { vol = 0.12, type = "sine", glide = 0, attack = 0.02 } = {}) {
+  const c = ctx(); if (!c) return;
+  const t0 = c.currentTime + start;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  if (glide) o.frequency.exponentialRampToValueAtTime(freq * glide, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+// A soft bell: the note plus a quiet octave overtone.
+function bell(freq, start, dur = 0.5, vol = 0.1) { tone(freq, start, dur, { vol }); tone(freq * 2, start, dur * 0.6, { vol: vol * 0.25 }); }
 export const sound = {
   enabled: (() => { try { return localStorage.getItem("lk.sound") !== "off"; } catch { return true; } })(),
   set(on) { this.enabled = on; try { localStorage.setItem("lk.sound", on ? "on" : "off"); } catch {} },
-  correct() { if (!this.enabled) return; tone(784, 0, .12, "triangle"); tone(1175, .09, .22, "triangle"); },
-  wrong() { if (!this.enabled) return; tone(220, 0, .18, "sawtooth", .08); tone(180, .12, .25, "sawtooth", .08); },
-  tap() { if (!this.enabled) return; tone(520, 0, .05, "sine", .08); },
-  match() { if (!this.enabled) return; tone(988, 0, .1, "triangle", .12); },
-  done() { if (!this.enabled) return; [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .11, .3, "triangle", .16)); tone(1319, .5, .5, "triangle", .12); },
-  ring() { if (!this.enabled) return; [880, 660, 880, 660].forEach((f, i) => tone(f, i * .18, .16, "sine", .12)); },
+  correct() { if (!this.enabled) return; bell(659, 0, 0.35, 0.09); bell(880, 0.09, 0.55, 0.09); },
+  wrong() { if (!this.enabled) return; tone(311, 0, 0.32, { vol: 0.07, glide: 0.85, attack: 0.03 }); tone(233, 0.12, 0.38, { vol: 0.06, glide: 0.9, attack: 0.03 }); },
+  tap() { if (!this.enabled) return; tone(740, 0, 0.08, { vol: 0.035, attack: 0.008 }); },
+  match() { if (!this.enabled) return; bell(988, 0, 0.3, 0.06); },
+  done() { if (!this.enabled) return; [523, 659, 784].forEach((f, i) => bell(f, i * 0.13, 0.6, 0.08)); bell(1047, 0.42, 0.9, 0.08); },
+  ring() { if (!this.enabled) return; bell(784, 0, 0.5, 0.07); bell(988, 0.25, 0.7, 0.07); },
 };
 
 // Kyrgyz text-to-speech, only when the device really has a Kyrgyz voice.

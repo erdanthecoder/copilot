@@ -405,7 +405,7 @@ function startTopic(id, level, jump = false) {
   if (openPop) { openPop.remove(); openPop = null; }
   regenHearts();
   if (profile.hearts <= 0) return noHearts();
-  const ex = buildLesson([id], { count: jump ? 14 : 12, level: jump ? 1 : level, lang: getLang() });
+  const ex = buildLesson([id], { count: jump ? 14 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level === 0 });
   runLesson({
     exercises: ex, mode: "practice", hearts: profile.hearts,
     onHeart: (n) => { profile.hearts = n; if (n < MAX_HEARTS && !prog().heartsAt) prog().heartsAt = Date.now(); save(); },
@@ -524,8 +524,30 @@ function flashcards() {
 }
 
 // ───────────────────────── Classroom ─────────────────────────
+// Big "keep going" card so the way back to lessons is always obvious.
+function continueCard() {
+  const ru = getLang() === "ru";
+  const id = currentTopic(); const tp = TOPICS[id]; const u = topicUnit(id) || UNITS[0];
+  const pending = guest ? [] : classes.flatMap(c => c.homework.filter(hw => !hw.submission && new Date(hw.due_at) > new Date()).map(hw => ({ hw, c })));
+  const next = pending.sort((a, b) => new Date(a.hw.due_at) - new Date(b.hw.due_at))[0];
+  return h("div", { class: "continue-grid" },
+    h("div", { class: "continue-card", style: { backgroundColor: u.color, backgroundImage: ornamentUrl() } },
+      mascot("cheer", 96),
+      h("div", { class: "grow" }, h("div", { class: "cc-kicker" }, ru ? "Продолжить учёбу" : "Continue learning"), h("h2", {}, tn(tp)), h("div", { class: "cc-sub" }, tp.ky)),
+      h("button", { class: "btn cc-go", onClick: () => startTopic(id, Math.min(topicCrowns(id), LEVELS - 1)) }, icon("play"), t("start"))),
+    next ? h("div", { class: "continue-card hw", onClick: () => startHomework(next.hw, next.c) },
+      h("span", { class: "cc-icon" }, icon("pen")),
+      h("div", { class: "grow" }, h("div", { class: "cc-kicker" }, t("homework")), h("h2", {}, next.hw.title), h("div", { class: "cc-sub" }, `${t("dueIn")} ${relTime(next.hw.due_at, getLang())}`)),
+      h("button", { class: "btn cc-go" }, icon("play"), t("start"))) : null,
+    h("div", { class: "quick-links" },
+      h("button", { class: "ql", onClick: () => { view = "learn"; render(); } }, h("span", { class: "ql-ic", style: { background: "var(--green)" } }, icon("home")), t("learn")),
+      h("button", { class: "ql", onClick: () => { view = "practice"; render(); } }, h("span", { class: "ql-ic", style: { background: "var(--blue)" } }, icon("target")), t("practice")),
+      h("button", { class: "ql", onClick: () => startReview(false) }, h("span", { class: "ql-ic", style: { background: "var(--orange)" } }, icon("shuffle")), t("mixedReview")),
+      h("button", { class: "ql", onClick: flashcards }, h("span", { class: "ql-ic", style: { background: "var(--purple)" } }, icon("grid")), t("flashcards"))));
+}
+
 function viewClass(main) {
-  main.append(h("h1", { class: "page-title" }, t("classroom")));
+  main.append(h("h1", { class: "page-title" }, t("classroom")), continueCard());
   if (guest) { main.append(h("div", { class: "empty" }, mascot("think", 110), h("p", {}, t("guestNote")), h("button", { class: "btn primary", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} renderAuth("signup"); } }, t("signUp")))); return; }
   const code = h("input", { class: "input", placeholder: "ABC123", maxlength: 6, style: { textTransform: "uppercase", letterSpacing: "4px", fontWeight: 900, maxWidth: "200px" } });
   main.append(h("div", { class: "panel" }, h("h3", {}, t("joinClass")), h("form", { class: "row wrap", onSubmit: (e) => { e.preventDefault(); if (code.value.trim()) joinFlow(code.value.trim()); } }, code, h("button", { class: "btn primary" }, t("join")))));
@@ -616,7 +638,8 @@ async function startHomework(hw, c) {
   }
   let exercises = hw.topic_ids.length && hw.question_count ? buildLesson(hw.topic_ids, { count: hw.question_count, level: hw.difficulty ?? 1, lang: getLang() }) : [];
   const custom = sets.flatMap(s => (s.questions || []).map((q, i) => customExercise(q, s.id, i))).filter(Boolean);
-  exercises = exercises.concat(shuffle(custom));
+  // Every student gets a different order: the teacher's own questions land at random spots.
+  for (const q of shuffle(custom)) exercises.splice(Math.floor(Math.random() * (exercises.length + 1)), 0, q);
   const prompts = (hw.writing_prompts || []).filter(p => p && (p.prompt || typeof p === "string"));
   if (!exercises.length && !prompts.length) return toast("This homework has no questions yet", "bad");
   modal({ title: hw.title, body: h("div", {}, hw.instructions ? h("p", {}, hw.instructions) : null,
