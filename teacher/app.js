@@ -3,7 +3,7 @@ import { sb, SITES } from "../assets/js/config.js";
 import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, ornamentUrl, mountains } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
-import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor } from "../assets/js/engine.js";
+import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor, sealPaper } from "../assets/js/engine.js";
 import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
@@ -127,7 +127,7 @@ function viewClasses(main) {
 function fillStats(host, mem, hws, subs) {
   const students = new Set(mem.map(m => m.student_id)).size;
   const open = hws.filter(x => new Date(x.due_at) > new Date()).length;
-  const gs = subs.map(x => x.teacher_grade || x.grade).filter(Boolean);
+  const gs = subs.map(x => x.teacher_grade ?? x.grade).filter(x => x != null);
   const avg = gs.length ? (gs.reduce((a, b) => a + b, 0) / gs.length).toFixed(1) : "—";
   const card = (bg, ic, v, l) => h("div", { class: "dash-stat", style: { background: bg } }, h("span", { style: { fontSize: "26px" } }, icon(ic)), h("div", { class: "v" }, v), h("div", { class: "l" }, l));
   host.replaceChildren(card("var(--purple-d)", "users", classes.length, "Classes"), card("var(--blue)", "user", students, "Students"), card("var(--orange)", "pen", open, "Open homework"), card("var(--green)", "star", avg, "Average grade"));
@@ -217,6 +217,11 @@ async function tabHomework(body, c) {
   if (error) return toast(errMsg(error), "bad");
   if (!hws.length) { body.append(h("div", { class: "empty" }, mascot("happy", 100), h("p", {}, "No homework yet. Pick topics from the full catalogue, add your own questions and choose a due date."))); return; }
   const ids = hws.map(x => x.id);
+  const exams = hws.filter(x => x.kind === "exam" && new Date(x.due_at) > new Date());
+  if (exams.length) {
+    const { data: ready } = await client.from("exam_papers").select("homework_id").eq("variant", 0).in("homework_id", exams.map(x => x.id));
+    for (const x of exams) if (!(ready || []).some(r => r.homework_id === x.id) && (x.topic_ids.length || (x.set_ids || []).length)) { try { await makeExamPapers(x); } catch {} }
+  }
   const [{ data: subs }, ms] = await Promise.all([client.from("submissions").select("homework_id,student_id,grade,teacher_grade,score").in("homework_id", ids), members(c)]);
   const list = h("div", { class: "list" });
   for (const hw of hws) {
@@ -224,7 +229,7 @@ async function tabHomework(body, c) {
     const past = new Date(hw.due_at) < new Date();
     const avg = s.length ? Math.round(s.reduce((a, b) => a + Number(b.score), 0) / s.length) : null;
     list.append(h("div", { class: "item click hw-card", style: { "--c": past ? "var(--ink-3)" : "var(--purple-d)" }, onClick: () => homeworkReport(hw, c) },
-      h("div", { class: "grow" }, h("div", { class: "title" }, hw.kind === "exam" ? h("span", { class: "pill red", style: { marginRight: "6px" } }, `EXAM${hw.time_limit_minutes ? " · " + hw.time_limit_minutes + " min" : ""}`) : null, hw.title),
+      h("div", { class: "grow" }, h("div", { class: "title" }, hw.kind === "exam" ? h("span", { class: "pill red", style: { marginRight: "6px" } }, `EXAM${hw.time_limit_minutes ? " · " + hw.time_limit_minutes + " min" : ""}${hw.fullscreen ? " · FULL SCREEN" : ""}`) : null, hw.title),
         h("div", { class: "sub" }, past ? "Closed " : "Due ", fmtDate(hw.due_at, getLang()), ` (${relTime(hw.due_at, getLang())})`),
         h("div", { class: "sub" }, [hw.topic_ids.map(id => TOPICS[id] ? tn(TOPICS[id]) : id).join(", "), hw.set_ids?.length ? `${hw.set_ids.length} question set(s)` : "", (hw.writing_prompts || []).length ? `${hw.writing_prompts.length} writing` : ""].filter(Boolean).join(" · "))),
       h("div", { class: "center" }, h("div", { style: { fontWeight: 900, fontSize: "20px" } }, `${s.length}/${ms.length}`), h("div", { class: "small muted" }, "submitted")),
@@ -246,9 +251,19 @@ async function homeworkDialog({ classroom, hw = null, topics = [], exam = false,
   let kind = hw?.kind || (exam ? "exam" : "homework");
   const count = h("input", { class: "input", type: "number", min: 0, max: 60, value: hw?.question_count ?? (kind === "exam" ? 20 : 12), style: { maxWidth: "120px" } });
   const timeLimit = h("input", { class: "input", type: "number", min: 1, max: 240, value: hw?.time_limit_minutes ?? 20, style: { maxWidth: "120px" } });
-  const examOpts = h("label", { class: "field" }, h("span", {}, "Time limit (minutes)"), timeLimit);
+  const fsBox = h("input", { type: "checkbox", checked: !!hw?.fullscreen });
+  let examLang = getLang();
+  const langSeg = h("div", { class: "seg" });
+  const drawLang = () => langSeg.replaceChildren(...[["en", "English"], ["ru", "Русский"]].map(([k, l]) => h("button", { type: "button", class: examLang === k ? "on" : "", onClick: () => { examLang = k; drawLang(); } }, l)));
+  drawLang();
+  const examOpts = h("div", { class: "row wrap", style: { gap: "20px" } }, h("label", { class: "field" }, h("span", {}, "Time limit (minutes)"), timeLimit), h("div", { class: "field" }, h("span", {}, "Questions in"), langSeg));
+  const examBox = h("div", { class: "exam-setup" },
+    examOpts,
+    h("label", { class: "check-row" }, fsBox, h("span", {}, h("b", {}, "Full-screen exam"), h("span", { class: "small muted" }, " — the exam opens full screen. Leaving full screen, switching tab or app, or closing the page ends it with a 0."))),
+    h("p", { class: "small muted", style: { margin: "6px 0 0" } }, icon("lock"), " Sealed: every student gets their own version of the paper; answers never reach students' devices and are marked on the server. No hints, no answer review afterwards, one attempt."));
+  const hwOnly = [];
   const kindSeg = h("div", { class: "seg" });
-  const drawKind = () => { kindSeg.replaceChildren(...[["homework", "Homework"], ["exam", "Exam (timed, no hints)"]].map(([k, l]) => h("button", { type: "button", class: kind === k ? "on" : "", onClick: () => { kind = k; drawKind(); } }, l))); examOpts.classList.toggle("hidden", kind !== "exam"); };
+  const drawKind = () => { kindSeg.replaceChildren(...[["homework", "Homework"], ["exam", "Exam (timed, no hints)"]].map(([k, l]) => h("button", { type: "button", class: kind === k ? "on" : "", onClick: () => { kind = k; drawKind(); } }, l))); examBox.classList.toggle("hidden", kind !== "exam"); hwOnly.forEach(x => x.classList.toggle("hidden", kind === "exam")); };
   drawKind();
   let diff = hw?.difficulty ?? 1;
   const diffSeg = h("div", { class: "seg" });
@@ -276,26 +291,58 @@ async function homeworkDialog({ classroom, hw = null, topics = [], exam = false,
     h("label", { class: "field" }, h("span", {}, "Title"), title),
     h("label", { class: "field" }, h("span", {}, "Instructions"), instr),
     h("div", { class: "field" }, h("span", {}, "Topics (randomised questions from the curriculum)"), topicSummary),
-    h("div", { class: "row wrap", style: { gap: "20px" } }, h("label", { class: "field" }, h("span", {}, "Number of questions"), count), h("div", { class: "field" }, h("span", {}, "Difficulty (homework)"), diffSeg), examOpts),
+    h("div", { class: "row wrap", style: { gap: "20px" } }, h("label", { class: "field" }, h("span", {}, "Number of questions"), count), hwOnly[0] = h("div", { class: "field" }, h("span", {}, "Difficulty (homework)"), diffSeg)),
+    examBox,
     h("div", { class: "field" }, h("span", {}, "Your own question sets"), setsBox),
-    h("div", { class: "field" }, h("span", {}, "Writing tasks (students write sentences, you read and grade)"), promptList),
+    hwOnly[1] = h("div", { class: "field" }, h("span", {}, "Writing tasks (students write sentences, you read and grade)"), promptList),
     h("label", { class: "field" }, h("span", {}, "Due date & time"), due),
     h("p", { class: "small muted" }, "Grades: ≥90% → 5 · ≥75% → 4 · ≥50% → 3 · otherwise 2. Not submitted by the due date → 2. You can override any grade.")), actions: [
     hw ? { label: "Delete", kind: "danger", onClick: async () => { if (!(await confirmBox("Delete homework?", "All submissions and grades for it will be deleted.", "Delete", true))) return false; await client.from("homework").delete().eq("id", hw.id); render(); } } : null,
     { label: "Preview", kind: "ghost", onClick: async () => { if (kind === "exam" && selTopics.size) runLesson({ exercises: buildExam([...selTopics], { count: Number(count.value) || 20, lang: getLang() }), mode: "preview", hearts: null }); else previewHomework([...selTopics], Number(count.value), diff, [...selSets]); return false; } },
-    { label: hw ? t("save") : "Set homework", kind: "purple", onClick: async () => {
+    { label: hw ? t("save") : kind === "exam" ? "Set exam" : "Set homework", kind: "purple", onClick: async () => {
       const d = new Date(due.value);
       if (!title.value.trim()) { toast("Add a title", "bad"); return false; }
       if (isNaN(d)) { toast("Choose a due date", "bad"); return false; }
       if (!hw && d < new Date()) { toast("The due date is in the past", "bad"); return false; }
       if (!selTopics.size && !selSets.size && !prompts.some(p => p.trim())) { toast("Choose topics, a question set or a writing task", "bad"); return false; }
-      const row = { classroom_id: classId, title: title.value.trim(), instructions: instr.value.trim(), topic_ids: [...selTopics], set_ids: [...selSets], question_count: selTopics.size ? Math.max(4, Math.min(60, Number(count.value) || 12)) : 0, difficulty: diff, writing_prompts: prompts.map(p => p.trim()).filter(Boolean).map(p => ({ prompt: p })), due_at: d.toISOString(), kind, time_limit_minutes: kind === "exam" ? Math.max(1, Math.min(240, Number(timeLimit.value) || 20)) : null };
-      const { error } = hw ? await client.from("homework").update(row).eq("id", hw.id) : await client.from("homework").insert(row);
+      if (kind === "exam" && !selTopics.size && !selSets.size) { toast("An exam needs topics or a question set", "bad"); return false; }
+      const row = { classroom_id: classId, title: title.value.trim(), instructions: instr.value.trim(), topic_ids: [...selTopics], set_ids: [...selSets], question_count: selTopics.size ? Math.max(4, Math.min(60, Number(count.value) || 12)) : 0, difficulty: diff, writing_prompts: prompts.map(p => p.trim()).filter(Boolean).map(p => ({ prompt: p })), due_at: d.toISOString(), kind, time_limit_minutes: kind === "exam" ? Math.max(1, Math.min(240, Number(timeLimit.value) || 20)) : null, fullscreen: kind === "exam" && fsBox.checked };
+      if (kind === "exam") row.writing_prompts = [];
+      const { data: saved, error } = hw ? await client.from("homework").update(row).eq("id", hw.id).select().single() : await client.from("homework").insert(row).select().single();
       if (error) { toast(errMsg(error), "bad"); return false; }
-      toast(hw ? "Saved" : "Homework set!", "good");
+      if (kind === "exam") {
+        const changed = !hw || hw.kind !== "exam" || String(hw.topic_ids) !== String(row.topic_ids) || String(hw.set_ids || []) !== String(row.set_ids) || hw.question_count !== row.question_count;
+        try {
+          const { data: started } = await client.from("exam_attempts").select("student_id").eq("homework_id", saved.id).limit(1);
+          const { data: have } = await client.from("exam_papers").select("variant").eq("homework_id", saved.id).limit(1);
+          if ((started || []).length) { if (changed) toast("Students have already started — the exam questions stay as they were.", "bad"); }
+          else if (changed || !(have || []).length) await makeExamPapers(saved, examLang);
+        } catch (e) { toast("Couldn't prepare the exam papers: " + errMsg(e), "bad"); return false; }
+      }
+      toast(hw ? "Saved" : kind === "exam" ? "Exam set!" : "Homework set!", "good");
       if (currentClass) { classTab = "homework"; } render();
     } },
   ].filter(Boolean) });
+  drawKind();
+}
+// Sealed exam papers: several random versions, each with its answer key kept on the server.
+async function makeExamPapers(hw, lang = getLang()) {
+  const { data: mem } = await client.from("classroom_members").select("student_id").eq("classroom_id", hw.classroom_id);
+  const n = Math.min(60, Math.max(8, (mem || []).length + 4));
+  const { data: sets } = (hw.set_ids || []).length ? await client.from("question_sets").select("id,questions").in("id", hw.set_ids) : { data: [] };
+  const rows = [];
+  for (let v = 0; v < n; v++) {
+    const ex = hw.topic_ids.length && hw.question_count ? buildExam(hw.topic_ids, { count: hw.question_count, lang, sealed: true }) : [];
+    const custom = shuffle((sets || []).flatMap(s => (s.questions || []).map((q, i) => customExercise(q, s.id, i))).filter(Boolean));
+    for (const q of custom) ex.splice(Math.floor(Math.random() * (ex.length + 1)), 0, q);
+    rows.push({ homework_id: hw.id, variant: v, ...sealPaper(ex) });
+  }
+  const del = await client.from("exam_papers").delete().eq("homework_id", hw.id);
+  if (del.error) throw del.error;
+  for (let i = 0; i < rows.length; i += 10) {
+    const { error } = await client.from("exam_papers").insert(rows.slice(i, i + 10));
+    if (error) throw error;
+  }
 }
 function defaultDue() { const d = new Date(); d.setDate(d.getDate() + 7); d.setHours(20, 0, 0, 0); return d; }
 function toLocalInput(d) { const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
@@ -339,38 +386,51 @@ function topicPicker(selected, onDone) {
 }
 
 async function homeworkReport(hw, c) {
-  const [{ data: subs }, ms] = await Promise.all([client.from("submissions").select("*").eq("homework_id", hw.id), members(c)]);
+  const isExam = hw.kind === "exam";
+  if (isExam) { try { await client.rpc("exam_close_expired", { hw: hw.id }); } catch {} }
+  const [{ data: subs }, ms, atts] = await Promise.all([client.from("submissions").select("*").eq("homework_id", hw.id), members(c),
+    isExam ? client.from("exam_attempts").select("student_id,started_at,finished_at,result").eq("homework_id", hw.id).then(r => r.data || []) : Promise.resolve([])]);
+  // Exam answers live with the attempt (students can't read them).
+  for (const s of subs || []) { const a = atts.find(x => x.student_id === s.student_id); if (a?.result) s.answers = a.result; }
   const past = new Date(hw.due_at) < new Date();
   const rows = ms.map(m => ({ m, s: (subs || []).find(x => x.student_id === m.id) }));
   // per-question analytics (by exercise id)
   const qStats = {};
-  for (const s of subs || []) for (const a of s.answers || []) { if (!a || !a.prompt) continue; const k = a.prompt; qStats[k] = qStats[k] || { n: 0, ok: 0 }; qStats[k].n++; if (a.ok) qStats[k].ok++; }
+  for (const s of subs || []) if (!s.flag) for (const a of s.answers || []) { if (!a || !a.prompt) continue; const k = a.prompt; qStats[k] = qStats[k] || { n: 0, ok: 0 }; qStats[k].n++; if (a.ok) qStats[k].ok++; }
   const hardest = Object.entries(qStats).filter(([, v]) => v.n >= 1).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n).slice(0, 8);
-  const dist = { 5: 0, 4: 0, 3: 0, 2: 0 };
-  rows.forEach(({ s }) => { const g = s ? (s.teacher_grade || s.grade) : past ? 2 : null; if (g) dist[g]++; });
+  const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 0: 0 };
+  rows.forEach(({ s }) => { const g = s ? (s.teacher_grade ?? s.grade) : past ? 2 : null; if (g != null) dist[g]++; });
   modal({ title: hw.title, wide: true, body: h("div", {},
     h("p", { class: "muted" }, `${past ? "Closed" : "Due"} ${fmtDate(hw.due_at, getLang())} · ${(subs || []).length}/${ms.length} submitted`),
-    h("div", { class: "row wrap", style: { gap: "16px", marginBottom: "16px" } }, [5, 4, 3, 2].map(g => h("div", { class: "row" }, gradeChip(g), h("b", {}, `× ${dist[g]}`)))),
-    h("div", { class: "table-wrap" }, h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Student"), h("th", { class: "c" }, "Score"), h("th", { class: "c" }, "Grade"), h("th", {}, "Submitted"))),
+    h("div", { class: "row wrap", style: { gap: "16px", marginBottom: "16px" } }, [5, 4, 3, 2, 0].filter(g => g || dist[0]).map(g => h("div", { class: "row" }, gradeChip(g), h("b", {}, `× ${dist[g]}`)))),
+    h("div", { class: "table-wrap" }, h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Student"), h("th", { class: "c" }, "Score"), h("th", { class: "c" }, "Grade"), h("th", {}, "Submitted"), isExam ? h("th") : null)),
       h("tbody", {}, rows.map(({ m, s }) => h("tr", { class: s ? "gcell" : "", onClick: s ? () => submissionDialog(s, m, hw) : null },
         h("td", {}, h("b", {}, m.full_name)), h("td", { class: "c" }, s ? `${s.correct}/${s.total} (${Math.round(s.score)}%)` : "—"),
-        h("td", { class: "c" }, s ? gradeChip(s.teacher_grade || s.grade) : past ? gradeChip(2, "auto") : h("span", { class: "grade pending" }, "–")),
-        h("td", {}, s ? fmtDate(s.submitted_at, getLang()) : past ? h("span", { class: "overdue" }, "Missed") : "Not yet")))))),
+        h("td", { class: "c" }, s ? gradeChip(s.teacher_grade ?? s.grade) : past ? gradeChip(2, "auto") : h("span", { class: "grade pending" }, "–")),
+        h("td", {}, s ? [fmtDate(s.submitted_at, getLang()), s.flag ? h("div", { class: "overdue small" }, s.flag === "left_fullscreen" ? "Left full screen" : "Left the exam") : null]
+          : atts.some(a => a.student_id === m.id) ? h("span", { class: "due-soon" }, "Taking the exam now") : past ? h("span", { class: "overdue" }, "Missed") : "Not yet"),
+        isExam ? h("td", { class: "c" }, (s || atts.some(a => a.student_id === m.id)) ? h("button", { class: "btn ghost sm", title: "Delete this attempt and let the student take the exam again", onClick: async (e) => {
+          e.stopPropagation();
+          if (!(await confirmBox("Let them retake?", `${m.full_name}'s attempt and grade will be deleted and they can start the exam again (with a new version).`, "Allow retake", true))) return;
+          const { error } = await client.rpc("exam_reset", { hw: hw.id, sid: m.id });
+          if (error) return toast(errMsg(error), "bad");
+          toast("Retake allowed", "good"); document.querySelectorAll(".modal-back").forEach(x => x.remove()); homeworkReport(hw, c);
+        } }, "Retake") : null) : null))))),
     hardest.length ? h("div", {}, h("h3", { class: "section-title" }, "Hardest questions"), h("div", { class: "list" }, hardest.map(([p, v]) => h("div", { class: "item" }, h("div", { class: "grow" }, p), h("div", { class: "bar", style: { width: "120px" } }, h("i", { style: { width: Math.round(100 * v.ok / v.n) + "%", background: v.ok / v.n < .5 ? "var(--red)" : "var(--green)" } })), h("b", {}, `${Math.round(100 * v.ok / v.n)}%`))))) : null),
-    actions: [{ label: "Export CSV", kind: "ghost", onClick: () => { csv([["Student", "Correct", "Total", "Score", "Grade", "Submitted"], ...rows.map(({ m, s }) => [m.full_name, s?.correct ?? "", s?.total ?? "", s ? Math.round(s.score) : "", s ? (s.teacher_grade || s.grade) : past ? 2 : "", s?.submitted_at || ""])], `${hw.title}.csv`); return false; } }, { label: t("close"), kind: "purple" }] });
+    actions: [{ label: "Export CSV", kind: "ghost", onClick: () => { csv([["Student", "Correct", "Total", "Score", "Grade", "Submitted"], ...rows.map(({ m, s }) => [m.full_name, s?.correct ?? "", s?.total ?? "", s ? Math.round(s.score) : "", s ? (s.teacher_grade ?? s.grade) : past ? 2 : "", s?.submitted_at || ""])], `${hw.title}.csv`); return false; } }, { label: t("close"), kind: "purple" }] });
 }
 
 function submissionDialog(s, m, hw) {
-  let g = s.teacher_grade || null;
+  let g = s.teacher_grade ?? null;
   const seg = h("div", { class: "seg" });
   const drawSeg = () => seg.replaceChildren(...[["auto", `Auto (${s.grade})`], [5, "5"], [4, "4"], [3, "3"], [2, "2"]].map(([k, l]) => h("button", { type: "button", class: (g ?? "auto") === k ? "on" : "", onClick: () => { g = k === "auto" ? null : k; drawSeg(); } }, l)));
   drawSeg();
   const comment = h("textarea", { class: "input", maxlength: 1000, placeholder: "Comment for the student (optional)" }, s.teacher_comment || "");
   modal({ title: `${m.full_name} — ${hw.title}`, wide: true, body: h("div", {},
-    h("div", { class: "row wrap", style: { gap: "18px" } }, gradeChip(s.teacher_grade || s.grade, "big"), h("div", {}, h("div", { style: { fontSize: "24px", fontWeight: 900 } }, `${s.correct}/${s.total} · ${Math.round(s.score)}%`), h("div", { class: "muted small" }, fmtDate(s.submitted_at, getLang())))),
+    h("div", { class: "row wrap", style: { gap: "18px" } }, gradeChip(s.teacher_grade ?? s.grade, "big"), h("div", {}, h("div", { style: { fontSize: "24px", fontWeight: 900 } }, `${s.correct}/${s.total} · ${Math.round(s.score)}%`), h("div", { class: "muted small" }, fmtDate(s.submitted_at, getLang())), s.flag ? h("div", { class: "overdue small" }, s.flag === "left_fullscreen" ? "Left full screen — automatic 0" : "Left the exam — automatic 0") : null)),
     (s.writing || []).length ? h("div", {}, h("h3", { class: "section-title" }, "Writing"), s.writing.map(w => h("div", { class: "panel" }, h("div", { class: "muted small" }, w.prompt), h("div", { class: "ky", style: { whiteSpace: "pre-wrap", fontSize: "18px" } }, w.text || "—"), h("div", { class: "small muted" }, translit(w.text || ""))))) : null,
     h("h3", { class: "section-title" }, "Answers"),
-    h("div", { class: "list" }, (s.answers || []).map((a, i) => h("div", { class: "item" }, h("span", { style: { color: a.ok ? "var(--green)" : "var(--red)" } }, icon(a.ok ? "check" : "x")), h("div", { class: "grow" }, h("div", { class: "title" }, a.prompt || `#${i + 1}`), h("div", { class: "sub" }, a.given || "—")), a.ms ? h("span", { class: "small muted" }, `${Math.round(a.ms / 1000)}s`) : null))),
+    h("div", { class: "list" }, (s.answers || []).map((a, i) => h("div", { class: "item" }, h("span", { style: { color: a.ok ? "var(--green)" : "var(--red)" } }, icon(a.ok ? "check" : "x")), h("div", { class: "grow" }, h("div", { class: "title" }, a.prompt || `#${i + 1}`), h("div", { class: "sub" }, a.given || "—", a.solution && !a.ok ? h("span", { class: "muted" }, ` → ${a.solution}`) : null)), a.ms ? h("span", { class: "small muted" }, `${Math.round(a.ms / 1000)}s`) : null))),
     h("h3", { class: "section-title" }, "Your grade"), seg, h("div", { style: { height: "10px" } }), comment), actions: [
     { label: t("cancel"), kind: "ghost" },
     { label: t("save"), kind: "purple", onClick: async () => {
@@ -391,17 +451,17 @@ async function tabGrades(body, c) {
   const now = new Date();
   const cell = (m, hw) => {
     const s = subs.find(x => x.homework_id === hw.id && x.student_id === m.id);
-    if (s) return { g: s.teacher_grade || s.grade, s };
+    if (s) return { g: s.teacher_grade ?? s.grade, s };
     if (new Date(hw.due_at) < now) return { g: 2, auto: true };
     return { g: null };
   };
-  const rows = ms.map(m => { const cells = hws.map(hw => cell(m, hw)); const gs = cells.filter(x => x.g).map(x => x.g); return { m, cells, avg: gs.length ? (gs.reduce((a, b) => a + b, 0) / gs.length) : null }; });
+  const rows = ms.map(m => { const cells = hws.map(hw => cell(m, hw)); const gs = cells.filter(x => x.g != null).map(x => x.g); return { m, cells, avg: gs.length ? (gs.reduce((a, b) => a + b, 0) / gs.length) : null }; });
   body.append(h("p", { class: "small muted" }, "Red-outlined 2 = not submitted before the due date. Click a grade to review and override."),
     h("div", { class: "table-wrap" }, h("table", { class: "tbl" },
       h("thead", {}, h("tr", {}, h("th", {}, "Student"), hws.map(hw => h("th", { class: "c", title: hw.title }, hw.title.length > 14 ? hw.title.slice(0, 13) + "…" : hw.title, h("div", { class: "small", style: { textTransform: "none" } }, new Date(hw.due_at).toLocaleDateString()))), h("th", { class: "c" }, "Average"))),
       h("tbody", {}, rows.map(({ m, cells, avg }) => h("tr", {}, h("td", {}, h("b", {}, m.full_name)),
-        cells.map((x, i) => h("td", { class: "c" + (x.s ? " gcell" : ""), onClick: x.s ? () => submissionDialog(x.s, m, hws[i]) : null }, x.g ? gradeChip(x.g, x.auto ? "auto" : "") : h("span", { class: "grade pending" }, "–"))),
-        h("td", { class: "c" }, avg ? h("b", { style: { fontSize: "18px" } }, avg.toFixed(1)) : "—")))))),
+        cells.map((x, i) => h("td", { class: "c" + (x.s ? " gcell" : ""), onClick: x.s ? () => submissionDialog(x.s, m, hws[i]) : null }, x.g != null ? gradeChip(x.g, x.auto ? "auto" : "") : h("span", { class: "grade pending" }, "–"))),
+        h("td", { class: "c" }, avg != null ? h("b", { style: { fontSize: "18px" } }, avg.toFixed(1)) : "—")))))),
     h("div", { style: { marginTop: "14px" } }, h("button", { class: "btn ghost sm", onClick: () => csv([["Student", ...hws.map(x => x.title), "Average"], ...rows.map(r => [r.m.full_name, ...r.cells.map(x => x.g ?? ""), r.avg ? r.avg.toFixed(2) : ""])], `${c.name} grades.csv`) }, icon("grid"), "Export CSV")));
 }
 function csv(rows, name) {

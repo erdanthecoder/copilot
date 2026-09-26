@@ -99,7 +99,7 @@ textarea.input { resize: vertical; min-height: 90px; line-height: 1.45; }
 .pill.gold { background: #fff4cc; color: #9a6b00; border-color: transparent; }
 .avatar { display: inline-grid; place-items: center; border-radius: 50%; color: #fff; font-weight: 900; flex: none; }
 .grade { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; font-weight: 900; font-size: 18px; color: #fff; flex: none; }
-.grade.g5 { background: var(--green); } .grade.g4 { background: var(--blue); } .grade.g3 { background: var(--orange); } .grade.g2 { background: var(--red); }
+.grade.g5 { background: var(--green); } .grade.g4 { background: var(--blue); } .grade.g3 { background: var(--orange); } .grade.g2 { background: var(--red); } .grade.g0 { background: #3c3c3c; }
 .grade.pending { background: var(--bg-2); color: var(--ink-3); border: 2px dashed var(--line); }
 .grade.big { width: 64px; height: 64px; font-size: 34px; border-radius: 18px; }
 .grade.auto { outline: 3px solid var(--red-l); }
@@ -740,7 +740,16 @@ body { letter-spacing: .1px; }
 .review-card { cursor: pointer; border-color: var(--purple); background: #faf3ff; }
 :root[data-theme="dark"] .review-card { background: #231a2d; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .review-card { background: #231a2d; } }
-.exam-note { display: flex; gap: 8px; align-items: center; background: var(--red-l); color: var(--red-d); padding: 10px 12px; border-radius: 12px; font-weight: 800; }
+.exam-note { display: flex; gap: 8px; align-items: flex-start; background: #e6f5ff; color: var(--blue-d); padding: 10px 12px; border-radius: 12px; font-weight: 800; }
+.exam-note.bad { background: var(--red-l); color: var(--red-d); }
+.exam-note ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.exam-note .ic, .exam-note svg { flex: none; margin-top: 2px; }
+:root[data-theme="dark"] .exam-note:not(.bad) { background: #13283a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .exam-note:not(.bad) { background: #13283a; } }
+.exam-grade { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 10px 0; }
+.exam-setup { border: 2px dashed var(--red); border-radius: 14px; padding: 12px 14px; margin: 6px 0 14px; }
+.check-row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; margin-top: 4px; }
+.check-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--red); flex: none; }
 .test-card h3 { font-size: 20px; }
 /* worksheets & unit exams */
 .ws-frame { width: 100%; height: min(70vh, 900px); border: 2px solid var(--line); border-radius: 14px; background: #e9edf2; }

@@ -342,7 +342,7 @@ export function glossKy(word, lang = "en") {
 
 // ── Exams: a mixed test over topics, easy → hard, randomised per student ──
 // Each question uses a different word or sentence where possible.
-export function buildExam(topicIds, { count = 20, lang = "en" } = {}) {
+export function buildExam(topicIds, { count = 20, lang = "en", sealed = false } = {}) {
   const P = pool(topicIds), all = allPool();
   const words = shuffle(P.words), sents = shuffle(P.sentences.filter(x => tokens(first(x.ky)).length >= 2));
   let wi = 0, si = 0;
@@ -356,7 +356,7 @@ export function buildExam(topicIds, { count = 20, lang = "en" } = {}) {
   for (const [what, kind, share] of recipe) {
     const n = Math.max(what === "m" ? (P.words.length >= 4 ? 1 : 0) : 1, Math.round(count * share));
     for (let i = 0; i < n && plan.length < count; i++) {
-      if (what === "m") { if (P.words.length >= 4) plan.push(makeExercise("match", null, P, lang, all)); continue; }
+      if (what === "m") { if (P.words.length >= 4) plan.push(sealed ? makeExercise("choose-tr", W(), P, lang, all) : makeExercise("match", null, P, lang, all)); continue; }
       const item = what === "s" && sents.length ? S() : W();
       if (!item) continue;
       let k = kind;
@@ -396,4 +396,22 @@ export function buildReview(ids, { count = 12, lang = "en" } = {}) {
     plan.push(makeExercise(kind, pickW(), small, lang, all));
   }
   return plan;
+}
+
+// ── Sealed exam papers: the questions a student sees, and a separate answer key that stays on the server ──
+const SAFE = ["type", "prompt", "promptLang", "options", "optionLang", "bank", "lang", "before", "after", "hint", "text", "title"];
+export function sealPaper(exercises) {
+  const questions = [], key = [];
+  for (const ex of exercises) {
+    if (!ex || ex.type === "match" || ex.type === "intro" || ex.type === "tip") continue;
+    const q = {};
+    for (const f of SAFE) if (ex[f] != null) q[f] = ex[f];
+    if (ex.type === "choose" || ex.type === "read" || ex.type === "blank") {
+      key.push({ c: ex.answer, s: ex.type === "blank" ? `${ex.before} ${ex.options[ex.answer]} ${ex.after}`.trim() : ex.options[ex.answer] });
+    } else {
+      key.push({ a: [...new Set(ex.accepted.map(normalize))], typed: ex.type === "type", s: ex.accepted[0] });
+    }
+    questions.push(q);
+  }
+  return { questions, answer_key: key };
 }

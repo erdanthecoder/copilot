@@ -15,6 +15,9 @@ import { TOPICS } from "./curriculum.js";
 export function runLesson(opts) {
   const lang = getLang();
   const exam = opts.mode === "exam";
+  // Sealed exams: questions come without answers; each answer is sent with opts.onAnswer(index, response)
+  // and the server marks the paper (opts.submit() → { correct, total, grade, flag }).
+  const sealed = exam && !!opts.sealed;
   const homework = opts.mode === "homework" || exam;  // graded: no retries, one pass
   // "intro" cards teach a new word and aren't scored; everything else is.
   let scoredIdx = 0;
@@ -26,7 +29,7 @@ export function runLesson(opts) {
   let doneCount = 0, streak = 0, bestStreak = 0;
   const t0 = Date.now();
   let exStart = Date.now();
-  let current = null, state = "answer", getAnswer = null, checkFn = null;
+  let current = null, state = "answer", getAnswer = null, checkFn = null, finished = false;
 
   const bar = h("i", { style: { width: "0%" } });
   // Exam timer
@@ -38,7 +41,7 @@ export function runLesson(opts) {
       const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
       timerEl.lastChild.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
       timerEl.classList.toggle("low", left <= 60);
-      if (left <= 0 && state !== "over") { clearInterval(timerIv); toast(lang === "ru" ? "Время вышло!" : "Time's up!", "bad"); finish(); }
+      if (left <= 0 && !finished) { clearInterval(timerIv); toast(lang === "ru" ? "Время вышло!" : "Time's up!", "bad"); finish(); }
     };
     tick(); timerIv = setInterval(tick, 500);
   }
@@ -105,6 +108,7 @@ export function runLesson(opts) {
     const ms = Date.now() - exStart;
     if (!retry) answers[i] = { id: ex.item?.id || ex.type, type: ex.type, prompt: ex.prompt || ex.before || "", given: r.given ?? "", ok: !!r.ok, ms };
     if (exam) { // no feedback during an exam — just move on
+      if (sealed && r.resp) { try { opts.onAnswer(ex.qi, r.resp); } catch {} }
       sound.tap(); doneCount++; progress();
       setFoot("", [h("div", { class: "fb saved" }, icon("check"), lang === "ru" ? "Ответ сохранён" : "Answer saved"), h("span")]);
       setTimeout(next, 350);
@@ -191,7 +195,9 @@ export function runLesson(opts) {
   }
 
   async function finish() {
-    state = "over";
+    if (state === "over" && finished) return;
+    finished = true; state = "over"; clearInterval(timerIv);
+    if (sealed) return sealedResults();
     const res = result();
     if (opts.after) {
       body.replaceChildren(); footInner.replaceChildren();
@@ -219,12 +225,49 @@ export function runLesson(opts) {
     setFoot("", [h("span"), h("button", { class: "btn primary", onClick: () => { cleanup(); opts.onDone && opts.onDone(res); } }, t("continue"))]);
   }
 
+  function gradeResult(r) {
+    const ru = lang === "ru";
+    const g = r.grade;
+    return h("div", { class: "results" },
+      mascot(r.flag ? "sad" : g >= 4 ? "cheer" : g >= 3 ? "happy" : "sad", 140),
+      h("h1", {}, r.flag ? (ru ? "Экзамен остановлен" : "Exam stopped") : (ru ? "Экзамен сдан" : "Exam handed in")),
+      r.flag ? h("p", { class: "muted" }, r.flag === "left_fullscreen" ? (ru ? "Вы вышли из полноэкранного режима, поэтому экзамен закончен с оценкой 0." : "You left full screen, so the exam ended with a 0.") : (ru ? "Вы покинули экзамен, поэтому он закончен с оценкой 0." : "You left the exam, so it ended with a 0.")) : null,
+      h("div", { class: "exam-grade" }, h("span", { class: `grade g${g} big` }, String(g)), h("span", { class: "exam-score" }, `${r.correct} / ${r.total}`)),
+      h("p", { class: "small muted" }, ru ? "Правильные ответы экзамена не показываются. Ваш учитель видит результат." : "Exam answers are not shown. Your teacher can see your result."));
+  }
+  async function sealedResults() {
+    const ru = lang === "ru";
+    body.replaceChildren(h("div", { class: "results" }, mascot("happy", 120), h("h1", {}, ru ? "Сдаём экзамен…" : "Handing in…")));
+    setFoot("", [h("span")]);
+    let r = null;
+    try { r = await opts.submit(); } catch (e) { r = null; }
+    if (!r) {
+      body.replaceChildren(h("div", { class: "results" }, mascot("sad", 120), h("h1", {}, ru ? "Нет связи" : "No connection"), h("p", { class: "muted" }, ru ? "Ваши ответы сохранены. Проверьте интернет и попробуйте снова." : "Your answers are saved. Check the internet and try again.")));
+      setFoot("", [h("span"), h("button", { class: "btn primary", onClick: sealedResults }, ru ? "Попробовать снова" : "Try again")]);
+      return;
+    }
+    sound.done();
+    showGrade(r);
+  }
+  function showGrade(r) {
+    body.replaceChildren(gradeResult(r));
+    setFoot("", [h("span"), h("button", { class: "btn primary", onClick: () => { cleanup(); opts.onDone && opts.onDone({ ...r, sealed: true }); } }, t("continue"))]);
+  }
+  // Stop the exam right away (e.g. the student left full screen). The caller hands it in.
+  function abort() {
+    finished = true; state = "over"; clearInterval(timerIv); closeHint();
+    document.querySelectorAll(".modal-back").forEach(m => m.remove());
+    body.replaceChildren(h("div", { class: "results" }, mascot("sad", 120), h("h1", {}, lang === "ru" ? "Экзамен остановлен" : "Exam stopped")));
+    setFoot("", [h("span")]);
+  }
+
   // ───────── renderers ─────────
   // Kyrgyz text where every word can be tapped for its meaning (and is spoken).
   let hintEl = null;
   function closeHint() { if (hintEl) { hintEl.remove(); hintEl = null; } }
   root.addEventListener("click", (e) => { if (!e.target.closest(".hint-word")) closeHint(); });
   function hintWords(text) {
+    if (exam) return text;
     return text.split(/(\s+)/).map(part => {
       if (/^\s+$/.test(part) || !/[а-яёңөү]/i.test(part)) return part;
       const w = h("span", { class: "hint-word", onClick: (e) => {
@@ -305,7 +348,9 @@ export function runLesson(opts) {
     const o = optionButtons(ex, ex.options, ex.optionLang === "ky", () => setReady(true));
     card.append(h("div", { class: "options" + (ex.options.every(x => x.length < 18) ? " two" : "") }, o.btns));
     checkFn = () => {
-      const s = o.get(); const ok = s === ex.answer;
+      const s = o.get();
+      if (sealed) return { given: ex.options[s], resp: { c: s, g: ex.options[s] } };
+      const ok = s === ex.answer;
       o.btns[s].classList.add(ok ? "right" : "wrong"); if (!ok) o.btns[ex.answer].classList.add("right");
       return { ok, given: ex.options[s], solution: ex.options[ex.answer] };
     };
@@ -314,13 +359,15 @@ export function runLesson(opts) {
   function renderRead(ex, card) {
     card.append(h("h2", { class: "ex-title" }, t("readAnswer")));
     const trans = h("div", { class: "trans hidden" }, ex.translation);
-    const toggle = h("button", { class: "link-btn small", onClick: () => { trans.classList.toggle("hidden"); toggle.textContent = trans.classList.contains("hidden") ? t("showTranslation") : t("hideTranslation"); } }, t("showTranslation"));
+    const toggle = exam ? h("span") : h("button", { class: "link-btn small", onClick: () => { trans.classList.toggle("hidden"); toggle.textContent = trans.classList.contains("hidden") ? t("showTranslation") : t("hideTranslation"); } }, t("showTranslation"));
     card.append(h("div", { class: "reading" }, h("div", { class: "ky-line" }, speakBtn(ex.text), h("div", { class: "ky" }, hintWords(ex.text))), trans), toggle);
     card.append(h("h3", { style: { margin: "14px 0 12px" } }, ex.prompt));
     const o = optionButtons(ex, ex.options, false, () => setReady(true));
     card.append(h("div", { class: "options" }, o.btns));
     checkFn = () => {
-      const s = o.get(); const ok = s === ex.answer;
+      const s = o.get();
+      if (sealed) return { given: ex.options[s], resp: { c: s, g: ex.options[s] } };
+      const ok = s === ex.answer;
       o.btns[s].classList.add(ok ? "right" : "wrong"); if (!ok) o.btns[ex.answer].classList.add("right");
       return { ok, given: ex.options[s], solution: ex.options[ex.answer] };
     };
@@ -373,6 +420,7 @@ export function runLesson(opts) {
     card.append(area, bank);
     checkFn = () => {
       const given = chosen.map(c => c.w).join(" ");
+      if (sealed) return { given, resp: { g: given } };
       const ok = ex.accepted.some(a => normalize(a) === normalize(given));
       return { ok, given, solution: ex.accepted[0] };
     };
@@ -386,6 +434,7 @@ export function runLesson(opts) {
     card.append(ta);
     if (ex.lang === "ky") card.append(kyKeys(ta));
     checkFn = () => {
+      if (sealed) return { given: ta.value.trim(), resp: { g: ta.value.trim() } };
       const r = checkTyped(ta.value, ex.accepted);
       const note = r.special ? `${t("almost")} ${ex.accepted[0]}` : r.typo ? `${t("typo")} ${ex.accepted[0]}` : "";
       return { ok: r.ok, given: ta.value.trim(), solution: ex.accepted[0], note };
@@ -402,6 +451,7 @@ export function runLesson(opts) {
       h("span", { class: "num" }, i + 1), h("span", { class: "ky" }, o)));
     card.append(h("div", { class: "options two" }, btns));
     checkFn = () => {
+      if (sealed) return { given: ex.options[sel], resp: { c: sel, g: ex.options[sel] } };
       const ok = sel === ex.answer;
       btns[sel].classList.add(ok ? "right" : "wrong"); if (!ok) btns[ex.answer].classList.add("right");
       return { ok, given: ex.options[sel], solution: `${ex.before} ${ex.options[ex.answer]} ${ex.after}`.trim() };
@@ -410,5 +460,5 @@ export function runLesson(opts) {
 
   progress();
   next();
-  return { close: cleanup };
+  return { close: cleanup, abort, showGrade, finish: () => finish() };
 }

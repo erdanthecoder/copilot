@@ -1,5 +1,5 @@
 // LearnKyrgyz — student app
-import { sb, SITES } from "../assets/js/config.js";
+import { sb, SITES, SUPABASE_URL, SUPABASE_KEY } from "../assets/js/config.js";
 import { h, $, icon, mascot, toast, modal, confetti, sound, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, speakKy, kyVoice, ornamentUrl, mountains, ring } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
@@ -701,12 +701,12 @@ function homeworkList(c, host) {
   const list = h("div", { class: "list" });
   for (const hw of c.homework.slice().sort((a, b) => new Date(b.due_at) - new Date(a.due_at))) {
     const st = hwState(hw);
-    const g = st === "done" ? (hw.submission.teacher_grade || hw.submission.grade) : st === "missed" ? 2 : null;
+    const g = st === "done" ? (hw.submission.teacher_grade ?? hw.submission.grade) : st === "missed" ? 2 : null;
     const sub = st === "open" ? h("span", { class: "due-soon" }, `${t("due")}: ${fmtDate(hw.due_at, getLang())} (${relTime(hw.due_at, getLang())})`)
       : st === "missed" ? h("span", { class: "overdue" }, t("late")) : h("span", {}, `${t("submitted")} · ${Math.round(hw.submission.score)}%`);
     list.append(h("div", { class: "item click hw-card", style: { "--c": st === "missed" ? "var(--red)" : st === "done" ? "var(--green)" : "var(--blue)" }, onClick: () => st === "open" ? startHomework(hw, c) : showSubmission(hw, c) },
       h("div", { class: "grow" }, h("div", { class: "title" }, hw.kind === "exam" ? h("span", { class: "pill red", style: { marginRight: "6px" } }, getLang() === "ru" ? "ЭКЗАМЕН" : "EXAM") : null, hw.title), h("div", { class: "sub" }, sub), hw.topic_ids.length ? h("div", { class: "sub" }, hw.topic_ids.map(id => TOPICS[id] ? tn(TOPICS[id]) : id).join(" · ")) : null),
-      g ? gradeChip(g, st === "missed" ? "auto" : "") : h("button", { class: "btn primary sm" }, t("start"))));
+      g != null ? gradeChip(g, st === "missed" ? "auto" : "") : h("button", { class: "btn primary sm" }, t("start"))));
   }
   host.append(list);
 }
@@ -714,7 +714,13 @@ function homeworkList(c, host) {
 function showSubmission(hw, c) {
   const s = hw.submission;
   if (!s) return modal({ title: hw.title, body: h("div", { class: "center" }, gradeChip(2, "big auto"), h("p", {}, t("late")), h("p", { class: "muted small" }, `${t("due")}: ${fmtDate(hw.due_at, getLang())}`)) });
-  const g = s.teacher_grade || s.grade;
+  const g = s.teacher_grade ?? s.grade;
+  const ru = getLang() === "ru";
+  if (hw.kind === "exam") return modal({ title: hw.title, body: h("div", {},
+    h("div", { class: "row", style: { justifyContent: "center", gap: "20px" } }, gradeChip(g, "big"), h("div", {}, h("div", { class: "muted small" }, t("yourScore")), h("div", { style: { fontSize: "28px", fontWeight: 900 } }, `${s.correct}/${s.total}`))),
+    s.flag ? h("p", { class: "exam-note bad" }, icon("x"), s.flag === "left_fullscreen" ? (ru ? "Вы вышли из полноэкранного режима — оценка 0." : "You left full screen — grade 0.") : (ru ? "Вы покинули экзамен — оценка 0." : "You left the exam — grade 0.")) : null,
+    s.teacher_comment ? h("div", { class: "panel", style: { marginTop: "14px" } }, h("b", {}, t("teacherComment")), h("p", { style: { margin: "6px 0 0" } }, s.teacher_comment)) : null,
+    h("p", { class: "small muted", style: { marginTop: "14px" } }, ru ? "Правильные ответы экзамена не показываются, чтобы задания оставались честными для всех." : "Exam answers are never shown, so the exam stays fair for everyone.")) });
   modal({ title: hw.title, body: h("div", {},
     h("div", { class: "row", style: { justifyContent: "center", gap: "20px" } }, gradeChip(g, "big"), h("div", {}, h("div", { class: "muted small" }, t("yourScore")), h("div", { style: { fontSize: "28px", fontWeight: 900 } }, `${s.correct}/${s.total} · ${Math.round(s.score)}%`))),
     s.teacher_comment ? h("div", { class: "panel", style: { marginTop: "14px" } }, h("b", {}, t("teacherComment")), h("p", { style: { margin: "6px 0 0" } }, s.teacher_comment)) : null,
@@ -725,6 +731,7 @@ function showSubmission(hw, c) {
 
 async function startHomework(hw, c) {
   if (new Date(hw.due_at) < new Date()) return showSubmission(hw, c);
+  if (hw.kind === "exam") return startExam(hw, c);
   let sets = [];
   if ((hw.set_ids || []).length) {
     const { data, error } = await client.from("question_sets").select("id,title,questions").in("id", hw.set_ids);
@@ -775,6 +782,102 @@ async function startHomework(hw, c) {
     const hw2 = classes.find(x => x.id === c.id)?.homework.find(x => x.id === hw.id);
     if (hw2) showSubmission(hw2, c);
   }
+}
+
+// ── Sealed exams: the questions come from the server without answers, the server marks them ──
+function startExam(hw, c) {
+  const ru = getLang() === "ru";
+  const el = document.documentElement;
+  const canFs = !!(el.requestFullscreen || el.webkitRequestFullscreen);
+  const fs = !!hw.fullscreen;
+  const rules = [
+    ru ? "Во время экзамена нет подсказок и правильных ответов." : "No hints and no correct answers during the exam.",
+    ru ? "Начать можно только один раз. В конце вы увидите оценку." : "You can start only once. You'll see your grade at the end.",
+    fs ? (canFs ? (ru ? "Экзамен идёт на весь экран. Если выйти из полноэкранного режима, переключить вкладку или приложение — экзамен закончится с оценкой 0." : "The exam is full screen. Leaving full screen, switching tab or app, or closing the page ends the exam with a 0.")
+      : (ru ? "Если переключить вкладку или приложение или закрыть страницу — экзамен закончится с оценкой 0." : "Switching tab or app, or closing the page, ends the exam with a 0.")) : null,
+  ].filter(Boolean);
+  modal({ title: hw.title, body: h("div", {}, hw.instructions ? h("p", {}, hw.instructions) : null,
+    h("p", { class: "muted" }, `${hw.question_count} ${ru ? "вопросов" : "questions"}${hw.time_limit_minutes ? ` · ${hw.time_limit_minutes} ${ru ? "мин" : "min"}` : ""}`),
+    h("p", { class: "due-soon" }, `${t("due")}: ${fmtDate(hw.due_at, getLang())}`),
+    h("div", { class: "exam-note" + (fs ? " bad" : "") }, fs ? icon("lock") : icon("clock"), h("ul", {}, rules.map(r => h("li", {}, r))))), actions: [
+    { label: t("cancel"), kind: "ghost" },
+    { label: ru ? "Начать экзамен" : "Start exam", kind: fs ? "danger" : "primary", onClick: () => { go(); } },
+  ] });
+
+  const inFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const exitFs = () => { try { if (inFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch {} };
+  async function go() {
+    // Full screen must be requested straight from the click.
+    let fsReq = null;
+    if (fs && canFs) fsReq = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    try { await fsReq; } catch { toast(ru ? "Разрешите полноэкранный режим, чтобы начать" : "Allow full screen to start the exam", "bad"); return; }
+    const { data: { session } } = await client.auth.getSession();
+    const token = session?.access_token;
+    const { data, error } = await client.rpc("exam_start", { hw: hw.id });
+    if (error) {
+      exitFs();
+      const m = error.message || "";
+      return toast(/exam_not_ready/.test(m) ? (ru ? "Учитель ещё готовит этот экзамен" : "Your teacher is still preparing this exam")
+        : /past_due/.test(m) ? t("late") : errMsg(error), "bad");
+    }
+    if (data.status !== "ok") { exitFs(); await loadClasses(); render(); return examEndedModal(data); }
+    const exercises = data.questions.map((q, i) => ({ ...q, qi: i })).filter(q => !data.answered.includes(q.qi));
+    if (!exercises.length) { const r = await finishExam(null); exitFs(); await loadClasses(); render(); return r && examEndedModal(r); }
+
+    const pending = new Set();
+    function save(i, resp) {
+      const p = (async () => {
+        for (let k = 0; k < 5; k++) {
+          const { error } = await client.rpc("exam_answer", { hw: hw.id, idx: i, resp });
+          if (!error || /time_up|already_submitted|no_attempt/.test(error.message || "")) return;
+          await new Promise(r => setTimeout(r, 700 * (k + 1)));
+        }
+      })();
+      pending.add(p); p.finally(() => pending.delete(p));
+    }
+    let ended = false;
+    async function finishExam(reason) {
+      await Promise.allSettled([...pending]);
+      const { data, error } = await client.rpc("exam_finish", { hw: hw.id, reason });
+      if (error) throw error;
+      return data;
+    }
+    // Leaving the exam: tell the server even if the page is closing.
+    function beacon(reason) {
+      try { fetch(`${SUPABASE_URL}/rest/v1/rpc/exam_finish`, { method: "POST", keepalive: true, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ hw: hw.id, reason }) }); } catch {}
+    }
+    const onFs = () => { if (!inFs()) leave("left_fullscreen"); };
+    const onVis = () => { if (document.visibilityState === "hidden") leave("left_exam"); };
+    const onHide = () => leave("left_exam");
+    function guards(on) {
+      if (!fs) return;
+      const f = on ? "addEventListener" : "removeEventListener";
+      if (canFs) { document[f]("fullscreenchange", onFs); document[f]("webkitfullscreenchange", onFs); }
+      document[f]("visibilitychange", onVis); window[f]("pagehide", onHide);
+    }
+    async function leave(reason) {
+      if (ended) return; ended = true; guards(false);
+      L.abort();
+      beacon(reason);
+      let r = null;
+      for (let k = 0; k < 4 && !r; k++) { try { r = await finishExam(reason); } catch { await new Promise(res => setTimeout(res, 800)); } }
+      exitFs();
+      L.showGrade(r || { grade: 0, correct: 0, total: data.questions.length, flag: reason });
+    }
+    const L = runLesson({ exercises, mode: "exam", sealed: true, timeLimit: data.seconds_left, hearts: null,
+      onAnswer: save,
+      submit: async () => { if (!ended) { ended = true; guards(false); } return finishExam(null); },
+      onDone: async () => { exitFs(); await loadClasses(); render(); },
+      onQuit: () => render() });
+    guards(true);
+  }
+}
+function examEndedModal(r) {
+  const ru = getLang() === "ru";
+  modal({ title: ru ? "Экзамен уже сдан" : "Exam already handed in", body: h("div", { class: "center" },
+    gradeChip(r.grade, "big"),
+    h("p", {}, `${r.correct}/${r.total}`),
+    r.flag ? h("p", { class: "muted" }, ru ? "Экзамен был покинут — оценка 0." : "The exam was left — grade 0.") : null) });
 }
 
 async function leaderboard(c, host) {
