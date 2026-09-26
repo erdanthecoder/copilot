@@ -4,7 +4,7 @@ import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeCh
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
 import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor, sealPaper } from "../assets/js/engine.js";
-import { topicQuestions, topicMeta, toCSV, BANK_VERSION } from "../assets/js/gamebank.js";
+import { topicQuestions, topicMeta, toCSV, playLink, BANK_VERSION } from "../assets/js/gamebank.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
 import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
@@ -662,12 +662,12 @@ function viewWorksheets(main) {
     h("h3", {}, kind === "test" ? "Printable test" : "Worksheet"), h("p", { class: "muted" }, kind === "test" ? "Points per task, total score, grade box (5/4/3/2) and time limit." : "Matching, translation, gap-fill, word order, multiple choice, reading and writing."));
   const games = h("div", { class: "card click ws-card", onClick: () => gamesDialog() },
     h("span", { class: "up-ic", style: { background: "var(--purple)", boxShadow: "0 4px 0 var(--purple-d)" } }, icon("star")),
-    h("h3", {}, "Quiz games · Quoldek"), h("p", { class: "muted" }, "Ready quiz questions from any topic for class games on Quoldek (or Kahoot-style CSV)."));
+    h("h3", {}, "Play it as a game"), h("p", { class: "muted" }, "Turn any topic into a class quiz game in one press — or take the questions as a file."));
   main.append(h("div", { class: "grid" }, make("worksheet"), make("test"), games),
     h("h2", { class: "section-title" }, "Unit tests"), unitExams());
 }
 
-// Questions for quiz games (Quoldek partnership). Same bank as /api/quoldek/v1 on learnkyrgyz.web.app.
+// Questions for quiz games. Same bank as /api/quoldek/v1 on learnkyrgyz.web.app.
 const QUOLDEK = "https://quoldek.web.app";
 const BANK_URL = "https://learnkyrgyz.web.app/api/quoldek/v1";
 function gamesDialog(topicIds = []) {
@@ -684,11 +684,20 @@ function gamesDialog(topicIds = []) {
     const all = qs(); count.textContent = `${all.length} questions`;
     preview.replaceChildren(...all.slice(0, 4).map(q => h("div", { class: "item" }, h("div", { class: "grow" }, h("div", { class: "title" }, q.question[lang]), h("div", { class: "sub" }, q.options[lang].map((o, i) => i === q.answer ? `✓ ${o}` : o).join(" · "))))));
   }
+  function open(mode) {
+    if (!sel.size) { toast("Choose topics first", "bad"); return false; }
+    const link = playLink([...sel], lang, {
+      title: [...sel].map(id => tn(TOPICS[id])).join(" · ").slice(0, 70), mode });
+    if (!link) { toast("These topics have too few words for a game", "bad"); return false; }
+    window.open(link, "_blank", "noopener");
+    return false;
+  }
   const download = (name, text, type) => { const a = h("a", { href: URL.createObjectURL(new Blob([text], { type })), download: name }); document.body.append(a); a.click(); a.remove(); };
   const name = () => sel.size === 1 ? [...sel][0] : `learnkyrgyz-${sel.size}-topics`;
   drawLang(); draw();
-  modal({ title: "Quiz games · Quoldek", wide: true, body: h("div", {},
-    h("p", { class: "muted" }, "LearnKyrgyz and ", h("a", { href: QUOLDEK, target: "_blank", rel: "noopener" }, "Quoldek"), " work together: pick topics and play them as a quiz game with your class. Every question has four options, a time limit and the Kyrgyz word for audio."),
+  modal({ title: "Play it as a game", wide: true, body: h("div", {},
+    h("p", { class: "muted" }, "Pick the topics you have just taught and put them on the board as a quiz game the whole class plays on their phones. ", h("b", {}, "Play it now"), " opens the game with the quiz already written — nothing to download, nothing to upload, and the lesson's own words in it."),
+    h("p", { class: "muted" }, h("b", {}, "Eagle Hunt"), " is the limited edition the two of us made together: one canyon in real 3D, a golden eagle in it for every child, and the bird at the back rides the wind. It is there until the end of December."),
     h("div", { class: "field" }, h("span", {}, "Topics"), summary),
     h("div", { class: "field" }, h("span", {}, "Questions in"), langSeg),
     h("div", { class: "row" }, count, h("span", { class: "muted small" }, " — first questions:")), preview,
@@ -696,7 +705,16 @@ function gamesDialog(topicIds = []) {
     actions: [
       { label: "CSV (Kahoot-style)", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}-${lang}.csv`, toCSV(qs(), lang), "text/csv"); return false; } },
       { label: "Download for Quoldek", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}.json`, JSON.stringify({ name: "LearnKyrgyz question bank", version: BANK_VERSION, source: "https://learnkyrgyz.web.app", language: lang, topics: [...sel].map(id => ({ topic: topicMeta(id), questions: topicQuestions(id) })) }, null, 1), "application/json"); return false; } },
-      { label: "Open Quoldek", kind: "purple", onClick: () => { window.open(QUOLDEK, "_blank", "noopener"); return false; } },
+      /* The one press. The words travel inside the address, so there is no
+          upload, no account to connect and nothing that has to be up — and the
+          teacher lands on a quiz that is already written rather than on a home
+          page with a file in their downloads folder. */
+      /* Two ways to press it, because they are two different lessons. The
+         plain one is the five minutes before the bell. Eagle Hunt is the
+         canyon — a limited edition built for this, and worth naming rather
+         than leaving for a teacher to find in a list. */
+      { label: "Play Eagle Hunt", kind: "ghost", onClick: () => open("eagle") },
+      { label: "Play it now", kind: "purple", onClick: () => open("") },
     ] });
 }
 

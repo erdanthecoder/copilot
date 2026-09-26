@@ -63,9 +63,12 @@
 </section>
 
 <section class="section" id="quoldek">
-  <div class="kicker" style="color:var(--purple-d)">Partner</div>
-  <h2>Play Kyrgyz on Quoldek</h2>
-  <p class="muted" style="max-width:680px">LearnKyrgyz and <a href="https://quoldek.web.app" target="_blank" rel="noopener">Quoldek</a> work together: every LearnKyrgyz topic is a ready quiz game, with four options, a timer and the Kyrgyz word for audio. Teachers can export any topic from the teacher app (Worksheets &amp; tests → Quiz games). Game makers can use the open question bank, which is JSON with open CORS:</p>
+  <div class="kicker" style="color:var(--purple-d)">LearnKyrgyz × Quoldek</div>
+  <h2>The first collaboration</h2>
+  <p class="muted" style="max-width:720px">Two apps that had never worked on the same thing now do. A lesson here becomes a game on <a href="https://quoldek.web.app" target="_blank" rel="noopener">Quoldek</a> in one press — the words your class has just met, asked both ways round, on the board while they are still in the room. Nothing is uploaded and nothing has to be signed up for: the whole quiz travels inside the link.</p>
+  <!-- The strip plays the same animation Quoldek plays, from the same file. -->
+  <canvas id="duet" style="display:block;width:100%;max-width:720px;height:clamp(200px,32vw,280px);border-radius:18px;background:#100C22;margin:18px 0"></canvas>
+  <p class="muted" style="max-width:720px"><b>Eagle Hunt</b> is the limited edition we built for it: one canyon in real 3D, a golden eagle in it for every child in the room, and every right answer is a beat of its wings. The bird at the back rides the wind, so nobody is out of it. It is in the game until the end of December.</p>
   <div class="row wrap" style="gap:10px">
     <a class="btn purple" href="https://quoldek.web.app" target="_blank" rel="noopener">Open Quoldek</a>
     <a class="btn ghost" href="api/quoldek/v1/index.json" target="_blank" rel="noopener">Question bank · index.json</a>
@@ -79,6 +82,9 @@
 <script type="module">
 import { SITES } from "./assets/js/config.js";
 import { h, icon, mascot, mountains, ornamentUrl } from "./assets/js/ui.js";
+/* Imported for what it does, not what it returns: the same file Quoldek plays,
+   so both sites show the same thing rather than two takes on it. */
+import "./assets/js/duet.js";
 import { UNITS, TOPICS, TOPIC_ORDER } from "./assets/js/curriculum.js";
 for (const id of ["go-student", "student-top"]) document.getElementById(id).href = SITES.student;
 for (const id of ["go-teacher", "teacher-top"]) document.getElementById(id).href = SITES.teacher;
@@ -117,8 +123,32 @@ const new20 = [
   ["speaker", "var(--blue)", "Real Kyrgyz pronunciation", "A built-in Kyrgyz voice gets the deep к and г, ң, ө, ү, ы, long vowels and stress right, on every device."],
   ["lock", "var(--red)", "Sealed & full-screen exams", "Every student gets their own paper, answers never leave the server, and leaving full screen means a 0."],
   ["chat", "var(--purple-d)", "Better dialogues", "16 proofread dialogues with role-play: you speak one part, the app plays the other."],
-  ["star", "var(--orange)", "Quiz games with Quoldek", "2,400+ ready questions across 99 topics, for class games on Quoldek."],
+  ["star", "var(--orange)", "A lesson becomes a game", "One press puts the words you have just taught on the board as a quiz on Quoldek."],
+  ["flag", "var(--purple-d)", "Eagle Hunt · limited edition", "A canyon in real 3D with a bird in it for everyone. Here until the end of December."],
 ];
+/* The two marks meeting. If it cannot run — an old browser, a canvas that will
+   not start — the strip takes itself out and the section reads as prose. */
+(() => {
+  const stage = document.getElementById("duet");
+  if (!stage) return;
+  if (!window.NovaDuet) { stage.remove(); return; }
+  const go = () => {
+    try { window.NovaDuet.play(stage, { dark: true, line: "The first collaboration" }); }
+    catch { stage.remove(); }
+  };
+  /* Only once it is actually on screen. A celebration that plays to an empty
+     room while somebody is reading the top of the page has been wasted. */
+  if (!window.IntersectionObserver) { go(); return; }
+  const watch = new IntersectionObserver((rows) => {
+    for (const row of rows) {
+      if (!row.isIntersecting) continue;
+      watch.disconnect();
+      go();
+    }
+  }, { threshold: 0.4 });
+  watch.observe(stage);
+})();
+
 document.getElementById("new20").append(...new20.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
 document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
 

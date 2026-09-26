@@ -4,6 +4,7 @@ import { h, $, icon, mascot, toast, modal, confetti, sound, fmtDate, relTime, gr
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
 import { buildLesson, buildExam, buildReview, srsUpdate, srsDue, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
+import { playLink } from "../assets/js/gamebank.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
@@ -550,10 +551,21 @@ function viewPractice(main) {
   draw();
   unitTests(main);
   const ru = getLang() === "ru";
-  main.append(h("a", { class: "card click quoldek-card", href: "https://quoldek.web.app", target: "_blank", rel: "noopener" },
+  /* Your own words, as a game you can play with somebody. The link carries the
+     words of the topics you have actually finished, so it is a game about this
+     week rather than a game about the whole course — and it is the same link
+     whether you send it to a friend or open it yourself. */
+  const mine = learned.length ? learned.slice(-6) : TOPIC_ORDER.slice(0, 2);
+  const gameAt = playLink(mine, getLang(), {
+    title: (ru ? "Мои слова" : "My words") + " · LearnKyrgyz" }) || "https://quoldek.web.app";
+  main.append(h("a", { class: "card click quoldek-card", href: gameAt, target: "_blank", rel: "noopener" },
     h("span", { class: "up-ic" }, icon("star")),
-    h("div", { class: "grow" }, h("h3", { style: { margin: 0 } }, ru ? "Играйте в кыргызский на Quoldek" : "Play Kyrgyz on Quoldek"),
-      h("p", { class: "muted", style: { margin: "4px 0 0" } }, ru ? "Наш партнёр: викторины с друзьями по всем темам LearnKyrgyz." : "Our partner: quiz games with friends on every LearnKyrgyz topic.")),
+    h("div", { class: "grow" }, h("h3", { style: { margin: 0 } }, ru ? "Сыграйте своими словами" : "Play with your own words"),
+      h("p", { class: "muted", style: { margin: "4px 0 0" } }, learned.length
+        ? (ru ? "Викторина из слов тем, которые вы прошли — играйте с друзьями на Quoldek."
+              : "A quiz made of the words from the topics you have finished — play it with friends on Quoldek.")
+        : (ru ? "Пройдите первую тему, и здесь появится игра из ваших слов."
+              : "Finish your first topic and a game of your own words appears here."))),
     icon("right")));
   main.append(h("h2", { class: "section-title" }, `${t("words")} (${words.length})`), q, h("div", { style: { height: "12px" } }), list);
 }

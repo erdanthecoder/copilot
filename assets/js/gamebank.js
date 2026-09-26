@@ -85,3 +85,62 @@ export function toCSV(questions, lang = "en") {
   for (const q of questions) { const o = q.options[lang]; rows.push([q.question[lang], o[0], o[1], o[2] ?? "", o[3] ?? "", q.time_limit, q.answer + 1]); }
   return "﻿" + rows.map(r => r.map(esc).join(",")).join("\n");
 }
+
+/* ── handing a lesson straight to a quiz game ─────────────
+ *
+ * The export above gives a teacher a file. A file is fine, and it is also four
+ * steps: download it, find it, open the other thing, upload it. The lesson
+ * finished thirty seconds ago and the class is still sitting there.
+ *
+ * So there is also a link. The words a topic has just taught go into the
+ * address itself — nothing is uploaded, no server here speaks to a server
+ * there, and there is nothing that has to be up for it to work. It survives
+ * being pasted into a chat, written on a worksheet or turned into a QR code on
+ * a wall, which a file does not.
+ *
+ * Only the words go, not the finished questions. That is deliberate: a quiz
+ * game knows how it likes to ask things, how long to give, and how many
+ * options fit on a phone. Handing it the vocabulary and letting it write the
+ * questions gives a better game than handing it ours and asking it to display
+ * them.
+ */
+const GAME_AT = "https://quoldek.web.app/start";
+
+/* The separators the address itself uses. A word containing one of them would
+   split a pair in half at the other end, so those few are left out rather than
+   sent to arrive as nonsense. */
+const SAFE = (s) => !/[,;:\n|]/.test(s);
+
+/** A topic's vocabulary as ky→meaning pairs, ready to travel. */
+export function topicPairs(ids, lang = "en", limit = 48) {
+  const out = [], seen = new Set();
+  for (const id of ids) {
+    const t = TOPICS[id]; if (!t) continue;
+    for (const w of t.words) {
+      const ky = first(w[0]).trim();
+      const mean = first(lang === "ru" ? w[2] : w[1]).trim();
+      if (!ky || !mean || seen.has(ky)) continue;
+      if (!SAFE(ky) || !SAFE(mean)) continue;
+      seen.add(ky);
+      out.push([ky, mean]);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
+}
+
+/** The address that opens those words as a game, or "" if there are too few. */
+export function playLink(ids, lang = "en", { title = "", count = 0, mode = "" } = {}) {
+  const pairs = topicPairs(ids, lang);
+  // below four words every wrong answer is obvious, and the game says so too
+  if (pairs.length < 4) return "";
+  const p = new URLSearchParams();
+  p.set("from", "learnkyrgyz");
+  if (title) p.set("title", title);
+  // which game to open it in, when the link already knows — one fewer question
+  // asked of somebody who has already decided
+  if (mode) p.set("mode", mode);
+  p.set("n", String(Math.min(30, Math.max(6, count || pairs.length))));
+  p.set("pairs", pairs.map(([a, b]) => `${a}:${b}`).join(","));
+  return `${GAME_AT}?${p.toString()}`;
+}

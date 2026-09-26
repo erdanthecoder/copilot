@@ -768,6 +768,11 @@ body { letter-spacing: .1px; }
 /* 2.0: version badge + what's new */
 .version-badge { margin-left: 6px; font: 800 11px/1 var(--font, inherit); padding: 4px 7px; border-radius: 999px; border: 0; background: var(--yellow); color: #5a4300; cursor: pointer; letter-spacing: .3px; vertical-align: middle; }
 .brand.teacher .version-badge { background: var(--purple); color: #fff; }
+/* The two marks meeting, above the notes. A band rather than a square: what
+   it draws is two things coming in from the sides, and a tall box would spend
+   most of its height on sky. */
+.whats-new .wn-duet { display: block; width: 100%; height: clamp(190px, 30vw, 260px);
+  border-radius: 16px; background: #100C22; margin-bottom: 14px; }
 .whats-new .wn-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
 .whats-new .wn-head h2 { margin: 2px 0; }
 .wn-kicker { font-size: 12px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: var(--green-d); }
