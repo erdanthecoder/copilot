@@ -399,3 +399,6 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 .hero, #app > section, main { overflow-x: clip; }
 .stage { margin-inline: -20px; }
 @media (max-width: 960px) { .stage { margin-top: -10px; } }
+
+.host { font-size: 12px; color: var(--ink-3); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 2px; }
+@media (max-width: 440px) { .nav .btn.ghost[href="#signin"] { display: none; } .top-in { gap: 10px; } }

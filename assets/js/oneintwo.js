@@ -41,6 +41,6 @@ export function hubNote(ru) {
   return h("a", { class: "card click oit-note", href: HUB, target: "_blank", rel: "noopener" },
     wsMark(34),
     h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — The4Workspace" : "One account — The4Workspace"),
-      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и AkylduuKodo." : "The same account opens Quoldek, Kadam and AkylduuKodo.")),
+      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и CompactCoding." : "The same account opens Quoldek, Kadam and CompactCoding.")),
     icon("right"));
 }

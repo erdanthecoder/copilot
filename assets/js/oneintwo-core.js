@@ -1,4 +1,4 @@
-// The4Workspace (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and AkylduuKodo.
+// The4Workspace (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
 //
 // The account is the LearnKyrgyz (Supabase) account. the4workspace.web.app signs people in;
 // opening another app hands the session over in the URL fragment (#oit=…), which never
@@ -11,7 +11,7 @@ export const APPS = [
   { id: "learnkyrgyz", name: "LearnKyrgyz", url: "https://studentlrnkyrgyz.web.app/", teacherUrl: "https://teachlrnkyrgyz.web.app/", color: "#58cc02", sso: true },
   { id: "quoldek", name: "Quoldek", url: "https://quoldek.web.app/", color: "#7c5cff", sso: true },
   { id: "kadam", name: "Kadam", url: "https://kadam.web.app/", color: "#0f9d58", sso: true },
-  { id: "akylduukodo", name: "AkylduuKodo", url: "https://compactcoding.web.app/", color: "#1cb0f6", sso: true },
+  { id: "akylduukodo", name: "CompactCoding", url: "https://compactcoding.web.app/", color: "#1cb0f6", sso: true },
 ];
 const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };

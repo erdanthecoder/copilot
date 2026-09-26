@@ -1,4 +1,4 @@
-// The4Workspace hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and AkylduuKodo all open signed in.
+// The4Workspace hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and CompactCoding all open signed in.
 import { sb } from "../assets/js/config.js";
 import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } from "../assets/js/google.js";
 import { handoffUrl, isTrusted, acceptHandoff } from "../assets/js/oneintwo-core.js";
@@ -78,12 +78,12 @@ const INFO = {
       "Opened from The4Workspace, Kadam signs you in with this same account."],
   },
   akylduukodo: {
-    name: "AkylduuKodo", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://compactcoding.web.app/",
+    name: "CompactCoding", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://compactcoding.web.app/",
     points: ["Real JavaScript through short, clear lessons", "Guided practice, drills and a Code Lab", "A weekly study goal to keep you going"],
     how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
       "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",
       "A weekly goal keeps you going, and progress saves to your account.",
-      "Opened from The4Workspace, AkylduuKodo signs you in with this same account."],
+      "Opened from The4Workspace, CompactCoding signs you in with this same account."],
   },
 };
 const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo"];
@@ -185,7 +185,7 @@ function drawFoot() {
   foot.replaceChildren(
     h("div", { class: "foot-in" },
       h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "The4Workspace")),
-        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and AkylduuKodo. Sign in once, then every app opens signed in.")),
+        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding. Sign in once, then every app opens signed in.")),
       h("div", {}, h("h4", {}, "Apps"), ORDER.map(id => h("a", { href: INFO[id].url, target: "_blank", rel: "noopener" }, INFO[id].name))),
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
@@ -259,11 +259,11 @@ function landing() {
       h("div", {},
         h("span", { class: "pill rise" }, h("b", {}, "New"), "Every app now signs you in automatically"),
         h("h1", { "aria-label": "One account for all four apps." }, words("One account for"), words("all four apps.", 3, "grad")),
-        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and AkylduuKodo open already signed in: no second password, no downloads."),
+        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and CompactCoding open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
-        h("div", { class: "trust rise", style: { "--d": 4 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · AkylduuKodo"))),
+        h("div", { class: "trust rise", style: { "--d": 4 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding"))),
       stage()),
 
     h("div", { class: "strip reveal" }, [["4", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
@@ -308,7 +308,7 @@ function landing() {
       h("div", { class: "checks card reveal" },
         checkItem("lock", "Your password stays here", "Apps receive a sign-in token, never your password."),
         checkItem("eye", "Never sent in the open", "The hand-off travels in the part of the link that browsers don't send to servers, and each app removes it at once."),
-        checkItem("link", "Only our four apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam and AkylduuKodo."),
+        checkItem("link", "Only our four apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam and CompactCoding."),
         checkItem("shield", "Your data is yours", "Each account can read and change only its own data."))),
 
     h("section", { id: "bridge", style: { "padding-top": 0 } },
@@ -328,7 +328,7 @@ function landing() {
       h("div", { class: "faq reveal" },
         q("Is it free?", "Yes. Creating an account and using all four apps is free."),
         q("I already have a LearnKyrgyz account.", "Then you already have a The4Workspace account. Sign in with the same email or Google account."),
-        q("Do I still need separate accounts for Kadam or AkylduuKodo?", "No. Open them from The4Workspace and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
+        q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from The4Workspace and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
         q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."))),
 
@@ -356,7 +356,7 @@ function fitFlow() {
 function appCard(id, k) {
   const a = INFO[id];
   return tilt(h("div", { class: "app card reveal", style: { "--c1": a.c1, "--c2": a.c2, "--d": k } },
-    h("div", { class: "app-head" }, tile(id), h("div", {}, h("h3", {}, a.name), h("div", { class: "tag" }, a.tag))),
+    h("div", { class: "app-head" }, tile(id), h("div", {}, h("h3", {}, a.name), h("div", { class: "tag" }, a.tag), h("div", { class: "host" }, new URL(a.url).host))),
     h("ul", {}, a.points.map(p => h("li", {}, p))),
     h("div", { class: "foot-row" },
       h("a", { class: "open", href: session ? "#" : "#signup", onClick: session ? (e) => { e.preventDefault(); portal(urlFor(id), id); } : null }, session ? `Open ${a.name}` : "Get started", arrow()),
@@ -408,7 +408,7 @@ function authView(mode) {
     h("div", { class: "auth-art" },
       h("span", { class: "eyebrow rise" }, mark(), "The4Workspace account"),
       h("h1", { class: "rise", style: { "--d": 1 } }, signup ? "One account for every app." : "Welcome back."),
-      h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and AkylduuKodo open with it already signed in."),
+      h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and CompactCoding open with it already signed in."),
       h("div", { class: "rise", style: { "--d": 3 } }, consoleCard({ animate: true }))),
     h("div", { class: "auth card rise" },
       target ? h("div", { class: "return-banner" }, tile(target, "sm"), h("span", {}, `Sign in to continue to ${INFO[target].name}`)) : null,
@@ -418,7 +418,7 @@ function authView(mode) {
         h("button", { type: "button", class: signup ? "" : "on", onClick: () => { location.hash = "signin"; } }, "Sign in"),
         h("button", { type: "button", class: signup ? "on" : "", onClick: () => { location.hash = "signup"; } }, "Create account")),
       err, google, or, form,
-      h("p", { class: "legal" }, "One account for LearnKyrgyz, Quoldek, Kadam and AkylduuKodo."))));
+      h("p", { class: "legal" }, "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding."))));
   if (matchMedia("(pointer: fine)").matches) later(() => (signup ? name : email).focus(), 60);
 }
 
@@ -446,7 +446,7 @@ function dashboard() {
 
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "4 of 4 connected")),
     h("div", { class: "launch" }, ORDER.map((id, k) => tilt(h("div", { class: "item card reveal", style: { "--c1": INFO[id].c1, "--d": k } },
-      h("div", { class: "row" }, tile(id, "lg"), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "tag" }, INFO[id].tag))),
+      h("div", { class: "row" }, tile(id, "lg"), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "tag" }, INFO[id].tag), h("div", { class: "host" }, new URL(INFO[id].url).host))),
       h("span", { class: "badge", style: { "margin-left": 0, "justify-self": "start" } }, "Opens signed in"),
       h("button", { class: "btn ghost block", onClick: () => portal(urlFor(id), id) }, `Open ${INFO[id].name}`, arrow()))))),
 
@@ -469,7 +469,7 @@ function dashboard() {
       h("details", { class: "card" }, h("summary", {}, mark(), "How one account works"),
         h("ol", {}, h("li", {}, "Your The4Workspace account is your LearnKyrgyz account: the same email, password or Google."),
           h("li", {}, "When you open an app from here, your sign-in goes with you in the part of the link that browsers don't send to servers, and the app removes it straight away."),
-          h("li", {}, "Kadam and AkylduuKodo swap it for their own sign-in, so you arrive signed in there too."),
+          h("li", {}, "Kadam and CompactCoding swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
   reveal(app);
 }
