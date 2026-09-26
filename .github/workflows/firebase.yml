@@ -41,11 +41,11 @@ jobs:
               && echo "Site $site exists" \
               || firebase hosting:sites:create "$site" --project "$PROJECT" --non-interactive
           done
-          # oneinfour.web.app (the one-account hub) and oneintwo.web.app (its old address,
-          # which now forwards there). Site names are global, so each is allowed to fail
+          # the4workspace.web.app (the one-account hub), plus oneintwo.web.app and
+          # oneinfour.web.app (its old addresses, which now forward there). Site names are global, so each is allowed to fail
           # without stopping the LearnKyrgyz deploy.
           ONLY="hosting:home,hosting:student,hosting:teacher"
-          for pair in hub:oneinfour oldhub:oneintwo; do
+          for pair in hub:the4workspace oldhub:oneintwo oldhub2:oneinfour; do
             target="${pair%%:*}"; site="${pair#*:}"
             if firebase hosting:sites:get "$site" --project "$PROJECT" >/dev/null 2>&1 \
                || firebase hosting:sites:create "$site" --project "$PROJECT" --non-interactive; then
@@ -66,10 +66,12 @@ jobs:
           firebase target:clear hosting teacher --project "$PROJECT" >/dev/null 2>&1 || true
           firebase target:clear hosting hub --project "$PROJECT" >/dev/null 2>&1 || true
           firebase target:clear hosting oldhub --project "$PROJECT" >/dev/null 2>&1 || true
+          firebase target:clear hosting oldhub2 --project "$PROJECT" >/dev/null 2>&1 || true
           firebase target:apply hosting home learnkyrgyz --project "$PROJECT"
           firebase target:apply hosting student studentlrnkyrgyz --project "$PROJECT"
           firebase target:apply hosting teacher teachlrnkyrgyz --project "$PROJECT"
-          case "$ONLY" in *hosting:hub*) firebase target:apply hosting hub oneinfour --project "$PROJECT" ;; esac
-          case "$ONLY" in *oldhub*) firebase target:apply hosting oldhub oneintwo --project "$PROJECT" ;; esac
+          case "$ONLY" in *hosting:hub*) firebase target:apply hosting hub the4workspace --project "$PROJECT" ;; esac
+          case "$ONLY" in *hosting:oldhub,*|*hosting:oldhub) firebase target:apply hosting oldhub oneintwo --project "$PROJECT" ;; esac
+          case "$ONLY" in *oldhub2*) firebase target:apply hosting oldhub2 oneinfour --project "$PROJECT" ;; esac
           firebase deploy --only "$ONLY" --project "$PROJECT" --non-interactive
           rm -f "$RUNNER_TEMP/sa.json"

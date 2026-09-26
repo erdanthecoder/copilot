@@ -6,7 +6,7 @@ import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.j
 import { buildLesson, buildExam, buildReview, srsUpdate, srsDue, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
-import { acceptHandoff, handoffUrl, flyTo, hubNote, HUB, QUOLDEK } from "../assets/js/oneintwo.js";
+import { acceptHandoff, handoffUrl, flyTo, hubNote, HUB, QUOLDEK, wsMark, workspaceButton } from "../assets/js/oneintwo.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { voice } from "../assets/js/speech.js";
 import { DIALOGUES, LISTEN_GOAL, openDialogue, dialogueExplainer } from "../assets/js/dialogues.js";
@@ -127,7 +127,7 @@ function checkAchievements() {
 async function boot() {
   setLang(getLang());
   applyTheme();
-  await acceptHandoff(client); // arriving from oneinfour.web.app or another app, already signed in
+  await acceptHandoff(client); // arriving from the4workspace.web.app or another app, already signed in
   const { data } = await client.auth.getSession();
   if (data.session) return signedIn(data.session.user);
   try { if (localStorage.getItem("lk.guestMode") === "1") return startGuest(); } catch {}
@@ -147,7 +147,7 @@ function renderAuth(mode = "welcome", msg = null) {
         googleBlock({ role: "student", learnFrom: getLang, label: getLang() === "ru" ? "Продолжить с Google" : "Continue with Google", orLabel: getLang() === "ru" ? "или" : "or", onSignedIn: async (u) => { await migrateGuest(u); signedIn(u); }, onError: (e) => toast(errMsg(e), "bad") }),
         h("button", { class: "btn primary block", onClick: () => renderAuth("signup") }, t("signUp")),
         h("button", { class: "btn ghost block", onClick: () => renderAuth("signin") }, t("signIn")),
-        h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?return=${encodeURIComponent(location.origin + location.pathname)}` }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), getLang() === "ru" ? "Войти через OneInFour" : "Sign in with OneInFour"),
+        h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?return=${encodeURIComponent(location.origin + location.pathname)}` }, wsMark(22), getLang() === "ru" ? "Войти через The4Workspace" : "Sign in with The4Workspace"),
         h("button", { class: "link-btn", onClick: startGuest }, t("guest")))];
   } else {
     const signup = mode === "signup";
@@ -296,6 +296,7 @@ function render() {
   app.replaceChildren(h("div", { class: "shell student-app" },
     h("nav", { class: "side" }, brandEl(),
       nav.map(([id, ic, label]) => h("button", { class: "nav-btn" + (view === id ? " on" : ""), onClick: () => { view = id; render(); } }, icon(ic), h("span", { class: "lbl" }, label))),
+      workspaceButton(client),
       h("div", { class: "spacer" }),
       h("div", { class: "side-foot small muted", style: { padding: "0 10px" } }, getLang() === "ru" ? "Нашли ошибку в кыргызском? " : "Spotted a mistake in the Kyrgyz? ", h("button", { class: "link-btn small", onClick: () => reportDialog(null) }, t("report")))),
     main));

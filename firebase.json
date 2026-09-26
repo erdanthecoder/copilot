@@ -94,8 +94,19 @@
       "public": "dist/oldhub",
       "redirects": [
         {
-          "source": "**",
-          "destination": "https://oneinfour.web.app",
+          "source": "/:path*",
+          "destination": "https://the4workspace.web.app/:path*",
+          "type": 301
+        }
+      ]
+    },
+    {
+      "target": "oldhub2",
+      "public": "dist/oldhub",
+      "redirects": [
+        {
+          "source": "/:path*",
+          "destination": "https://the4workspace.web.app/:path*",
           "type": 301
         }
       ]

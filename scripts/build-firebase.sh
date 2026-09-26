@@ -19,10 +19,10 @@ for app in student teacher; do
   sed 's#\.\./assets/#assets/#g' "$app/index.html" > "dist/$app/index.html"
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
-# oneinfour.web.app — the one-account hub (oneintwo.web.app forwards to it)
+# the4workspace.web.app — the one-account hub (oneintwo and oneinfour forward to it)
 cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg "dist/hub/"
 for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
-printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://oneinfour.web.app/">\n' > dist/oldhub/index.html
+printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://the4workspace.web.app/">\n' > dist/oldhub/index.html
 echo "Built dist/{home,student,teacher,hub,oldhub}"

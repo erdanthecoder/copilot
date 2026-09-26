@@ -1,7 +1,19 @@
 // Shared-account helpers with UI (flying hand-off, notes). Core logic: oneintwo-core.js
 import { h, icon, mascot } from "./ui.js";
 export * from "./oneintwo-core.js";
-import { HUB } from "./oneintwo-core.js";
+import { HUB, handoffUrl } from "./oneintwo-core.js";
+
+const WS_ICON = new URL("../img/the4workspace.svg", import.meta.url).href;
+export const wsMark = (size = 24) => h("img", { class: "ws-mark", src: WS_ICON, alt: "", width: size, height: size });
+
+// A button that takes you to The4Workspace (the one-account hub), signed in.
+export function workspaceButton(client, { cls = "nav-btn ws-btn", label = "The4Workspace" } = {}) {
+  return h("a", { class: cls, href: HUB + "/", title: "The4Workspace: all four apps, one account", onClick: async (e) => {
+    e.preventDefault();
+    let session = null; try { session = (await client.auth.getSession()).data.session; } catch {}
+    location.href = handoffUrl(HUB + "/", session);
+  } }, wsMark(24), h("span", { class: "lbl" }, label));
+}
 
 // Leave for another app with a short "portal" animation. Opens a tab straight from the
 // click (so it is never blocked), then points it at the app when the animation ends.
@@ -27,8 +39,8 @@ export function flyTo(url, { from = "LearnKyrgyz", to = "Quoldek", label = "", c
 // Card that explains the shared account inside an app.
 export function hubNote(ru) {
   return h("a", { class: "card click oit-note", href: HUB, target: "_blank", rel: "noopener" },
-    h("span", { class: "oit-rings" }, h("i"), h("i")),
-    h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — OneInFour" : "One account — OneInFour"),
+    wsMark(34),
+    h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — The4Workspace" : "One account — The4Workspace"),
       h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и AkylduuKodo." : "The same account opens Quoldek, Kadam and AkylduuKodo.")),
     icon("right"));
 }

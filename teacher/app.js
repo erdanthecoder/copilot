@@ -6,7 +6,7 @@ import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../ass
 import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor, sealPaper } from "../assets/js/engine.js";
 import { topicQuestions } from "../assets/js/gamebank.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
-import { acceptHandoff, handoffUrl, flyTo, HUB } from "../assets/js/oneintwo.js";
+import { acceptHandoff, handoffUrl, flyTo, HUB, wsMark, workspaceButton } from "../assets/js/oneintwo.js";
 import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
@@ -59,7 +59,7 @@ function renderAuth(mode, msg) {
       } catch (ex) { err.textContent = errMsg(ex); err.classList.remove("hidden"); btn.disabled = false; }
     } }, msg ? h("div", { class: "auth-ok" }, msg) : null, err,
       googleBlock({ role: "teacher", learnFrom: getLang, onSignedIn: (u) => signedIn(u), onError: (e) => { err.textContent = errMsg(e); err.classList.remove("hidden"); } }),
-      h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?as=teacher&return=${encodeURIComponent(location.origin + location.pathname)}`, style: { marginBottom: "12px" } }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), "Sign in with OneInFour"),
+      h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?as=teacher&return=${encodeURIComponent(location.origin + location.pathname)}`, style: { marginBottom: "12px" } }, wsMark(22), "Sign in with The4Workspace"),
       signup ? h("label", { class: "field" }, h("span", {}, "Name students will see"), name) : null,
       h("label", { class: "field" }, h("span", {}, t("email")), email),
       h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),
@@ -95,6 +95,7 @@ function render() {
   app.replaceChildren(h("div", { class: "shell teacher-app" },
     h("nav", { class: "side" }, brandEl(),
       nav.map(([id, ic, label]) => h("button", { class: "nav-btn" + (view === id ? " on" : ""), onClick: () => { view = id; if (id === "classes") currentClass = null; render(); } }, icon(ic), h("span", { class: "lbl" }, label))),
+      workspaceButton(client),
       h("div", { class: "spacer" }), h("div", { class: "side-foot row", style: { padding: "0 8px" } }, avatar(profile.full_name, "#a560e8", 32), h("span", { class: "small" }, profile.full_name))),
     main));
   ({ classes: currentClass ? viewClass : viewClasses, topics: viewTopics, worksheets: viewWorksheets, questions: viewQuestions, slides: viewSlides, account: viewAccount })[view](main);

@@ -1,7 +1,7 @@
-// OneInFour hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and AkylduuKodo all open signed in.
+// The4Workspace hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and AkylduuKodo all open signed in.
 import { sb } from "../assets/js/config.js";
 import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } from "../assets/js/google.js";
-import { handoffUrl, isTrusted } from "../assets/js/oneintwo-core.js";
+import { handoffUrl, isTrusted, acceptHandoff } from "../assets/js/oneintwo-core.js";
 import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 const client = sb();
@@ -75,7 +75,7 @@ const INFO = {
     how: ["Eight tools for getting into university, all behind the nine-dot launcher: Notes, Sheets, Slides, Canvas, Tasks, UniSave, AI and Languages.",
       "Templates for university comparison tables, essay outlines, scholarship and deadline trackers.",
       "Everything syncs privately to your account, and you choose who can open it.",
-      "Opened from OneInFour, Kadam signs you in with this same account."],
+      "Opened from The4Workspace, Kadam signs you in with this same account."],
   },
   akylduukodo: {
     name: "AkylduuKodo", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://akylduukodo.web.app/",
@@ -83,7 +83,7 @@ const INFO = {
     how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
       "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",
       "A weekly goal keeps you going, and progress saves to your account.",
-      "Opened from OneInFour, AkylduuKodo signs you in with this same account."],
+      "Opened from The4Workspace, AkylduuKodo signs you in with this same account."],
   },
 };
 const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo"];
@@ -184,13 +184,13 @@ function goLanding(e) {
 function drawFoot() {
   foot.replaceChildren(
     h("div", { class: "foot-in" },
-      h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "OneInFour")),
+      h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "The4Workspace")),
         h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and AkylduuKodo. Sign in once, then every app opens signed in.")),
       h("div", {}, h("h4", {}, "Apps"), ORDER.map(id => h("a", { href: INFO[id].url, target: "_blank", rel: "noopener" }, INFO[id].name))),
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
         : [h("a", { href: "#signin" }, "Sign in"), h("a", { href: "#signup" }, "Create account")])),
-    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} OneInFour`), h("span", {}, "Made for learners and teachers in Kyrgyzstan")));
+    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} The4Workspace`), h("span", {}, "Made for learners and teachers in Kyrgyzstan")));
 }
 
 // ── the console preview: one account, four apps connecting one after another ──
@@ -201,7 +201,7 @@ function consoleCard({ animate = true, name = "Aigerim Asanova", email = "aigeri
   });
   const bar = h("i"), count = h("span", {}, "0 of 4 signed in");
   const el = h("div", { class: "console", "aria-hidden": "true" },
-    h("div", { class: "chrome" }, h("i"), h("i"), h("i"), h("span", {}, "oneinfour.web.app")),
+    h("div", { class: "chrome" }, h("i"), h("i"), h("i"), h("span", {}, "the4workspace.web.app")),
     h("div", { class: "console-body" },
       h("div", { class: "acct" }, h("span", { class: "avatar" }, initials(name)), h("div", {}, h("b", {}, name), h("span", {}, email)), h("span", { class: "badge" }, "One account")),
       h("div", { class: "apps-list" }, rows.map(r => r.el)),
@@ -270,17 +270,17 @@ function landing() {
 
     h("section", { id: "product" },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Single sign-on"), h("h2", { class: "h2 reveal" }, "One sign-in. Every app."),
-        h("p", { class: "lead reveal" }, "Your OneInFour account is the key. Open any of the four apps from here and it arrives signed in as you.")),
+        h("p", { class: "lead reveal" }, "Your The4Workspace account is the key. Open any of the four apps from here and it arrives signed in as you.")),
       h("div", { class: "doors reveal" },
         h("div", { class: "door-svg", html: '<svg viewBox="0 0 1000 380" preserveAspectRatio="none" aria-hidden="true">' + ORDER.map((id, k) => {
           const x = 125 + k * 250, d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
           return `<path class="dline" style="--c:${INFO[id].c1};--k:${k}" d="${d}"/>` + (reduce ? "" : `<circle class="dpulse" style="--c:${INFO[id].c1}" r="4"><animateMotion dur="2.6s" begin="${k * .4}s" repeatCount="indefinite" path="${d}"/></circle>`);
         }).join("") + "</svg>" }),
-        h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your OneInFour account"), h("span", {}, "Google or email"))),
+        h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your The4Workspace account"), h("span", {}, "Google or email"))),
         h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door card", style: { "--k": k, "--c1": INFO[id].c1 } }, tile(id, "lg"), h("b", {}, INFO[id].name), h("span", { class: "badge" }, "Opens signed in")))))),
 
     h("section", { id: "features", style: { "padding-top": 0 } },
-      h("span", { class: "eyebrow reveal" }, "Why OneInFour"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
+      h("span", { class: "eyebrow reveal" }, "Why The4Workspace"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
       h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the four apps, behind one account."),
       h("div", { class: "features" },
         feature("key", "One account", "One email and password, or one Google account, for all four apps.", 0),
@@ -327,8 +327,8 @@ function landing() {
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "FAQ"), h("h2", { class: "h2 reveal" }, "Questions, answered")),
       h("div", { class: "faq reveal" },
         q("Is it free?", "Yes. Creating an account and using all four apps is free."),
-        q("I already have a LearnKyrgyz account.", "Then you already have a OneInFour account. Sign in with the same email or Google account."),
-        q("Do I still need separate accounts for Kadam or AkylduuKodo?", "No. Open them from OneInFour and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
+        q("I already have a LearnKyrgyz account.", "Then you already have a The4Workspace account. Sign in with the same email or Google account."),
+        q("Do I still need separate accounts for Kadam or AkylduuKodo?", "No. Open them from The4Workspace and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
         q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."))),
 
@@ -406,13 +406,13 @@ function authView(mode) {
   const target = returnTo && appFor(returnTo);
   app.replaceChildren(h("div", { class: "auth-wrap" },
     h("div", { class: "auth-art" },
-      h("span", { class: "eyebrow rise" }, mark(), "OneInFour account"),
+      h("span", { class: "eyebrow rise" }, mark(), "The4Workspace account"),
       h("h1", { class: "rise", style: { "--d": 1 } }, signup ? "One account for every app." : "Welcome back."),
       h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and AkylduuKodo open with it already signed in."),
       h("div", { class: "rise", style: { "--d": 3 } }, consoleCard({ animate: true }))),
     h("div", { class: "auth card rise" },
       target ? h("div", { class: "return-banner" }, tile(target, "sm"), h("span", {}, `Sign in to continue to ${INFO[target].name}`)) : null,
-      h("h2", {}, signup ? "Create your account" : "Sign in to OneInFour"),
+      h("h2", {}, signup ? "Create your account" : "Sign in to The4Workspace"),
       h("p", { class: "sub" }, signup ? "Free, and it works in all four apps." : "Use the account you use in any of the four apps."),
       h("div", { class: "seg" },
         h("button", { type: "button", class: signup ? "" : "on", onClick: () => { location.hash = "signin"; } }, "Sign in"),
@@ -467,7 +467,7 @@ function dashboard() {
     h("div", { class: "guides" }, [...ORDER.map(id => h("details", { class: "card", open: id === "learnkyrgyz" ? true : null },
       h("summary", {}, tile(id, "sm"), INFO[id].name), h("ol", {}, INFO[id].how.map(x => h("li", {}, x))))),
       h("details", { class: "card" }, h("summary", {}, mark(), "How one account works"),
-        h("ol", {}, h("li", {}, "Your OneInFour account is your LearnKyrgyz account: the same email, password or Google."),
+        h("ol", {}, h("li", {}, "Your The4Workspace account is your LearnKyrgyz account: the same email, password or Google."),
           h("li", {}, "When you open an app from here, your sign-in goes with you in the part of the link that browsers don't send to servers, and the app removes it straight away."),
           h("li", {}, "Kadam and AkylduuKodo swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
@@ -580,7 +580,7 @@ function intro() {
   const layer = h("div", { class: "intro", onClick: () => finish() },
     ORDER.map((id, k) => h("span", { class: "fly", style: { "--k": k, "--c1": INFO[id].c1, "--fx": from[k][0] * innerWidth * .6 + "px", "--fy": from[k][1] * innerHeight * .6 + "px", "--fr": (k % 2 ? 1 : -1) * 120 + "deg", "--tx": from[k][0] * 46 + "px", "--ty": from[k][1] * 46 + "px" } }, h("img", { src: INFO[id].icon, alt: "" }))),
     h("i", { class: "burst" }), h("i", { class: "burst b2" }),
-    h("div", { class: "one" }, h("img", { src: "icon.svg", alt: "" }), h("b", {}, "One", h("span", {}, "In"), "Four")));
+    h("div", { class: "one" }, h("img", { src: "icon.svg", alt: "" }), h("b", {}, "The", h("span", {}, "4"), "Workspace")));
   document.body.append(layer);
   return new Promise((res) => { done = res; setTimeout(finish, 2300); });
 }
@@ -596,6 +596,8 @@ function intro() {
     u.hash = "oit=none" + (u.hash.length > 1 ? "&" + u.hash.slice(1) : "");
     return location.replace(u.href);
   }
+  // Arriving from a LearnKyrgyz app's The4Workspace button, already signed in there.
+  try { await acceptHandoff(client); } catch {}
   starfield(); pointerFx();
   const shown = intro();
   try { await loadMe(); } catch (e) { console.warn(e); }

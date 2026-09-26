@@ -809,3 +809,10 @@ body { letter-spacing: .1px; }
 @keyframes oit-card { 15% { opacity: 1; } 55% { transform: translate(calc(min(92vw, 640px) * .22), calc(-50% - 34px)) rotate(-6deg) scale(1); } 90% { opacity: 1; } 100% { left: 100%; transform: translate(-100%, -50%) scale(.4); opacity: 0; } }
 .oit-label { margin: 0; font-weight: 800; font-size: 18px; text-align: center; padding: 0 16px; animation: oit-dot 1.6s ease-in-out infinite; }
 .oit-fly.still *, .oit-fly.still { animation: none !important; } .oit-fly.still .oit-card { opacity: 1; position: static; transform: none; display: inline-block; margin: 2px; }
+
+/* The4Workspace: the button to the one-account hub */
+.ws-mark { display: block; flex: none; border-radius: 28%; }
+.nav-btn.ws-btn { text-decoration: none; }
+.nav-btn.ws-btn .ws-mark { width: 26px; height: 26px; transition: transform .4s cubic-bezier(.2,1.4,.3,1); }
+.nav-btn.ws-btn:hover .ws-mark { transform: rotate(-10deg) scale(1.1); }
+.nav-btn.ws-btn .lbl { text-transform: none; letter-spacing: 0; }
