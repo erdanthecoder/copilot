@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LearnKyrgyz</title>
+<title>LearnKyrgyz 2.0</title>
 <meta name="description" content="The fun way to learn Kyrgyz. Game-like lessons for students; classrooms, homework, live lessons and presentations for teachers.">
 <meta name="theme-color" content="#58cc02">
 <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
@@ -32,6 +32,12 @@
 </div>
 <div class="stat-band" id="stats"></div>
 
+<section class="section release-band">
+  <div class="kicker">New · LearnKyrgyz 2.0 · 26 September 2026</div>
+  <h2>LearnKyrgyz 2.0 is here</h2>
+  <div class="land-feats" id="new20" style="padding:12px 0 0"></div>
+</section>
+
 <section class="section">
   <div class="kicker">Why it works</div>
   <h2>Learning that feels like playing</h2>
@@ -54,6 +60,16 @@
   <h2>Every topic, from А to Ү</h2>
   <p class="muted">All quizzes are randomised from these topics. Students can also write their own sentences.</p>
   <div id="catalog"></div>
+</section>
+
+<section class="section" id="quoldek">
+  <div class="kicker" style="color:var(--purple-d)">Partner</div>
+  <h2>Play Kyrgyz on Quoldek</h2>
+  <p class="muted" style="max-width:680px">LearnKyrgyz and <a href="https://quoldek.web.app" target="_blank" rel="noopener">Quoldek</a> work together: every LearnKyrgyz topic is a ready quiz game, with four options, a timer and the Kyrgyz word for audio. Teachers can export any topic from the teacher app (Worksheets &amp; tests → Quiz games). Game makers can use the open question bank, which is JSON with open CORS:</p>
+  <div class="row wrap" style="gap:10px">
+    <a class="btn purple" href="https://quoldek.web.app" target="_blank" rel="noopener">Open Quoldek</a>
+    <a class="btn ghost" href="api/quoldek/v1/index.json" target="_blank" rel="noopener">Question bank · index.json</a>
+  </div>
 </section>
 
 <div style="padding:0 20px"><div class="cta-band" id="cta"></div></div>
@@ -97,6 +113,13 @@ const feats = [
   ["check", "var(--blue-d)", "Tests, exams & A4 worksheets", "Timed unit exams in the app, plus printable A4 worksheets and tests with an answer key for every topic."],
   ["slides", "var(--yellow-d)", "PowerPoint presentations", "Upload your PowerPoint and present it live — students follow your slides on their own screens."],
 ];
+const new20 = [
+  ["speaker", "var(--blue)", "Real Kyrgyz pronunciation", "A built-in Kyrgyz voice gets the deep к and г, ң, ө, ү, ы, long vowels and stress right, on every device."],
+  ["lock", "var(--red)", "Sealed & full-screen exams", "Every student gets their own paper, answers never leave the server, and leaving full screen means a 0."],
+  ["chat", "var(--purple-d)", "Better dialogues", "16 proofread dialogues with role-play: you speak one part, the app plays the other."],
+  ["star", "var(--orange)", "Quiz games with Quoldek", "2,400+ ready questions across 99 topics, for class games on Quoldek."],
+];
+document.getElementById("new20").append(...new20.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
 document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
 
 const cat = document.getElementById("catalog");

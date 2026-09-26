@@ -5,6 +5,7 @@ import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
 import { buildLesson, buildExam, buildReview, srsUpdate, srsDue, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
+import { showWhatsNew, versionBadge } from "../assets/js/version.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { voice } from "../assets/js/speech.js";
 import { DIALOGUES, LISTEN_GOAL, openDialogue, dialogueExplainer } from "../assets/js/dialogues.js";
@@ -20,7 +21,7 @@ const COLORS = ["#58cc02", "#1cb0f6", "#ce82ff", "#ff9600", "#ff4b4b", "#2b70c9"
 
 let user = null, profile = null, guest = false, view = "learn";
 let classes = [], liveMeetings = {}, liveSlides = {}, watchers = [], meetingSub = null, pollTimer = null;
-let saveTimer = null;
+let saveTimer = null, whatsNewChecked = false;
 
 // ───────────────────────── profile & persistence ─────────────────────────
 function defaultProgress() { return { topics: {}, words: {}, mistakes: [], daily: { date: today(), xp: 0 }, goal: 30, heartsAt: Date.now(), lessons: 0, achievements: [], days: {}, chests: [] }; }
@@ -283,7 +284,7 @@ function refreshBanners() { const host = $("#banners"); if (host) host.replaceCh
 // ───────────────────────── shell ─────────────────────────
 export function brandEl() {
   const mark = h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false }));
-  return h("div", { class: "brand" }, mark, "Learn", h("b", {}, "Kyrgyz"));
+  return h("div", { class: "brand" }, mark, "Learn", h("b", {}, "Kyrgyz"), versionBadge("student", getLang()));
 }
 function render() {
   regenHearts();
@@ -298,6 +299,11 @@ function render() {
   main.append(topbar(), h("div", { id: "banners" }, banners()));
   if (guest) main.append(h("div", { class: "panel row", style: { background: "var(--blue-l)", borderColor: "transparent" } }, icon("user"), h("span", { class: "grow" }, t("guestNote")), h("button", { class: "btn sm", onClick: () => { try { localStorage.removeItem("lk.guestMode"); } catch {} guest = false; renderAuth("signup"); } }, t("signUp"))));
   ({ learn: viewLearn, practice: viewPractice, dialogues: viewDialogues, class: viewClass, profile: viewProfile })[view](main);
+  if (!whatsNewChecked) { // returning learners see what's new in this version once
+    whatsNewChecked = true;
+    if ((profile?.xp || prog().xp || 0) > 0 && !document.querySelector(".modal-back")) setTimeout(() => showWhatsNew("student", getLang()), 700);
+    else { try { localStorage.setItem("lk.seen.student", "2.0"); } catch {} }
+  }
   window.scrollTo(0, 0);
 }
 
@@ -543,6 +549,12 @@ function viewPractice(main) {
   };
   draw();
   unitTests(main);
+  const ru = getLang() === "ru";
+  main.append(h("a", { class: "card click quoldek-card", href: "https://quoldek.web.app", target: "_blank", rel: "noopener" },
+    h("span", { class: "up-ic" }, icon("star")),
+    h("div", { class: "grow" }, h("h3", { style: { margin: 0 } }, ru ? "Играйте в кыргызский на Quoldek" : "Play Kyrgyz on Quoldek"),
+      h("p", { class: "muted", style: { margin: "4px 0 0" } }, ru ? "Наш партнёр: викторины с друзьями по всем темам LearnKyrgyz." : "Our partner: quiz games with friends on every LearnKyrgyz topic.")),
+    icon("right")));
   main.append(h("h2", { class: "section-title" }, `${t("words")} (${words.length})`), q, h("div", { style: { height: "12px" } }), list);
 }
 // Self-check unit tests: 20 mixed questions, 15-minute timer, no hints until the end.

@@ -10,6 +10,16 @@ A Duolingo-style app for learning Kyrgyz, with a teacher side for classrooms, ho
 
 Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` · `/teacher/`
 
+## LearnKyrgyz 2.0 (26 September 2026, 00:00 Amman time)
+
+- **Real Kyrgyz pronunciation.** A built-in Kyrgyz speech engine (eSpeak NG, WebAssembly) replaces the Turkish/Russian stand-in voices.
+- **Sealed exams.** The teacher's app writes several random versions of each paper. Students receive only questions, answers are marked on the server, there's one attempt, and no hints or answer review. Teachers can allow a retake.
+- **Full-screen exams (optional).** Leaving full screen, switching tab or app, or closing the page ends the exam with a **0**.
+- **Dialogues.** 16 dialogues (6 new), proofread, with a role-play mode.
+- **Made to remember.** Tip cards, word recaps, spaced review and unit tests. The mascot reacts in Kyrgyz.
+- **Printable A4 worksheets and tests** with answer keys, for every topic and unit.
+- **Quoldek partnership.** 2,400+ quiz questions (99 topics, English and Russian) at `https://learnkyrgyz.web.app/api/quoldek/v1/index.json`. There's an export in the teacher app (JSON for Quoldek, Kahoot-style CSV) and a "Play on Quoldek" link for students.
+
 ## Features
 
 **Students**
@@ -21,7 +31,7 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Ilbirs reacts to every answer in Kyrgyz ("Азамат!", "Кабатыр болбо!", "Ураа! 5 катары менен!"), with the translation underneath.
 - **Unit tests:** a timed test for every unit (20 questions, 15 minutes, no hints) that shows a 5-point grade and lets you review your answers.
 - Optional **Zamyatkin dialogues** (turn on in Profile): 10 short Kyrgyz dialogues in four stages (listen & read → shadowing → ears only → say it), with a listen counter (goal 30) and tap-for-meaning on every word.
-- Kyrgyz is spoken aloud when shown or tapped, with **real Kyrgyz pronunciation**. Almost no device has a Kyrgyz voice, so the app includes the eSpeak NG Kyrgyz synthesiser compiled to WebAssembly (`assets/vendor/espeak`, about 1.5 MB, loaded on first tap). It gets Kyrgyz sounds right: қ/к, ғ/г, ң, ө, ү, ы, long vowels and final-syllable stress. A device's own Kyrgyz voice is used if there is one.
+- Kyrgyz is spoken aloud when shown or tapped, with **real Kyrgyz pronunciation**. Almost no device has a Kyrgyz voice, so the app includes the eSpeak NG Kyrgyz synthesiser compiled to WebAssembly (`assets/vendor/espeak`, about 1.5 MB, loaded on first tap). It gets Kyrgyz sounds right: the deep к and г next to back vowels, ң, ө, ү, ы, long vowels and final-syllable stress. A device's own Kyrgyz voice is used if there is one.
 - Explanations in English or Russian, plus light and dark themes.
 - Classroom: join by code, invite link or email invite. Homework shows its due date and grade. There's a class leaderboard, shared presentations, a "Join" banner when the teacher starts a live lesson, and "Follow" for live slides.
 - Guest mode, so people can try it without an account. Guest progress moves into the account on sign-up.
@@ -60,6 +70,15 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 
 - `assets/vendor/supabase.js`: supabase-js (MIT).
 - `assets/vendor/espeak/`: eSpeak NG (GPL-3.0; see `assets/vendor/espeak/COPYING`). This is the Emscripten build from `@echogarden/espeak-ng-emscripten` 0.3.5, with its data package cut down to the Kyrgyz voice. Source: https://github.com/espeak-ng/espeak-ng.
+
+## Quiz game question bank (Quoldek)
+
+`scripts/quoldek-feed.mjs` generates `api/quoldek/v1/`:
+- `index.json`: units and topics, with question counts.
+- `topics/<id>.json`: one topic's questions.
+- `all.json`: everything.
+
+Each question has `question.{en,ru}`, `options.{en,ru}` (the same order in both), `answer` (the index of the correct option), `time_limit`, and `kyrgyz`/`translit`/`audio_text`. Wrong options never share a meaning with the answer. The Firebase build regenerates the bank and serves `/api/**` with `Access-Control-Allow-Origin: *`.
 
 ## Kyrgyz content
 

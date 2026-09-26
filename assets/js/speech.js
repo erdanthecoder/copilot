@@ -1,6 +1,6 @@
 // Kyrgyz pronunciation.
 // Almost no phone or computer ships a Kyrgyz voice, and reading Kyrgyz with a Turkish or
-// Russian voice gets many sounds wrong (к/қ, г/ғ, ң, ө, ү, ы, long vowels, stress).
+// Russian voice gets many sounds wrong (the deep к and г next to back vowels, ң, ө, ү, ы, long vowels, stress).
 // So we synthesise Kyrgyz ourselves with eSpeak NG's Kyrgyz voice, compiled to WebAssembly
 // (assets/vendor/espeak, ~1.5 MB, loaded on first use). A real Kyrgyz system voice is used
 // if the device has one.

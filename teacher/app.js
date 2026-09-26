@@ -4,6 +4,8 @@ import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeCh
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
 import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor, sealPaper } from "../assets/js/engine.js";
+import { topicQuestions, topicMeta, toCSV, BANK_VERSION } from "../assets/js/gamebank.js";
+import { showWhatsNew, versionBadge } from "../assets/js/version.js";
 import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
@@ -83,7 +85,7 @@ async function loadClasses() {
 }
 
 // ───────────────────────── shell ─────────────────────────
-function brandEl() { return h("div", { class: "brand teacher" }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz")); }
+function brandEl() { return h("div", { class: "brand teacher" }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz"), user ? versionBadge("teacher", "en") : null); }
 function render() {
   const nav = [["classes", "users", "Classes"], ["topics", "book", "Topics"], ["worksheets", "list", "Worksheets & tests"], ["questions", "pen", "My questions"], ["slides", "slides", "Presentations"], ["account", "settings", "Account"]];
   const main = h("main", { class: "main" });
@@ -94,6 +96,11 @@ function render() {
     main));
   ({ classes: currentClass ? viewClass : viewClasses, topics: viewTopics, worksheets: viewWorksheets, questions: viewQuestions, slides: viewSlides, account: viewAccount })[view](main);
   window.scrollTo(0, 0);
+  if (!whatsNewChecked) {
+    whatsNewChecked = true;
+    if (classes.length) setTimeout(() => showWhatsNew("teacher", "en"), 700);
+    else { try { localStorage.setItem("lk.seen.teacher", "2.0"); } catch {} }
+  }
 }
 
 // ───────────────────────── Classes ─────────────────────────
@@ -239,7 +246,7 @@ async function tabHomework(body, c) {
   body.append(list);
 }
 
-let setsCache = null;
+let setsCache = null, whatsNewChecked = false;
 async function loadSets() { const { data } = await client.from("question_sets").select("*").eq("teacher_id", user.id).order("updated_at", { ascending: false }); setsCache = data || []; return setsCache; }
 
 async function homeworkDialog({ classroom, hw = null, topics = [], exam = false, title: presetTitle = "" }) {
@@ -634,6 +641,7 @@ function topicCard(id) {
       h("button", { class: "btn purple sm", onClick: () => { if (!classes.length) return toast("Create a class first", "bad"); homeworkDialog({ classroom: currentClass, topics: [id] }); } }, icon("pen"), "Assign"),
       h("button", { class: "btn ghost sm", onClick: () => topicDetail(id) }, icon("eye"), "View"),
       h("button", { class: "btn ghost sm", onClick: () => worksheetDialog({ topicIds: [id] }) }, icon("list"), "Worksheet"),
+      h("button", { class: "btn ghost sm", onClick: () => gamesDialog([id]) }, icon("star"), "Game"),
       h("button", { class: "btn ghost sm", onClick: () => runLesson({ exercises: buildLesson([id], { count: 10, level: 1, lang: getLang() }), mode: "preview", hearts: null }) }, icon("play"), "Try")));
 }
 function topicDetail(id) {
@@ -652,8 +660,44 @@ function viewWorksheets(main) {
   const make = (kind) => h("div", { class: "card click ws-card", onClick: () => worksheetDialog({ topicIds: [], kind }) },
     h("span", { class: "up-ic", style: { background: kind === "test" ? "var(--red)" : "var(--green)", boxShadow: `0 4px 0 ${kind === "test" ? "var(--red-d)" : "var(--green-d)"}` } }, icon(kind === "test" ? "clock" : "list")),
     h("h3", {}, kind === "test" ? "Printable test" : "Worksheet"), h("p", { class: "muted" }, kind === "test" ? "Points per task, total score, grade box (5/4/3/2) and time limit." : "Matching, translation, gap-fill, word order, multiple choice, reading and writing."));
-  main.append(h("div", { class: "grid" }, make("worksheet"), make("test")),
+  const games = h("div", { class: "card click ws-card", onClick: () => gamesDialog() },
+    h("span", { class: "up-ic", style: { background: "var(--purple)", boxShadow: "0 4px 0 var(--purple-d)" } }, icon("star")),
+    h("h3", {}, "Quiz games · Quoldek"), h("p", { class: "muted" }, "Ready quiz questions from any topic for class games on Quoldek (or Kahoot-style CSV)."));
+  main.append(h("div", { class: "grid" }, make("worksheet"), make("test"), games),
     h("h2", { class: "section-title" }, "Unit tests"), unitExams());
+}
+
+// Questions for quiz games (Quoldek partnership). Same bank as /api/quoldek/v1 on learnkyrgyz.web.app.
+const QUOLDEK = "https://quoldek.web.app";
+const BANK_URL = "https://learnkyrgyz.web.app/api/quoldek/v1";
+function gamesDialog(topicIds = []) {
+  const sel = new Set(topicIds);
+  let lang = getLang();
+  const langSeg = h("div", { class: "seg" });
+  const drawLang = () => langSeg.replaceChildren(...[["en", "English"], ["ru", "Русский"]].map(([k, l]) => h("button", { type: "button", class: lang === k ? "on" : "", onClick: () => { lang = k; drawLang(); draw(); } }, l)));
+  const summary = h("div", { class: "row wrap" });
+  const preview = h("div", { class: "list game-preview" });
+  const count = h("b");
+  const qs = () => [...sel].flatMap(id => topicQuestions(id));
+  function draw() {
+    summary.replaceChildren(...[...sel].map(id => h("span", { class: "pill" }, tn(TOPICS[id]))), h("button", { type: "button", class: "btn ghost sm", onClick: () => topicPicker(sel, draw) }, icon("plus"), sel.size ? "Change topics" : "Choose topics"));
+    const all = qs(); count.textContent = `${all.length} questions`;
+    preview.replaceChildren(...all.slice(0, 4).map(q => h("div", { class: "item" }, h("div", { class: "grow" }, h("div", { class: "title" }, q.question[lang]), h("div", { class: "sub" }, q.options[lang].map((o, i) => i === q.answer ? `✓ ${o}` : o).join(" · "))))));
+  }
+  const download = (name, text, type) => { const a = h("a", { href: URL.createObjectURL(new Blob([text], { type })), download: name }); document.body.append(a); a.click(); a.remove(); };
+  const name = () => sel.size === 1 ? [...sel][0] : `learnkyrgyz-${sel.size}-topics`;
+  drawLang(); draw();
+  modal({ title: "Quiz games · Quoldek", wide: true, body: h("div", {},
+    h("p", { class: "muted" }, "LearnKyrgyz and ", h("a", { href: QUOLDEK, target: "_blank", rel: "noopener" }, "Quoldek"), " work together: pick topics and play them as a quiz game with your class. Every question has four options, a time limit and the Kyrgyz word for audio."),
+    h("div", { class: "field" }, h("span", {}, "Topics"), summary),
+    h("div", { class: "field" }, h("span", {}, "Questions in"), langSeg),
+    h("div", { class: "row" }, count, h("span", { class: "muted small" }, " — first questions:")), preview,
+    h("p", { class: "small muted" }, "Open question bank for game makers: ", h("a", { href: BANK_URL + "/index.json", target: "_blank", rel: "noopener" }, BANK_URL + "/index.json"), ` (v${BANK_VERSION}, JSON, free to use).`)),
+    actions: [
+      { label: "CSV (Kahoot-style)", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}-${lang}.csv`, toCSV(qs(), lang), "text/csv"); return false; } },
+      { label: "Download for Quoldek", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}.json`, JSON.stringify({ name: "LearnKyrgyz question bank", version: BANK_VERSION, source: "https://learnkyrgyz.web.app", language: lang, topics: [...sel].map(id => ({ topic: topicMeta(id), questions: topicQuestions(id) })) }, null, 1), "application/json"); return false; } },
+      { label: "Open Quoldek", kind: "purple", onClick: () => { window.open(QUOLDEK, "_blank", "noopener"); return false; } },
+    ] });
 }
 
 function worksheetDialog({ topicIds = [], kind = "worksheet", title = "" } = {}) {

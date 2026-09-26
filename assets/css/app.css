@@ -762,3 +762,17 @@ body { letter-spacing: .1px; }
 .ue-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .buddy-say::after { content: ""; position: absolute; left: 26px; bottom: -6px; display: none; width: 12px; height: 12px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
 .dlg-roles { gap: 6px; margin-top: 8px; align-items: center; }
+.quoldek-card { display: flex; align-items: center; gap: 14px; margin-top: 18px; text-decoration: none; color: inherit; border-color: var(--purple); }
+.quoldek-card .up-ic { width: 52px; height: 52px; border-radius: 16px; background: var(--purple); box-shadow: 0 4px 0 var(--purple-d); color: #fff; display: grid; place-items: center; font-size: 26px; flex: none; }
+.game-preview .item { padding: 8px 12px; }
+/* 2.0: version badge + what's new */
+.version-badge { margin-left: 6px; font: 800 11px/1 var(--font, inherit); padding: 4px 7px; border-radius: 999px; border: 0; background: var(--yellow); color: #5a4300; cursor: pointer; letter-spacing: .3px; vertical-align: middle; }
+.brand.teacher .version-badge { background: var(--purple); color: #fff; }
+.whats-new .wn-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.whats-new .wn-head h2 { margin: 2px 0; }
+.wn-kicker { font-size: 12px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: var(--green-d); }
+.wn-list { display: grid; gap: 10px; }
+.wn-item { display: flex; gap: 12px; align-items: flex-start; border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.wn-item p { margin: 3px 0 0; color: var(--ink-2, inherit); font-size: 14px; }
+.wn-ic { width: 38px; height: 38px; border-radius: 12px; background: var(--blue-l, #e6f5ff); color: var(--blue-d); display: grid; place-items: center; flex: none; font-size: 20px; }
+.release-band h2 { margin-top: 4px; }

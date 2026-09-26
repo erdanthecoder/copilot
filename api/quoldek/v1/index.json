@@ -1,0 +1,2580 @@
+{
+ "name": "LearnKyrgyz question bank",
+ "version": "2.0",
+ "source": "https://learnkyrgyz.web.app",
+ "partner": "https://quoldek.web.app",
+ "languages": [
+  "en",
+  "ru"
+ ],
+ "format": "Each question: question.{en,ru}, options.{en,ru} (same order in both), answer = index of the correct option, time_limit in seconds, kyrgyz + translit + audio_text for the Kyrgyz word or sentence.",
+ "units": [
+  {
+   "index": 1,
+   "id": "u1",
+   "level": "A1",
+   "title": {
+    "en": "First steps",
+    "ru": "Первые шаги",
+    "ky": "Алгачкы кадамдар"
+   },
+   "topics": [
+    "alphabet",
+    "greetings",
+    "pronouns",
+    "polite",
+    "numbers1"
+   ]
+  },
+  {
+   "index": 2,
+   "id": "u2",
+   "level": "A1",
+   "title": {
+    "en": "People around me",
+    "ru": "Люди вокруг меня",
+    "ky": "Мени курчаган адамдар"
+   },
+   "topics": [
+    "family",
+    "body",
+    "emotions",
+    "professions",
+    "have"
+   ]
+  },
+  {
+   "index": 3,
+   "id": "u23",
+   "level": "A1",
+   "title": {
+    "en": "Classroom Kyrgyz",
+    "ru": "Кыргызский на уроке",
+    "ky": "Класстагы кыргыз тили"
+   },
+   "topics": [
+    "classroom",
+    "permission",
+    "pronouncases"
+   ]
+  },
+  {
+   "index": 4,
+   "id": "u3",
+   "level": "A1",
+   "title": {
+    "en": "Everyday world",
+    "ru": "Повседневный мир",
+    "ky": "Күнүмдүк дүйнө"
+   },
+   "topics": [
+    "colors",
+    "animals",
+    "food",
+    "home",
+    "clothes"
+   ]
+  },
+  {
+   "index": 5,
+   "id": "u10",
+   "level": "A1",
+   "title": {
+    "en": "Food & table",
+    "ru": "Еда и стол",
+    "ky": "Дасторкон"
+   },
+   "topics": [
+    "fruitveg",
+    "kitchen",
+    "restaurant"
+   ]
+  },
+  {
+   "index": 6,
+   "id": "u19",
+   "level": "A1",
+   "title": {
+    "en": "Around the house",
+    "ru": "Дома",
+    "ky": "Үйдө"
+   },
+   "topics": [
+    "chores",
+    "shapes",
+    "opposites"
+   ]
+  },
+  {
+   "index": 7,
+   "id": "u4",
+   "level": "A1",
+   "title": {
+    "en": "Time",
+    "ru": "Время",
+    "ky": "Убакыт"
+   },
+   "topics": [
+    "numbers2",
+    "days",
+    "seasons",
+    "time",
+    "weather"
+   ]
+  },
+  {
+   "index": 8,
+   "id": "u11",
+   "level": "A1",
+   "title": {
+    "en": "My day",
+    "ru": "Мой день",
+    "ky": "Менин күнүм"
+   },
+   "topics": [
+    "routine",
+    "subjects",
+    "ordinals",
+    "dates",
+    "math"
+   ]
+  },
+  {
+   "index": 9,
+   "id": "u5",
+   "level": "A2",
+   "title": {
+    "en": "Out and about",
+    "ru": "В городе",
+    "ky": "Шаарда"
+   },
+   "topics": [
+    "school",
+    "places",
+    "directions",
+    "transport",
+    "shopping"
+   ]
+  },
+  {
+   "index": 10,
+   "id": "u6",
+   "level": "A2",
+   "title": {
+    "en": "Action words",
+    "ru": "Глаголы",
+    "ky": "Этиштер"
+   },
+   "topics": [
+    "verbs",
+    "present",
+    "continuous",
+    "past",
+    "future"
+   ]
+  },
+  {
+   "index": 11,
+   "id": "u12",
+   "level": "A2",
+   "title": {
+    "en": "Nature & space",
+    "ru": "Природа и космос",
+    "ky": "Жаратылыш жана аалам"
+   },
+   "topics": [
+    "birds",
+    "landscape",
+    "space"
+   ]
+  },
+  {
+   "index": 12,
+   "id": "u20",
+   "level": "A2",
+   "title": {
+    "en": "Village & nomad life",
+    "ru": "Село и кочевая жизнь",
+    "ky": "Айыл жана көчмөн турмуш"
+   },
+   "topics": [
+    "plants",
+    "farm",
+    "nomad"
+   ]
+  },
+  {
+   "index": 13,
+   "id": "u7",
+   "level": "A2",
+   "title": {
+    "en": "Building sentences",
+    "ru": "Строим предложения",
+    "ky": "Сүйлөм түзөбүз"
+   },
+   "topics": [
+    "negation",
+    "questions",
+    "adjectives",
+    "plurals",
+    "possessive"
+   ]
+  },
+  {
+   "index": 14,
+   "id": "u13",
+   "level": "A2",
+   "title": {
+    "en": "Describing people",
+    "ru": "Описание людей",
+    "ky": "Адамдар"
+   },
+   "topics": [
+    "appearance",
+    "character",
+    "nations"
+   ]
+  },
+  {
+   "index": 15,
+   "id": "u14",
+   "level": "A2",
+   "title": {
+    "en": "Travel & talk",
+    "ru": "Путешествия и общение",
+    "ky": "Саякат жана баарлашуу"
+   },
+   "topics": [
+    "travel",
+    "phone",
+    "celebrate",
+    "sports",
+    "motion"
+   ]
+  },
+  {
+   "index": 16,
+   "id": "u22",
+   "level": "A2",
+   "title": {
+    "en": "Real life",
+    "ru": "Реальная жизнь",
+    "ky": "Турмуш"
+   },
+   "topics": [
+    "bazaar",
+    "money",
+    "work",
+    "emergency"
+   ]
+  },
+  {
+   "index": 17,
+   "id": "u15",
+   "level": "A2",
+   "title": {
+    "en": "Grammar toolkit",
+    "ru": "Грамматика",
+    "ky": "Грамматика"
+   },
+   "topics": [
+    "imperative",
+    "postpositions",
+    "conjunctions",
+    "adverbs",
+    "need"
+   ]
+  },
+  {
+   "index": 18,
+   "id": "u21",
+   "level": "A2",
+   "title": {
+    "en": "Kitchen & traditions",
+    "ru": "Кухня и традиции",
+    "ky": "Ашкана жана салт"
+   },
+   "topics": [
+    "kgfood",
+    "traditions",
+    "friendship"
+   ]
+  },
+  {
+   "index": 19,
+   "id": "u18",
+   "level": "A1",
+   "title": {
+    "en": "Reading room",
+    "ru": "Чтение",
+    "ky": "Окуу залы"
+   },
+   "topics": [
+    "read1",
+    "read2",
+    "read3",
+    "read4",
+    "read5",
+    "read6"
+   ]
+  },
+  {
+   "index": 20,
+   "id": "u8",
+   "level": "B1",
+   "title": {
+    "en": "Going deeper",
+    "ru": "Глубже",
+    "ky": "Тереңирээк"
+   },
+   "topics": [
+    "cases",
+    "wantcan",
+    "compare",
+    "health",
+    "tech"
+   ]
+  },
+  {
+   "index": 21,
+   "id": "u16",
+   "level": "B1",
+   "title": {
+    "en": "Advanced grammar",
+    "ru": "Сложная грамматика",
+    "ky": "Татаал грамматика"
+   },
+   "topics": [
+    "conditional",
+    "experience"
+   ]
+  },
+  {
+   "index": 22,
+   "id": "u24",
+   "level": "B1",
+   "title": {
+    "en": "Kyrgyzstan on the map",
+    "ru": "Кыргызстан на карте",
+    "ky": "Картадагы Кыргызстан"
+   },
+   "topics": [
+    "compass",
+    "bignumbers",
+    "read7",
+    "read8"
+   ]
+  },
+  {
+   "index": 23,
+   "id": "u9",
+   "level": "B1",
+   "title": {
+    "en": "Kyrgyzstan",
+    "ru": "Кыргызстан",
+    "ky": "Кыргызстан"
+   },
+   "topics": [
+    "hobbies",
+    "culture",
+    "geography",
+    "proverbs"
+   ]
+  },
+  {
+   "index": 24,
+   "id": "u17",
+   "level": "B1",
+   "title": {
+    "en": "Heritage",
+    "ru": "Наследие",
+    "ky": "Мурас"
+   },
+   "topics": [
+    "music",
+    "holidays",
+    "people"
+   ]
+  }
+ ],
+ "topics": [
+  {
+   "id": "alphabet",
+   "title": {
+    "en": "Alphabet & sounds",
+    "ru": "Алфавит и звуки",
+    "ky": "Алиппе"
+   },
+   "unit": {
+    "index": 1,
+    "title": {
+     "en": "First steps",
+     "ru": "Первые шаги",
+     "ky": "Алгачкы кадамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 14,
+   "sentences": 4,
+   "questions": 32,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/alphabet.json"
+  },
+  {
+   "id": "greetings",
+   "title": {
+    "en": "Greetings",
+    "ru": "Приветствия",
+    "ky": "Саламдашуу"
+   },
+   "unit": {
+    "index": 1,
+    "title": {
+     "en": "First steps",
+     "ru": "Первые шаги",
+     "ky": "Алгачкы кадамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 16,
+   "sentences": 7,
+   "questions": 39,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/greetings.json"
+  },
+  {
+   "id": "pronouns",
+   "title": {
+    "en": "Me & you",
+    "ru": "Я и ты",
+    "ky": "Мен жана сен"
+   },
+   "unit": {
+    "index": 1,
+    "title": {
+     "en": "First steps",
+     "ru": "Первые шаги",
+     "ky": "Алгачкы кадамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 7,
+   "questions": 31,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/pronouns.json"
+  },
+  {
+   "id": "polite",
+   "title": {
+    "en": "Useful phrases",
+    "ru": "Полезные фразы",
+    "ky": "Пайдалуу сөздөр"
+   },
+   "unit": {
+    "index": 1,
+    "title": {
+     "en": "First steps",
+     "ru": "Первые шаги",
+     "ky": "Алгачкы кадамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 10,
+   "sentences": 6,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/polite.json"
+  },
+  {
+   "id": "numbers1",
+   "title": {
+    "en": "Numbers 1–10",
+    "ru": "Числа 1–10",
+    "ky": "Сандар 1–10"
+   },
+   "unit": {
+    "index": 1,
+    "title": {
+     "en": "First steps",
+     "ru": "Первые шаги",
+     "ky": "Алгачкы кадамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/numbers1.json"
+  },
+  {
+   "id": "family",
+   "title": {
+    "en": "Family",
+    "ru": "Семья",
+    "ky": "Үй-бүлө"
+   },
+   "unit": {
+    "index": 2,
+    "title": {
+     "en": "People around me",
+     "ru": "Люди вокруг меня",
+     "ky": "Мени курчаган адамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 18,
+   "sentences": 6,
+   "questions": 42,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/family.json"
+  },
+  {
+   "id": "body",
+   "title": {
+    "en": "Body",
+    "ru": "Тело",
+    "ky": "Дене"
+   },
+   "unit": {
+    "index": 2,
+    "title": {
+     "en": "People around me",
+     "ru": "Люди вокруг меня",
+     "ky": "Мени курчаган адамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 16,
+   "sentences": 4,
+   "questions": 36,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/body.json"
+  },
+  {
+   "id": "emotions",
+   "title": {
+    "en": "Feelings",
+    "ru": "Чувства",
+    "ky": "Сезимдер"
+   },
+   "unit": {
+    "index": 2,
+    "title": {
+     "en": "People around me",
+     "ru": "Люди вокруг меня",
+     "ky": "Мени курчаган адамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 10,
+   "sentences": 6,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/emotions.json"
+  },
+  {
+   "id": "professions",
+   "title": {
+    "en": "Jobs",
+    "ru": "Профессии",
+    "ky": "Кесиптер"
+   },
+   "unit": {
+    "index": 2,
+    "title": {
+     "en": "People around me",
+     "ru": "Люди вокруг меня",
+     "ky": "Мени курчаган адамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 14,
+   "sentences": 4,
+   "questions": 32,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/professions.json"
+  },
+  {
+   "id": "have",
+   "title": {
+    "en": "To have: бар / жок",
+    "ru": "Иметь: бар / жок",
+    "ky": "Бар / жок"
+   },
+   "unit": {
+    "index": 2,
+    "title": {
+     "en": "People around me",
+     "ru": "Люди вокруг меня",
+     "ky": "Мени курчаган адамдар"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/have.json"
+  },
+  {
+   "id": "classroom",
+   "title": {
+    "en": "Classroom phrases",
+    "ru": "Фразы на уроке",
+    "ky": "Класстагы сөздөр"
+   },
+   "unit": {
+    "index": 3,
+    "title": {
+     "en": "Classroom Kyrgyz",
+     "ru": "Кыргызский на уроке",
+     "ky": "Класстагы кыргыз тили"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 11,
+   "sentences": 8,
+   "questions": 30,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/classroom.json"
+  },
+  {
+   "id": "permission",
+   "title": {
+    "en": "May I…?",
+    "ru": "Можно…?",
+    "ky": "Уруксат суроо"
+   },
+   "unit": {
+    "index": 3,
+    "title": {
+     "en": "Classroom Kyrgyz",
+     "ru": "Кыргызский на уроке",
+     "ky": "Класстагы кыргыз тили"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 5,
+   "sentences": 7,
+   "questions": 17,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/permission.json"
+  },
+  {
+   "id": "pronouncases",
+   "title": {
+    "en": "Me, to me, from me",
+    "ru": "Меня, мне, от меня",
+    "ky": "Ат атоочтордун жөндөлүшү"
+   },
+   "unit": {
+    "index": 3,
+    "title": {
+     "en": "Classroom Kyrgyz",
+     "ru": "Кыргызский на уроке",
+     "ky": "Класстагы кыргыз тили"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 9,
+   "sentences": 6,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/pronouncases.json"
+  },
+  {
+   "id": "colors",
+   "title": {
+    "en": "Colors",
+    "ru": "Цвета",
+    "ky": "Түстөр"
+   },
+   "unit": {
+    "index": 4,
+    "title": {
+     "en": "Everyday world",
+     "ru": "Повседневный мир",
+     "ky": "Күнүмдүк дүйнө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 11,
+   "sentences": 5,
+   "questions": 27,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/colors.json"
+  },
+  {
+   "id": "animals",
+   "title": {
+    "en": "Animals",
+    "ru": "Животные",
+    "ky": "Жаныбарлар"
+   },
+   "unit": {
+    "index": 4,
+    "title": {
+     "en": "Everyday world",
+     "ru": "Повседневный мир",
+     "ky": "Күнүмдүк дүйнө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 18,
+   "sentences": 5,
+   "questions": 41,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/animals.json"
+  },
+  {
+   "id": "food",
+   "title": {
+    "en": "Food & drinks",
+    "ru": "Еда и напитки",
+    "ky": "Тамак-аш"
+   },
+   "unit": {
+    "index": 4,
+    "title": {
+     "en": "Everyday world",
+     "ru": "Повседневный мир",
+     "ky": "Күнүмдүк дүйнө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 20,
+   "sentences": 6,
+   "questions": 46,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/food.json"
+  },
+  {
+   "id": "home",
+   "title": {
+    "en": "Home",
+    "ru": "Дом",
+    "ky": "Үй"
+   },
+   "unit": {
+    "index": 4,
+    "title": {
+     "en": "Everyday world",
+     "ru": "Повседневный мир",
+     "ky": "Күнүмдүк дүйнө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 5,
+   "questions": 29,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/home.json"
+  },
+  {
+   "id": "clothes",
+   "title": {
+    "en": "Clothes",
+    "ru": "Одежда",
+    "ky": "Кийим"
+   },
+   "unit": {
+    "index": 4,
+    "title": {
+     "en": "Everyday world",
+     "ru": "Повседневный мир",
+     "ky": "Күнүмдүк дүйнө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/clothes.json"
+  },
+  {
+   "id": "fruitveg",
+   "title": {
+    "en": "Fruit & vegetables",
+    "ru": "Фрукты и овощи",
+    "ky": "Жемиштер жана жашылчалар"
+   },
+   "unit": {
+    "index": 5,
+    "title": {
+     "en": "Food & table",
+     "ru": "Еда и стол",
+     "ky": "Дасторкон"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 16,
+   "sentences": 5,
+   "questions": 37,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/fruitveg.json"
+  },
+  {
+   "id": "kitchen",
+   "title": {
+    "en": "Kitchen & drinks",
+    "ru": "Кухня и напитки",
+    "ky": "Ашкана жана суусундуктар"
+   },
+   "unit": {
+    "index": 5,
+    "title": {
+     "en": "Food & table",
+     "ru": "Еда и стол",
+     "ky": "Дасторкон"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/kitchen.json"
+  },
+  {
+   "id": "restaurant",
+   "title": {
+    "en": "At a café",
+    "ru": "В кафе",
+    "ky": "Кафеде"
+   },
+   "unit": {
+    "index": 5,
+    "title": {
+     "en": "Food & table",
+     "ru": "Еда и стол",
+     "ky": "Дасторкон"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 10,
+   "sentences": 5,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/restaurant.json"
+  },
+  {
+   "id": "chores",
+   "title": {
+    "en": "Housework",
+    "ru": "Домашние дела",
+    "ky": "Үй жумуштары"
+   },
+   "unit": {
+    "index": 6,
+    "title": {
+     "en": "Around the house",
+     "ru": "Дома",
+     "ky": "Үйдө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 8,
+   "sentences": 5,
+   "questions": 21,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/chores.json"
+  },
+  {
+   "id": "shapes",
+   "title": {
+    "en": "Shapes & materials",
+    "ru": "Формы и материалы",
+    "ky": "Формалар жана материалдар"
+   },
+   "unit": {
+    "index": 6,
+    "title": {
+     "en": "Around the house",
+     "ru": "Дома",
+     "ky": "Үйдө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/shapes.json"
+  },
+  {
+   "id": "opposites",
+   "title": {
+    "en": "Opposites",
+    "ru": "Противоположности",
+    "ky": "Карама-каршы сөздөр"
+   },
+   "unit": {
+    "index": 6,
+    "title": {
+     "en": "Around the house",
+     "ru": "Дома",
+     "ky": "Үйдө"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 13,
+   "sentences": 5,
+   "questions": 31,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/opposites.json"
+  },
+  {
+   "id": "numbers2",
+   "title": {
+    "en": "Numbers 11–1000",
+    "ru": "Числа 11–1000",
+    "ky": "Сандар 11–1000"
+   },
+   "unit": {
+    "index": 7,
+    "title": {
+     "en": "Time",
+     "ru": "Время",
+     "ky": "Убакыт"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 13,
+   "sentences": 4,
+   "questions": 30,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/numbers2.json"
+  },
+  {
+   "id": "days",
+   "title": {
+    "en": "Days of the week",
+    "ru": "Дни недели",
+    "ky": "Жума күндөрү"
+   },
+   "unit": {
+    "index": 7,
+    "title": {
+     "en": "Time",
+     "ru": "Время",
+     "ky": "Убакыт"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/days.json"
+  },
+  {
+   "id": "seasons",
+   "title": {
+    "en": "Seasons & months",
+    "ru": "Времена года и месяцы",
+    "ky": "Мезгилдер жана айлар"
+   },
+   "unit": {
+    "index": 7,
+    "title": {
+     "en": "Time",
+     "ru": "Время",
+     "ky": "Убакыт"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 18,
+   "sentences": 4,
+   "questions": 40,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/seasons.json"
+  },
+  {
+   "id": "time",
+   "title": {
+    "en": "Telling time",
+    "ru": "Время суток",
+    "ky": "Убакыт"
+   },
+   "unit": {
+    "index": 7,
+    "title": {
+     "en": "Time",
+     "ru": "Время",
+     "ky": "Убакыт"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/time.json"
+  },
+  {
+   "id": "weather",
+   "title": {
+    "en": "Weather & nature",
+    "ru": "Погода и природа",
+    "ky": "Аба ырайы жана жаратылыш"
+   },
+   "unit": {
+    "index": 7,
+    "title": {
+     "en": "Time",
+     "ru": "Время",
+     "ky": "Убакыт"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 16,
+   "sentences": 5,
+   "questions": 37,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/weather.json"
+  },
+  {
+   "id": "routine",
+   "title": {
+    "en": "Daily routine",
+    "ru": "Распорядок дня",
+    "ky": "Күн тартиби"
+   },
+   "unit": {
+    "index": 8,
+    "title": {
+     "en": "My day",
+     "ru": "Мой день",
+     "ky": "Менин күнүм"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/routine.json"
+  },
+  {
+   "id": "subjects",
+   "title": {
+    "en": "School subjects",
+    "ru": "Школьные предметы",
+    "ky": "Сабактар"
+   },
+   "unit": {
+    "index": 8,
+    "title": {
+     "en": "My day",
+     "ru": "Мой день",
+     "ky": "Менин күнүм"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 3,
+   "questions": 27,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/subjects.json"
+  },
+  {
+   "id": "ordinals",
+   "title": {
+    "en": "First, second, third",
+    "ru": "Первый, второй, третий",
+    "ky": "Иреттик сандар"
+   },
+   "unit": {
+    "index": 8,
+    "title": {
+     "en": "My day",
+     "ru": "Мой день",
+     "ky": "Менин күнүм"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/ordinals.json"
+  },
+  {
+   "id": "dates",
+   "title": {
+    "en": "Dates & birthdays",
+    "ru": "Даты и дни рождения",
+    "ky": "Даталар"
+   },
+   "unit": {
+    "index": 8,
+    "title": {
+     "en": "My day",
+     "ru": "Мой день",
+     "ky": "Менин күнүм"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 8,
+   "sentences": 4,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/dates.json"
+  },
+  {
+   "id": "math",
+   "title": {
+    "en": "Maths in Kyrgyz",
+    "ru": "Математика по-кыргызски",
+    "ky": "Математика"
+   },
+   "unit": {
+    "index": 8,
+    "title": {
+     "en": "My day",
+     "ru": "Мой день",
+     "ky": "Менин күнүм"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/math.json"
+  },
+  {
+   "id": "school",
+   "title": {
+    "en": "School & class",
+    "ru": "Школа и урок",
+    "ky": "Мектеп жана сабак"
+   },
+   "unit": {
+    "index": 9,
+    "title": {
+     "en": "Out and about",
+     "ru": "В городе",
+     "ky": "Шаарда"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 14,
+   "sentences": 5,
+   "questions": 33,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/school.json"
+  },
+  {
+   "id": "places",
+   "title": {
+    "en": "In the city",
+    "ru": "В городе",
+    "ky": "Шаарда"
+   },
+   "unit": {
+    "index": 9,
+    "title": {
+     "en": "Out and about",
+     "ru": "В городе",
+     "ky": "Шаарда"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 13,
+   "sentences": 4,
+   "questions": 30,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/places.json"
+  },
+  {
+   "id": "directions",
+   "title": {
+    "en": "Directions",
+    "ru": "Направления",
+    "ky": "Багыттар"
+   },
+   "unit": {
+    "index": 9,
+    "title": {
+     "en": "Out and about",
+     "ru": "В городе",
+     "ky": "Шаарда"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 12,
+   "sentences": 5,
+   "questions": 29,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/directions.json"
+  },
+  {
+   "id": "transport",
+   "title": {
+    "en": "Transport",
+    "ru": "Транспорт",
+    "ky": "Унаа"
+   },
+   "unit": {
+    "index": 9,
+    "title": {
+     "en": "Out and about",
+     "ru": "В городе",
+     "ky": "Шаарда"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 4,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/transport.json"
+  },
+  {
+   "id": "shopping",
+   "title": {
+    "en": "Shopping",
+    "ru": "Покупки",
+    "ky": "Соода"
+   },
+   "unit": {
+    "index": 9,
+    "title": {
+     "en": "Out and about",
+     "ru": "В городе",
+     "ky": "Шаарда"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 5,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/shopping.json"
+  },
+  {
+   "id": "verbs",
+   "title": {
+    "en": "Action words",
+    "ru": "Глаголы",
+    "ky": "Этиштер"
+   },
+   "unit": {
+    "index": 10,
+    "title": {
+     "en": "Action words",
+     "ru": "Глаголы",
+     "ky": "Этиштер"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 24,
+   "sentences": 4,
+   "questions": 52,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/verbs.json"
+  },
+  {
+   "id": "present",
+   "title": {
+    "en": "Present tense",
+    "ru": "Настоящее время",
+    "ky": "Учур чак"
+   },
+   "unit": {
+    "index": 10,
+    "title": {
+     "en": "Action words",
+     "ru": "Глаголы",
+     "ky": "Этиштер"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/present.json"
+  },
+  {
+   "id": "continuous",
+   "title": {
+    "en": "Right now: -п жатам",
+    "ru": "Прямо сейчас: -п жатам",
+    "ky": "Азыр: -п жатам"
+   },
+   "unit": {
+    "index": 10,
+    "title": {
+     "en": "Action words",
+     "ru": "Глаголы",
+     "ky": "Этиштер"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 6,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/continuous.json"
+  },
+  {
+   "id": "past",
+   "title": {
+    "en": "Past tense",
+    "ru": "Прошедшее время",
+    "ky": "Өткөн чак"
+   },
+   "unit": {
+    "index": 10,
+    "title": {
+     "en": "Action words",
+     "ru": "Глаголы",
+     "ky": "Этиштер"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 8,
+   "sentences": 6,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/past.json"
+  },
+  {
+   "id": "future",
+   "title": {
+    "en": "Future & plans",
+    "ru": "Будущее и планы",
+    "ky": "Келер чак"
+   },
+   "unit": {
+    "index": 10,
+    "title": {
+     "en": "Action words",
+     "ru": "Глаголы",
+     "ky": "Этиштер"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 5,
+   "questions": 19,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/future.json"
+  },
+  {
+   "id": "birds",
+   "title": {
+    "en": "Birds & insects",
+    "ru": "Птицы и насекомые",
+    "ky": "Куштар жана курт-кумурскалар"
+   },
+   "unit": {
+    "index": 11,
+    "title": {
+     "en": "Nature & space",
+     "ru": "Природа и космос",
+     "ky": "Жаратылыш жана аалам"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 14,
+   "sentences": 4,
+   "questions": 32,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/birds.json"
+  },
+  {
+   "id": "landscape",
+   "title": {
+    "en": "Mountains & valleys",
+    "ru": "Горы и долины",
+    "ky": "Тоолор жана өрөөндөр"
+   },
+   "unit": {
+    "index": 11,
+    "title": {
+     "en": "Nature & space",
+     "ru": "Природа и космос",
+     "ky": "Жаратылыш жана аалам"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/landscape.json"
+  },
+  {
+   "id": "space",
+   "title": {
+    "en": "Sky & space",
+    "ru": "Небо и космос",
+    "ky": "Асман жана аалам"
+   },
+   "unit": {
+    "index": 11,
+    "title": {
+     "en": "Nature & space",
+     "ru": "Природа и космос",
+     "ky": "Жаратылыш жана аалам"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 11,
+   "sentences": 3,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/space.json"
+  },
+  {
+   "id": "plants",
+   "title": {
+    "en": "Trees & plants",
+    "ru": "Деревья и растения",
+    "ky": "Дарактар жана өсүмдүктөр"
+   },
+   "unit": {
+    "index": 12,
+    "title": {
+     "en": "Village & nomad life",
+     "ru": "Село и кочевая жизнь",
+     "ky": "Айыл жана көчмөн турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/plants.json"
+  },
+  {
+   "id": "farm",
+   "title": {
+    "en": "Village & farm",
+    "ru": "Село и хозяйство",
+    "ky": "Айыл чарба"
+   },
+   "unit": {
+    "index": 12,
+    "title": {
+     "en": "Village & nomad life",
+     "ru": "Село и кочевая жизнь",
+     "ky": "Айыл жана көчмөн турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/farm.json"
+  },
+  {
+   "id": "nomad",
+   "title": {
+    "en": "Nomad life",
+    "ru": "Кочевая жизнь",
+    "ky": "Көчмөн турмуш"
+   },
+   "unit": {
+    "index": 12,
+    "title": {
+     "en": "Village & nomad life",
+     "ru": "Село и кочевая жизнь",
+     "ky": "Айыл жана көчмөн турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/nomad.json"
+  },
+  {
+   "id": "negation",
+   "title": {
+    "en": "Saying no",
+    "ru": "Отрицание",
+    "ky": "Танып айтуу"
+   },
+   "unit": {
+    "index": 13,
+    "title": {
+     "en": "Building sentences",
+     "ru": "Строим предложения",
+     "ky": "Сүйлөм түзөбүз"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 5,
+   "questions": 19,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/negation.json"
+  },
+  {
+   "id": "questions",
+   "title": {
+    "en": "Questions",
+    "ru": "Вопросы",
+    "ky": "Суроолор"
+   },
+   "unit": {
+    "index": 13,
+    "title": {
+     "en": "Building sentences",
+     "ru": "Строим предложения",
+     "ky": "Сүйлөм түзөбүз"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 5,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/questions.json"
+  },
+  {
+   "id": "adjectives",
+   "title": {
+    "en": "Describing things",
+    "ru": "Описания",
+    "ky": "Сын атоочтор"
+   },
+   "unit": {
+    "index": 13,
+    "title": {
+     "en": "Building sentences",
+     "ru": "Строим предложения",
+     "ky": "Сүйлөм түзөбүз"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 21,
+   "sentences": 4,
+   "questions": 46,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/adjectives.json"
+  },
+  {
+   "id": "plurals",
+   "title": {
+    "en": "Plurals",
+    "ru": "Множественное число",
+    "ky": "Көптүк сан"
+   },
+   "unit": {
+    "index": 13,
+    "title": {
+     "en": "Building sentences",
+     "ru": "Строим предложения",
+     "ky": "Сүйлөм түзөбүз"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 13,
+   "sentences": 4,
+   "questions": 30,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/plurals.json"
+  },
+  {
+   "id": "possessive",
+   "title": {
+    "en": "My & your",
+    "ru": "Мой и твой",
+    "ky": "Таандык"
+   },
+   "unit": {
+    "index": 13,
+    "title": {
+     "en": "Building sentences",
+     "ru": "Строим предложения",
+     "ky": "Сүйлөм түзөбүз"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 8,
+   "sentences": 4,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/possessive.json"
+  },
+  {
+   "id": "appearance",
+   "title": {
+    "en": "Appearance",
+    "ru": "Внешность",
+    "ky": "Келбет"
+   },
+   "unit": {
+    "index": 14,
+    "title": {
+     "en": "Describing people",
+     "ru": "Описание людей",
+     "ky": "Адамдар"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/appearance.json"
+  },
+  {
+   "id": "character",
+   "title": {
+    "en": "Character",
+    "ru": "Характер",
+    "ky": "Мүнөз"
+   },
+   "unit": {
+    "index": 14,
+    "title": {
+     "en": "Describing people",
+     "ru": "Описание людей",
+     "ky": "Адамдар"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 4,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/character.json"
+  },
+  {
+   "id": "nations",
+   "title": {
+    "en": "Countries & languages",
+    "ru": "Страны и языки",
+    "ky": "Өлкөлөр жана тилдер"
+   },
+   "unit": {
+    "index": 14,
+    "title": {
+     "en": "Describing people",
+     "ru": "Описание людей",
+     "ky": "Адамдар"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 14,
+   "sentences": 4,
+   "questions": 32,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/nations.json"
+  },
+  {
+   "id": "travel",
+   "title": {
+    "en": "Travel & hotel",
+    "ru": "Путешествие и гостиница",
+    "ky": "Саякат жана мейманкана"
+   },
+   "unit": {
+    "index": 15,
+    "title": {
+     "en": "Travel & talk",
+     "ru": "Путешествия и общение",
+     "ky": "Саякат жана баарлашуу"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/travel.json"
+  },
+  {
+   "id": "phone",
+   "title": {
+    "en": "On the phone",
+    "ru": "По телефону",
+    "ky": "Телефон аркылуу"
+   },
+   "unit": {
+    "index": 15,
+    "title": {
+     "en": "Travel & talk",
+     "ru": "Путешествия и общение",
+     "ky": "Саякат жана баарлашуу"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 6,
+   "sentences": 4,
+   "questions": 16,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/phone.json"
+  },
+  {
+   "id": "celebrate",
+   "title": {
+    "en": "Parties & gifts",
+    "ru": "Праздники и подарки",
+    "ky": "Той жана белектер"
+   },
+   "unit": {
+    "index": 15,
+    "title": {
+     "en": "Travel & talk",
+     "ru": "Путешествия и общение",
+     "ky": "Саякат жана баарлашуу"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 4,
+   "questions": 18,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/celebrate.json"
+  },
+  {
+   "id": "sports",
+   "title": {
+    "en": "Sports",
+    "ru": "Спорт",
+    "ky": "Спорт"
+   },
+   "unit": {
+    "index": 15,
+    "title": {
+     "en": "Travel & talk",
+     "ru": "Путешествия и общение",
+     "ky": "Саякат жана баарлашуу"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/sports.json"
+  },
+  {
+   "id": "motion",
+   "title": {
+    "en": "Coming & going",
+    "ru": "Движение",
+    "ky": "Кыймыл этиштери"
+   },
+   "unit": {
+    "index": 15,
+    "title": {
+     "en": "Travel & talk",
+     "ru": "Путешествия и общение",
+     "ky": "Саякат жана баарлашуу"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 8,
+   "sentences": 4,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/motion.json"
+  },
+  {
+   "id": "bazaar",
+   "title": {
+    "en": "At the bazaar",
+    "ru": "На базаре",
+    "ky": "Базарда"
+   },
+   "unit": {
+    "index": 16,
+    "title": {
+     "en": "Real life",
+     "ru": "Реальная жизнь",
+     "ky": "Турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 6,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/bazaar.json"
+  },
+  {
+   "id": "money",
+   "title": {
+    "en": "Money & bank",
+    "ru": "Деньги и банк",
+    "ky": "Акча жана банк"
+   },
+   "unit": {
+    "index": 16,
+    "title": {
+     "en": "Real life",
+     "ru": "Реальная жизнь",
+     "ky": "Турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/money.json"
+  },
+  {
+   "id": "work",
+   "title": {
+    "en": "At work",
+    "ru": "На работе",
+    "ky": "Жумушта"
+   },
+   "unit": {
+    "index": 16,
+    "title": {
+     "en": "Real life",
+     "ru": "Реальная жизнь",
+     "ky": "Турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 8,
+   "sentences": 5,
+   "questions": 21,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/work.json"
+  },
+  {
+   "id": "emergency",
+   "title": {
+    "en": "Emergencies",
+    "ru": "Экстренные случаи",
+    "ky": "Өзгөчө кырдаал"
+   },
+   "unit": {
+    "index": 16,
+    "title": {
+     "en": "Real life",
+     "ru": "Реальная жизнь",
+     "ky": "Турмуш"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/emergency.json"
+  },
+  {
+   "id": "imperative",
+   "title": {
+    "en": "Commands & “let's”",
+    "ru": "Повелительное наклонение",
+    "ky": "Буйрук ыңгай"
+   },
+   "unit": {
+    "index": 17,
+    "title": {
+     "en": "Grammar toolkit",
+     "ru": "Грамматика",
+     "ky": "Грамматика"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 5,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/imperative.json"
+  },
+  {
+   "id": "postpositions",
+   "title": {
+    "en": "With, for, about",
+    "ru": "С, для, о",
+    "ky": "Жандоочтор"
+   },
+   "unit": {
+    "index": 17,
+    "title": {
+     "en": "Grammar toolkit",
+     "ru": "Грамматика",
+     "ky": "Грамматика"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 6,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/postpositions.json"
+  },
+  {
+   "id": "conjunctions",
+   "title": {
+    "en": "And, but, because",
+    "ru": "И, но, потому что",
+    "ky": "Байламталар"
+   },
+   "unit": {
+    "index": 17,
+    "title": {
+     "en": "Grammar toolkit",
+     "ru": "Грамматика",
+     "ky": "Грамматика"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 8,
+   "sentences": 5,
+   "questions": 21,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/conjunctions.json"
+  },
+  {
+   "id": "adverbs",
+   "title": {
+    "en": "How & how often",
+    "ru": "Как и как часто",
+    "ky": "Тактоочтор"
+   },
+   "unit": {
+    "index": 17,
+    "title": {
+     "en": "Grammar toolkit",
+     "ru": "Грамматика",
+     "ky": "Грамматика"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 10,
+   "sentences": 4,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/adverbs.json"
+  },
+  {
+   "id": "need",
+   "title": {
+    "en": "Must & need",
+    "ru": "Нужно и должен",
+    "ky": "Керек"
+   },
+   "unit": {
+    "index": 17,
+    "title": {
+     "en": "Grammar toolkit",
+     "ru": "Грамматика",
+     "ky": "Грамматика"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 6,
+   "sentences": 5,
+   "questions": 17,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/need.json"
+  },
+  {
+   "id": "kgfood",
+   "title": {
+    "en": "Kyrgyz dishes",
+    "ru": "Кыргызские блюда",
+    "ky": "Кыргыз тамактары"
+   },
+   "unit": {
+    "index": 18,
+    "title": {
+     "en": "Kitchen & traditions",
+     "ru": "Кухня и традиции",
+     "ky": "Ашкана жана салт"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 12,
+   "sentences": 4,
+   "questions": 28,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/kgfood.json"
+  },
+  {
+   "id": "traditions",
+   "title": {
+    "en": "Customs & celebrations",
+    "ru": "Обычаи и праздники",
+    "ky": "Каада-салттар"
+   },
+   "unit": {
+    "index": 18,
+    "title": {
+     "en": "Kitchen & traditions",
+     "ru": "Кухня и традиции",
+     "ky": "Ашкана жана салт"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/traditions.json"
+  },
+  {
+   "id": "friendship",
+   "title": {
+    "en": "Friendship",
+    "ru": "Дружба",
+    "ky": "Достук"
+   },
+   "unit": {
+    "index": 18,
+    "title": {
+     "en": "Kitchen & traditions",
+     "ru": "Кухня и традиции",
+     "ky": "Ашкана жана салт"
+    },
+    "level": "A2"
+   },
+   "level": "A2",
+   "words": 7,
+   "sentences": 5,
+   "questions": 19,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/friendship.json"
+  },
+  {
+   "id": "read1",
+   "title": {
+    "en": "Read: My family",
+    "ru": "Чтение: Моя семья",
+    "ky": "Окуу: Менин үй-бүлөм"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 4,
+   "sentences": 2,
+   "questions": 10,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read1.json"
+  },
+  {
+   "id": "read2",
+   "title": {
+    "en": "Read: My day",
+    "ru": "Чтение: Мой день",
+    "ky": "Окуу: Менин күнүм"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 3,
+   "sentences": 2,
+   "questions": 8,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read2.json"
+  },
+  {
+   "id": "read3",
+   "title": {
+    "en": "Read: Issyk-Kul",
+    "ru": "Чтение: Иссык-Куль",
+    "ky": "Окуу: Ысык-Көл"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 4,
+   "sentences": 2,
+   "questions": 10,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read3.json"
+  },
+  {
+   "id": "read4",
+   "title": {
+    "en": "Read: The yurt",
+    "ru": "Чтение: Юрта",
+    "ky": "Окуу: Боз үй"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 3,
+   "sentences": 2,
+   "questions": 8,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read4.json"
+  },
+  {
+   "id": "read5",
+   "title": {
+    "en": "Read: Nooruz",
+    "ru": "Чтение: Нооруз",
+    "ky": "Окуу: Нооруз"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 3,
+   "sentences": 2,
+   "questions": 8,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read5.json"
+  },
+  {
+   "id": "read6",
+   "title": {
+    "en": "Read: Manas",
+    "ru": "Чтение: Манас",
+    "ky": "Окуу: Манас"
+   },
+   "unit": {
+    "index": 19,
+    "title": {
+     "en": "Reading room",
+     "ru": "Чтение",
+     "ky": "Окуу залы"
+    },
+    "level": "A1"
+   },
+   "level": "A1",
+   "words": 4,
+   "sentences": 2,
+   "questions": 10,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read6.json"
+  },
+  {
+   "id": "cases",
+   "title": {
+    "en": "The six cases",
+    "ru": "Шесть падежей",
+    "ky": "Жөндөмөлөр"
+   },
+   "unit": {
+    "index": 20,
+    "title": {
+     "en": "Going deeper",
+     "ru": "Глубже",
+     "ky": "Тереңирээк"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 10,
+   "sentences": 4,
+   "questions": 24,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/cases.json"
+  },
+  {
+   "id": "wantcan",
+   "title": {
+    "en": "Want & can",
+    "ru": "Хочу и могу",
+    "ky": "Каалоо жана мүмкүнчүлүк"
+   },
+   "unit": {
+    "index": 20,
+    "title": {
+     "en": "Going deeper",
+     "ru": "Глубже",
+     "ky": "Тереңирээк"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 7,
+   "sentences": 6,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/wantcan.json"
+  },
+  {
+   "id": "compare",
+   "title": {
+    "en": "Comparing",
+    "ru": "Сравнение",
+    "ky": "Салыштыруу"
+   },
+   "unit": {
+    "index": 20,
+    "title": {
+     "en": "Going deeper",
+     "ru": "Глубже",
+     "ky": "Тереңирээк"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 8,
+   "sentences": 4,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/compare.json"
+  },
+  {
+   "id": "health",
+   "title": {
+    "en": "Health",
+    "ru": "Здоровье",
+    "ky": "Ден соолук"
+   },
+   "unit": {
+    "index": 20,
+    "title": {
+     "en": "Going deeper",
+     "ru": "Глубже",
+     "ky": "Тереңирээк"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 9,
+   "sentences": 5,
+   "questions": 23,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/health.json"
+  },
+  {
+   "id": "tech",
+   "title": {
+    "en": "Phone & internet",
+    "ru": "Телефон и интернет",
+    "ky": "Телефон жана интернет"
+   },
+   "unit": {
+    "index": 20,
+    "title": {
+     "en": "Going deeper",
+     "ru": "Глубже",
+     "ky": "Тереңирээк"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 9,
+   "sentences": 4,
+   "questions": 22,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/tech.json"
+  },
+  {
+   "id": "conditional",
+   "title": {
+    "en": "If… (-са)",
+    "ru": "Если… (-са)",
+    "ky": "Шарттуу ыңгай"
+   },
+   "unit": {
+    "index": 21,
+    "title": {
+     "en": "Advanced grammar",
+     "ru": "Сложная грамматика",
+     "ky": "Татаал грамматика"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 5,
+   "sentences": 4,
+   "questions": 14,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/conditional.json"
+  },
+  {
+   "id": "experience",
+   "title": {
+    "en": "Have you ever…? (-ган)",
+    "ru": "Бывал ли ты…? (-ган)",
+    "ky": "Өткөн чактын -ган формасы"
+   },
+   "unit": {
+    "index": 21,
+    "title": {
+     "en": "Advanced grammar",
+     "ru": "Сложная грамматика",
+     "ky": "Татаал грамматика"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 5,
+   "sentences": 4,
+   "questions": 14,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/experience.json"
+  },
+  {
+   "id": "compass",
+   "title": {
+    "en": "North, south, east, west",
+    "ru": "Север, юг, восток, запад",
+    "ky": "Дүйнөнүн тараптары"
+   },
+   "unit": {
+    "index": 22,
+    "title": {
+     "en": "Kyrgyzstan on the map",
+     "ru": "Кыргызстан на карте",
+     "ky": "Картадагы Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 10,
+   "sentences": 5,
+   "questions": 25,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/compass.json"
+  },
+  {
+   "id": "bignumbers",
+   "title": {
+    "en": "Big numbers & years",
+    "ru": "Большие числа и годы",
+    "ky": "Чоң сандар жана жылдар"
+   },
+   "unit": {
+    "index": 22,
+    "title": {
+     "en": "Kyrgyzstan on the map",
+     "ru": "Кыргызстан на карте",
+     "ky": "Картадагы Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 7,
+   "sentences": 3,
+   "questions": 17,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/bignumbers.json"
+  },
+  {
+   "id": "read7",
+   "title": {
+    "en": "Read: Bishkek",
+    "ru": "Чтение: Бишкек",
+    "ky": "Окуу: Бишкек"
+   },
+   "unit": {
+    "index": 22,
+    "title": {
+     "en": "Kyrgyzstan on the map",
+     "ru": "Кыргызстан на карте",
+     "ky": "Картадагы Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 3,
+   "sentences": 2,
+   "questions": 8,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read7.json"
+  },
+  {
+   "id": "read8",
+   "title": {
+    "en": "Read: Kok-boru",
+    "ru": "Чтение: Кок-бору",
+    "ky": "Окуу: Көк бөрү"
+   },
+   "unit": {
+    "index": 22,
+    "title": {
+     "en": "Kyrgyzstan on the map",
+     "ru": "Кыргызстан на карте",
+     "ky": "Картадагы Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 4,
+   "sentences": 2,
+   "questions": 10,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/read8.json"
+  },
+  {
+   "id": "hobbies",
+   "title": {
+    "en": "Hobbies & games",
+    "ru": "Хобби и игры",
+    "ky": "Хобби жана оюндар"
+   },
+   "unit": {
+    "index": 23,
+    "title": {
+     "en": "Kyrgyzstan",
+     "ru": "Кыргызстан",
+     "ky": "Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 11,
+   "sentences": 4,
+   "questions": 26,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/hobbies.json"
+  },
+  {
+   "id": "culture",
+   "title": {
+    "en": "Culture & traditions",
+    "ru": "Культура и традиции",
+    "ky": "Маданият жана салттар"
+   },
+   "unit": {
+    "index": 23,
+    "title": {
+     "en": "Kyrgyzstan",
+     "ru": "Кыргызстан",
+     "ky": "Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 14,
+   "sentences": 5,
+   "questions": 33,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/culture.json"
+  },
+  {
+   "id": "geography",
+   "title": {
+    "en": "Kyrgyzstan",
+    "ru": "Кыргызстан",
+    "ky": "Кыргызстан"
+   },
+   "unit": {
+    "index": 23,
+    "title": {
+     "en": "Kyrgyzstan",
+     "ru": "Кыргызстан",
+     "ky": "Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 13,
+   "sentences": 4,
+   "questions": 30,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/geography.json"
+  },
+  {
+   "id": "proverbs",
+   "title": {
+    "en": "Proverbs",
+    "ru": "Пословицы",
+    "ky": "Макалдар"
+   },
+   "unit": {
+    "index": 23,
+    "title": {
+     "en": "Kyrgyzstan",
+     "ru": "Кыргызстан",
+     "ky": "Кыргызстан"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 6,
+   "sentences": 6,
+   "questions": 18,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/proverbs.json"
+  },
+  {
+   "id": "music",
+   "title": {
+    "en": "Music & instruments",
+    "ru": "Музыка и инструменты",
+    "ky": "Музыка жана аспаптар"
+   },
+   "unit": {
+    "index": 24,
+    "title": {
+     "en": "Heritage",
+     "ru": "Наследие",
+     "ky": "Мурас"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 9,
+   "sentences": 3,
+   "questions": 21,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/music.json"
+  },
+  {
+   "id": "holidays",
+   "title": {
+    "en": "National holidays",
+    "ru": "Государственные праздники",
+    "ky": "Улуттук майрамдар"
+   },
+   "unit": {
+    "index": 24,
+    "title": {
+     "en": "Heritage",
+     "ru": "Наследие",
+     "ky": "Мурас"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 8,
+   "sentences": 3,
+   "questions": 19,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/holidays.json"
+  },
+  {
+   "id": "people",
+   "title": {
+    "en": "Famous Kyrgyz",
+    "ru": "Известные кыргызы",
+    "ky": "Белгилүү кыргыздар"
+   },
+   "unit": {
+    "index": 24,
+    "title": {
+     "en": "Heritage",
+     "ru": "Наследие",
+     "ky": "Мурас"
+    },
+    "level": "B1"
+   },
+   "level": "B1",
+   "words": 8,
+   "sentences": 4,
+   "questions": 20,
+   "url": "https://learnkyrgyz.web.app/api/quoldek/v1/topics/people.json"
+  }
+ ]
+}
