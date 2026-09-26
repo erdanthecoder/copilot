@@ -4,7 +4,7 @@
 import { GoogleAuth } from "google-auth-library";
 
 const project = process.argv[2];
-const wanted = ["learnkyrgyz.web.app", "studentlrnkyrgyz.web.app", "teachlrnkyrgyz.web.app", "oneintwo.web.app", "erdanthecoder.github.io"];
+const wanted = ["learnkyrgyz.web.app", "studentlrnkyrgyz.web.app", "teachlrnkyrgyz.web.app", "oneinfour.web.app", "oneintwo.web.app", "erdanthecoder.github.io"];
 const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
 const client = await auth.getClient();
 const url = `https://identitytoolkit.googleapis.com/admin/v2/projects/${project}/config`;

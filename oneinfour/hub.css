@@ -1,4 +1,4 @@
-/* OneInTwo — the account hub. Dark by default, with a light scheme; motion respects reduced-motion. */
+/* OneInFour — the account hub. Dark by default, with a light scheme; motion respects reduced-motion. */
 @font-face { font-family: "Nunito"; font-weight: 600; font-display: swap; src: url("../assets/fonts/nunito-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212; }
 @font-face { font-family: "Nunito"; font-weight: 800; font-display: swap; src: url("../assets/fonts/nunito-latin-800-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212; }
 @font-face { font-family: "Nunito"; font-weight: 900; font-display: swap; src: url("../assets/fonts/nunito-latin-900-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212; }
@@ -251,3 +251,66 @@ details.how[open] ol { animation: pop .4s ease; }
 
 .tile.sm { width: 44px; height: 44px; border-radius: 14px; font-size: 16px; }
 .logo .word { display: inline; }
+
+/* ── OneInFour: four linked rings ── */
+.rings4 { position: relative; display: inline-block; width: 58px; height: 22px; flex: none; }
+.rings4 i { position: absolute; top: 0; width: 22px; height: 22px; border-radius: 50%; border: 3.5px solid var(--c); animation: r4 3.4s ease-in-out infinite; animation-delay: calc(var(--n) * .18s); }
+.rings4 i:nth-child(1) { --c: #58cc02; --n: 0; left: 0; } .rings4 i:nth-child(2) { --c: #7c5cff; --n: 1; left: 12px; top: 4px; }
+.rings4 i:nth-child(3) { --c: #0f9d58; --n: 2; left: 24px; } .rings4 i:nth-child(4) { --c: #1cb0f6; --n: 3; left: 36px; top: 4px; }
+@keyframes r4 { 0%, 100% { transform: none; } 50% { transform: translateY(-3px) scale(1.06); } }
+.rings4.sm { width: 40px; height: 16px; } .rings4.sm i { width: 15px; height: 15px; border-width: 2.5px; } .rings4.sm i:nth-child(2) { left: 8px; top: 2px; } .rings4.sm i:nth-child(3) { left: 16px; } .rings4.sm i:nth-child(4) { left: 24px; top: 2px; }
+.rings4.big { width: 150px; height: 56px; } .rings4.big i { width: 56px; height: 56px; border-width: 7px; } .rings4.big i:nth-child(2) { left: 31px; top: 8px; } .rings4.big i:nth-child(3) { left: 62px; } .rings4.big i:nth-child(4) { left: 93px; top: 8px; }
+.orbit .you .rings4 { transform: scale(1.05); margin-bottom: 6px; } .orbit .you .rings4 i { border-color: #fff; }
+.logo b + b { background: linear-gradient(90deg, #0f9d58, #1cb0f6); -webkit-background-clip: text; background-clip: text; }
+
+/* headline letters */
+.hero-h { font-size: clamp(44px, 7vw, 86px) !important; }
+.letters .ch { display: inline-block; opacity: 0; transform: translateY(.5em) rotate(8deg); animation: rise .7s cubic-bezier(.2,.9,.3,1.3) forwards; animation-delay: calc(.25s + var(--i) * .035s); }
+@keyframes rise { to { opacity: 1; transform: none; } }
+.hero-h .grad .ch { background: linear-gradient(90deg, #58cc02, #22d3ee, #7c5cff, #1cb0f6); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: rise .7s cubic-bezier(.2,.9,.3,1.3) forwards, shimmer 6s linear infinite; animation-delay: calc(.25s + var(--i) * .035s), 0s; }
+@keyframes shimmer { to { background-position: -300% 0; } }
+.open-line { display: block; font-size: .42em; margin-top: .35em; color: var(--ink-2); font-weight: 900; }
+
+/* beams from the account to each orbiting app */
+.orbit .beam { position: absolute; left: 50%; top: 50%; width: calc(var(--size) / 2); height: 3px; margin-top: -1.5px; transform-origin: 0 50%; transform: rotate(var(--a)); border-radius: 3px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c1) 70%, transparent), transparent); background-size: 50% 100%; background-repeat: no-repeat; animation: beam 2.2s linear infinite; animation-delay: calc(var(--k) * .55s); opacity: .9; }
+@keyframes beam { from { background-position: -60% 0; } to { background-position: 160% 0; } }
+.orbit .node .tile { flex-direction: column; } .orbit .node .tile small { font-size: 10px; margin-top: 2px; opacity: .9; letter-spacing: 0; font-weight: 800; }
+.orbit .node .tile { display: flex; align-items: center; justify-content: center; }
+.orbit:hover .spin, .orbit:hover .node .tile { animation-play-state: paused; }
+
+/* one account, four doors */
+.doors { position: relative; margin-top: 26px; height: 440px; }
+.door-svg, .door-svg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dline { fill: none; stroke: var(--c); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 520; stroke-dashoffset: 520; opacity: .85; filter: drop-shadow(0 0 6px var(--c)); vector-effect: non-scaling-stroke; }
+.drawn .dline { animation: drawline 1.1s cubic-bezier(.6,0,.2,1) forwards; animation-delay: calc(var(--k) * .15s); }
+@keyframes drawline { to { stroke-dashoffset: 0; } }
+.dpulse { fill: #fff; opacity: 0; filter: drop-shadow(0 0 8px var(--c)); } .drawn .dpulse { opacity: 1; transition: opacity .4s 1.3s; }
+.key-card { position: absolute; left: 50%; top: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-radius: 20px; z-index: 1; white-space: nowrap; }
+.key-card b { display: block; font-size: 18px; } .key-card .rings4 { transform: scale(1.2); margin-right: 8px; }
+.drawn .key-card { animation: glowpulse 2.4s ease-in-out infinite; }
+@keyframes glowpulse { 50% { box-shadow: 0 0 0 6px rgba(124,92,255,.18), 0 0 60px rgba(124,92,255,.45), var(--shadow); } }
+.door-row { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.door { display: grid; justify-items: center; gap: 6px; padding: 16px 10px; text-align: center; border-top: 3px solid var(--c1); opacity: 0; transform: translateY(24px) scale(.95); transition: opacity .6s, transform .6s cubic-bezier(.2,1.2,.3,1); transition-delay: calc(.7s + var(--k) * .15s); }
+.drawn .door { opacity: 1; transform: none; }
+.door .tile { width: 52px; height: 52px; border-radius: 16px; font-size: 20px; }
+@media (max-width: 720px) { .doors { height: auto; } .door-svg { display: none; } .key-card { position: static; transform: none; margin: 0 auto 16px; width: fit-content; } .door-row { position: static; grid-template-columns: 1fr 1fr; } }
+
+/* intro */
+.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: radial-gradient(circle at 50% 50%, #241655, #07041a 70%); cursor: pointer; }
+.intro.out { animation: introOut .7s ease-in forwards; }
+@keyframes introOut { to { opacity: 0; transform: scale(1.15); filter: blur(6px); } }
+.intro .it { position: absolute; width: 84px; height: 84px; font-size: 28px; animation: gather 1.25s cubic-bezier(.6,-.2,.3,1) forwards; }
+.intro .it:nth-of-type(1) { --x: -38vw; --y: -30vh; } .intro .it:nth-of-type(2) { --x: 38vw; --y: -30vh; } .intro .it:nth-of-type(3) { --x: -38vw; --y: 30vh; } .intro .it:nth-of-type(4) { --x: 38vw; --y: 30vh; }
+@keyframes gather { 0% { transform: translate(var(--x), var(--y)) rotate(-20deg) scale(.8); opacity: 0; } 25% { opacity: 1; } 80% { transform: translate(0, 0) rotate(0) scale(1); opacity: 1; } 100% { transform: translate(0, 0) scale(.2); opacity: 0; } }
+.intro-core { display: grid; justify-items: center; gap: 16px; color: #fff; opacity: 0; transform: scale(.6); animation: core .6s 1.15s cubic-bezier(.2,1.5,.3,1) forwards; }
+.intro-core b { font-size: clamp(34px, 6vw, 56px); font-weight: 900; letter-spacing: -.02em; } .intro-core b span { opacity: .6; font-weight: 800; }
+.intro-core .rings4 i { box-shadow: 0 0 24px currentColor; }
+@keyframes core { to { opacity: 1; transform: none; } }
+
+/* starfield + spotlight + magnetic buttons */
+.stars { position: absolute; inset: 0; opacity: .7; }
+.spot { position: fixed; left: 0; top: 0; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; z-index: -1; background: radial-gradient(circle, rgba(124,92,255,.16), transparent 60%); transition: transform .12s linear; }
+@media (prefers-color-scheme: light) { .spot { background: radial-gradient(circle, rgba(124,92,255,.10), transparent 60%); } }
+.btn.pulled { transition: translate .08s linear, transform .15s, box-shadow .15s, filter .15s; }
+.btn:not(.pulled) { transition: translate .4s cubic-bezier(.2,1.4,.3,1), transform .15s, box-shadow .15s, filter .15s; }

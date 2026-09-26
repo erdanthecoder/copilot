@@ -59,7 +59,7 @@ function renderAuth(mode, msg) {
       } catch (ex) { err.textContent = errMsg(ex); err.classList.remove("hidden"); btn.disabled = false; }
     } }, msg ? h("div", { class: "auth-ok" }, msg) : null, err,
       googleBlock({ role: "teacher", learnFrom: getLang, onSignedIn: (u) => signedIn(u), onError: (e) => { err.textContent = errMsg(e); err.classList.remove("hidden"); } }),
-      h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?as=teacher&return=${encodeURIComponent(location.origin + location.pathname)}`, style: { marginBottom: "12px" } }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), "Sign in with OneInTwo"),
+      h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?as=teacher&return=${encodeURIComponent(location.origin + location.pathname)}`, style: { marginBottom: "12px" } }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), "Sign in with OneInFour"),
       signup ? h("label", { class: "field" }, h("span", {}, "Name students will see"), name) : null,
       h("label", { class: "field" }, h("span", {}, t("email")), email),
       h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),

@@ -88,6 +88,17 @@
           ]
         }
       ]
+    },
+    {
+      "target": "oldhub",
+      "public": "dist/oldhub",
+      "redirects": [
+        {
+          "source": "**",
+          "destination": "https://oneinfour.web.app",
+          "type": 301
+        }
+      ]
     }
   ]
 }

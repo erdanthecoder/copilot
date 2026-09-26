@@ -1,10 +1,10 @@
-// OneInTwo — one account for LearnKyrgyz and Quoldek, with Kadam and AkylduuKodo on the same dashboard.
+// OneInFour — one account for LearnKyrgyz and Quoldek, with Kadam and AkylduuKodo on the same dashboard.
 //
-// The account is the LearnKyrgyz (Supabase) account. oneintwo.web.app signs people in;
+// The account is the LearnKyrgyz (Supabase) account. oneinfour.web.app signs people in;
 // opening another app hands the session over in the URL fragment (#oit=…), which never
 // reaches a server. The receiving app stores it and removes it from the address bar.
 // Hand-offs only ever go to the addresses in TRUSTED below.
-export const HUB = "https://oneintwo.web.app";
+export const HUB = "https://oneinfour.web.app";
 export const QUOLDEK = "https://quoldek.web.app";
 
 export const APPS = [
@@ -13,7 +13,7 @@ export const APPS = [
   { id: "kadam", name: "Kadam", url: "https://kadam.web.app/", color: "#0f9d58", sso: false },
   { id: "akylduukodo", name: "AkylduuKodo", url: "https://akylduukodo.web.app/", color: "#1cb0f6", sso: false },
 ];
-const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|oneintwo)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
+const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|oneintwo|oneinfour)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };
 
 const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

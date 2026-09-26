@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 rm -rf dist
-mkdir -p dist/home dist/student dist/teacher dist/hub
+mkdir -p dist/home dist/student dist/teacher dist/hub dist/oldhub
 # Game question bank for Quoldek and other quiz games (/api/quoldek/v1).
 if command -v node >/dev/null; then node scripts/quoldek-feed.mjs; fi
 cp index.html sw.js dist/home/
@@ -19,9 +19,10 @@ for app in student teacher; do
   sed 's#\.\./assets/#assets/#g' "$app/index.html" > "dist/$app/index.html"
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
-# oneintwo.web.app — the shared-account hub
+# oneinfour.web.app — the one-account hub (oneintwo.web.app forwards to it)
 cp -R assets "dist/hub/"
-for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneintwo/$f" > "dist/hub/$f"; done
+for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
-sed 's#"\.\./assets/#"./assets/#g' oneintwo/hub.js > dist/hub/hub.js
-echo "Built dist/{home,student,teacher,hub}"
+sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
+printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://oneinfour.web.app/">\n' > dist/oldhub/index.html
+echo "Built dist/{home,student,teacher,hub,oldhub}"

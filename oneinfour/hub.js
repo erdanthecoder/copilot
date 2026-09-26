@@ -1,4 +1,4 @@
-// OneInTwo hub: sign in once, open any app already signed in.
+// OneInFour hub: sign in once, open any app already signed in.
 import { sb } from "../assets/js/config.js";
 import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } from "../assets/js/google.js";
 import { handoffUrl, isTrusted } from "../assets/js/oneintwo-core.js";
@@ -27,7 +27,9 @@ function h(tag, attrs = {}, ...kids) {
   for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
   return el;
 }
-const rings = (cls = "") => h("span", { class: "rings " + cls }, h("i"), h("i"));
+const rings = (cls = "") => h("span", { class: "rings4 " + cls }, h("i"), h("i"), h("i"), h("i"));
+// A headline whose letters rise in one after another.
+const letters = (text, delay = 0) => h("span", { class: "letters", "aria-label": text }, [...text].map((ch, i) => h("span", { class: "ch", "aria-hidden": "true", style: { "--i": i + delay } }, ch === " " ? "\u00a0" : ch)));
 function toast(msg, kind = "") { const t = h("div", { class: "toast " + kind }, msg); document.body.append(t); setTimeout(() => t.remove(), 3200); }
 
 // ── the apps ──
@@ -115,7 +117,7 @@ function confetti(x = innerWidth / 2, y = innerHeight / 3) {
 function portal(url, id, ev) {
   const a = INFO[id] || INFO.quoldek;
   const x = ev?.clientX ?? innerWidth / 2, y = ev?.clientY ?? innerHeight / 2;
-  const p = h("div", { class: "portal", style: { "--c1": a.c1, "--x": x + "px", "--y": y + "px" } }, h("i", { class: "disc" }), h("div", { class: "msg" }, h("span", { class: "tile", style: { "--c1": "transparent", "--c2": "transparent" } }, a.mark), h("b", {}, `Opening ${a.name}…`), session && a.sso ? h("span", {}, "You're signed in with your OneInTwo account") : null));
+  const p = h("div", { class: "portal", style: { "--c1": a.c1, "--x": x + "px", "--y": y + "px" } }, h("i", { class: "disc" }), h("div", { class: "msg" }, h("span", { class: "tile", style: { "--c1": "transparent", "--c2": "transparent" } }, a.mark), h("b", {}, `Opening ${a.name}…`), session && a.sso ? h("span", {}, "You're signed in with your OneInFour account") : null));
   document.body.append(p);
   setTimeout(() => { location.href = a.sso ? handoffUrl(url, session) : url; }, reduce ? 150 : 1000);
 }
@@ -157,19 +159,22 @@ function landing() {
   if (!reduce) setInterval(() => { words[i].classList.replace("on", "out"); const prev = words[i]; setTimeout(() => prev.classList.remove("out"), 650); i = (i + 1) % words.length; words[i].classList.add("on"); }, 2200);
 
   const orbit = h("div", { class: "orbit reveal" }, h("i", { class: "ring" }), h("i", { class: "ring r2" }),
-    h("div", { class: "spin" }, ORDER.map((id, k) => h("div", { class: "node", style: { "--a": k * 90 + "deg" } }, h("div", { class: "tile", style: { "--c1": INFO[id].c1, "--c2": INFO[id].c2 } }, INFO[id].mark)))),
+    h("div", { class: "spin" },
+      ORDER.map((id, k) => h("i", { class: "beam", style: { "--a": k * 90 + "deg", "--c1": INFO[id].c1, "--k": k } })),
+      ORDER.map((id, k) => h("div", { class: "node", style: { "--a": k * 90 + "deg" } }, h("div", { class: "tile", style: { "--c1": INFO[id].c1, "--c2": INFO[id].c2 } }, INFO[id].mark, h("small", {}, INFO[id].name))))),
     h("div", { class: "you" }, h("div", {}, rings(), h("div", {}, "One account"))),
     [[12, 18], [80, 10], [90, 70], [8, 78], [50, 96], [60, 4]].map(([x, y], k) => h("i", { class: "spark", style: { left: x + "%", top: y + "%", "animation-delay": k * .5 + "s" } })));
 
   app.replaceChildren(
     h("section", { class: "hero" },
       h("div", {},
-        h("span", { class: "kicker reveal" }, rings("sm"), "One account · four apps"),
-        h("h1", { class: "reveal", style: { "--d": 1 } }, "Sign in once.", h("br"), "Open ", rot),
-        h("p", { class: "lead reveal", style: { "--d": 2 } }, "OneInTwo is one account for LearnKyrgyz and Quoldek, with Kadam and AkylduuKodo on the same dashboard. Sign in here, press an app, and you're in. A LearnKyrgyz topic can become a Quoldek game in one tap."),
+        h("span", { class: "kicker reveal" }, rings("sm"), "OneInFour"),
+        h("h1", { class: "hero-h" }, letters("One account."), h("br"), h("span", { class: "grad" }, letters("Four apps.", 12)), h("span", { class: "open-line" }, "Open ", rot)),
+        h("p", { class: "lead reveal", style: { "--d": 2 } }, "Make one account here, with Google or email. It opens LearnKyrgyz, Quoldek, Kadam and AkylduuKodo from one place, and a LearnKyrgyz topic becomes a Quoldek game in one tap."),
         h("div", { class: "hero-actions reveal", style: { "--d": 3 } }, h("a", { class: "btn lg", href: "#signup" }, "Create your account"), h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
         h("div", { class: "trust reveal", style: { "--d": 4 } }, h("span", {}, "Google or email"), h("span", {}, "Free"), h("span", {}, "Nothing to download"))),
       orbit),
+    doors(),
     h("section", { id: "how" },
       h("span", { class: "kicker reveal" }, "How it works"),
       h("h2", { class: "h2 reveal" }, "Three steps, then you never log in twice"),
@@ -189,6 +194,28 @@ function landing() {
       h("a", { class: "btn lg green", href: "#signup" }, "Create your account")));
   reveal(app);
   fitFlow();
+  drawDoors();
+}
+
+// One account, four doors: lines draw from the account to each app as it scrolls into view.
+function doors() {
+  const status = { learnkyrgyz: "Opens signed in", quoldek: "Opens signed in", kadam: "Same Google account", akylduukodo: "Same Google account" };
+  return h("section", { id: "one", class: "doors-sec" },
+    h("span", { class: "kicker reveal" }, "One account · four apps"),
+    h("h2", { class: "h2 reveal" }, "One key opens every door"),
+    h("div", { class: "doors reveal" },
+      h("div", { class: "door-svg", html: '<svg viewBox="0 0 1000 420" preserveAspectRatio="none" aria-hidden="true">' + ORDER.map((id, k) => {
+        const x = 125 + k * 250;
+        return `<path class="dline" style="--c:${INFO[id].c1};--k:${k}" d="M 500 118 C 500 230, ${x} 190, ${x} 300"/><circle class="dpulse" style="--c:${INFO[id].c1};--k:${k}" r="7"><animateMotion dur="2.4s" begin="${k * 0.35}s" repeatCount="indefinite" path="M 500 118 C 500 230, ${x} 190, ${x} 300"/></circle>`;
+      }).join("") + "</svg>" }),
+      h("div", { class: "key-card glass" }, rings(), h("div", {}, h("b", {}, "Your OneInFour account"), h("span", { class: "small muted" }, "Google or email · one password"))),
+      h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door glass", style: { "--c1": INFO[id].c1, "--k": k } }, tile(id), h("b", {}, INFO[id].name), h("span", { class: "small muted" }, status[id]))))));
+}
+function drawDoors() {
+  const el = document.querySelector(".doors"); if (!el) return;
+  if (reduce || !("IntersectionObserver" in window)) { el.classList.add("drawn"); return; }
+  const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { el.classList.add("drawn"); io.disconnect(); } }), { threshold: .35 });
+  io.observe(el);
 }
 // The cards fly along the same arc as the dashed line, whatever the width.
 function fitFlow() {
@@ -215,7 +242,7 @@ function together() {
         h("span", { class: "kicker" }, "LearnKyrgyz × Quoldek"),
         h("h2", { class: "h2" }, "A topic becomes a game in one tap"),
         h("ol", { class: "muted", style: { "padding-left": "20px" } },
-          h("li", {}, "Pick topics in LearnKyrgyz or on your OneInTwo dashboard, such as Greetings or Family."),
+          h("li", {}, "Pick topics in LearnKyrgyz or on your OneInFour dashboard, such as Greetings or Family."),
           h("li", {}, "Press ", h("b", {}, "Play in Quoldek"), ". The questions fly across: four options each, a timer, and the Kyrgyz word in every explanation."),
           h("li", {}, "Quoldek opens with the quiz made and you already signed in. Pick a game, put the PIN on the board, and the class plays on their phones."))),
       h("div", { class: "flow" },
@@ -267,7 +294,7 @@ function authView(mode) {
   const target = returnTo && appFor(returnTo);
   app.replaceChildren(h("div", { class: "auth-wrap" },
     h("div", { class: "auth-art" },
-      h("span", { class: "kicker" }, rings("sm"), "OneInTwo account"),
+      h("span", { class: "kicker" }, rings("sm"), "OneInFour account"),
       h("h1", { class: "h2", style: { "font-size": "clamp(34px,4.6vw,56px)" } }, signup ? "One account for every app." : "Welcome back."),
       h("p", { class: "lead" }, "It's your LearnKyrgyz account too, and Quoldek opens with it already signed in."),
       h("div", { class: "apps", style: { "grid-template-columns": "repeat(4, 64px)", gap: "12px" } }, ORDER.map((id, k) => h("span", { class: "reveal", style: { "--d": k } }, tile(id))))),
@@ -311,7 +338,7 @@ function dashboard() {
     h("div", { class: "explain" }, [...ORDER.map(id => h("details", { class: "how glass reveal" + (id === "learnkyrgyz" ? "" : ""), open: id === "learnkyrgyz" ? true : null },
       h("summary", {}, tile(id), `How ${INFO[id].name} works`), h("ol", {}, INFO[id].how.map(x => h("li", {}, x))))),
       h("details", { class: "how glass reveal" }, h("summary", {}, h("span", { class: "tile", style: { "--c1": "#7c5cff", "--c2": "#58cc02" } }, "1∞"), "How one account works"),
-        h("ol", {}, h("li", {}, "Your OneInTwo account is your LearnKyrgyz account: same email, same password or Google."),
+        h("ol", {}, h("li", {}, "Your OneInFour account is your LearnKyrgyz account: same email, same password or Google."),
           h("li", {}, "When you open an app from here, your sign-in travels with you inside the link. It's never sent to a server, and the app removes it from the address bar."),
           h("li", {}, "Quoldek keeps your quizzes in your account, so they follow you to any device."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
@@ -356,7 +383,65 @@ async function route() {
 }
 window.addEventListener("hashchange", () => { const h2 = location.hash.replace("#", ""); if (h2 === "signin" || h2 === "signup" || !session) route(); });
 
+// ── ambient motion: starfield that leans toward the pointer, spotlight, magnetic buttons ──
+function starfield() {
+  if (reduce) return;
+  const cv = document.createElement("canvas"); cv.className = "stars";
+  document.querySelector(".bg").append(cv);
+  const g = cv.getContext("2d"); let W, H, dpr, pts = [], mx = -1e4, my = -1e4;
+  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; cv.style.width = innerWidth + "px"; cv.style.height = innerHeight + "px";
+    const n = Math.round(Math.min(90, innerWidth * innerHeight / 16000)); pts = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .25 * dpr, vy: (Math.random() - .5) * .25 * dpr, c: ["#7c5cff", "#58cc02", "#22d3ee", "#ffc857"][Math.floor(Math.random() * 4)] })); };
+  size(); addEventListener("resize", size);
+  addEventListener("pointermove", (e) => { mx = e.clientX * dpr; my = e.clientY * dpr; }, { passive: true });
+  const link = 130 * (devicePixelRatio || 1);
+  const tick = () => {
+    if (!document.hidden) {
+      g.clearRect(0, 0, W, H);
+      for (const p of pts) {
+        const dx = mx - p.x, dy = my - p.y, d = Math.hypot(dx, dy);
+        if (d < 220 * dpr) { p.vx += dx / d * .012 * dpr; p.vy += dy / d * .012 * dpr; }
+        p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1;
+        g.fillStyle = p.c; g.globalAlpha = .8; g.beginPath(); g.arc(p.x, p.y, 1.6 * dpr, 0, 7); g.fill();
+      }
+      g.lineWidth = dpr * .8;
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+        const a = pts[i], b = pts[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < link) { g.globalAlpha = (1 - d / link) * .35; g.strokeStyle = a.c; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function pointerFx() {
+  if (reduce || !matchMedia("(pointer: fine)").matches) return;
+  const spot = h("i", { class: "spot" }); document.body.append(spot);
+  addEventListener("pointermove", (e) => { spot.style.transform = `translate(${e.clientX - 300}px, ${e.clientY - 300}px)`; }, { passive: true });
+  document.addEventListener("pointermove", (e) => {
+    const b = e.target.closest(".btn.lg, .btn.magnet"); document.querySelectorAll(".btn.pulled").forEach(x => { if (x !== b) { x.classList.remove("pulled"); x.style.translate = ""; } });
+    if (!b) return;
+    const r = b.getBoundingClientRect(); b.classList.add("pulled");
+    b.style.translate = `${(e.clientX - r.left - r.width / 2) * .18}px ${(e.clientY - r.top - r.height / 2) * .28}px`;
+  }, { passive: true });
+}
+// First visit in a tab: four app tiles fly together into one glowing account.
+function intro() {
+  let seen = false; try { seen = sessionStorage.getItem("oi4.intro") === "1"; sessionStorage.setItem("oi4.intro", "1"); } catch {}
+  if (seen || reduce) return Promise.resolve();
+  const layer = h("div", { class: "intro", onClick: () => finish() },
+    ORDER.map((id, k) => h("span", { class: "tile it", style: { "--c1": INFO[id].c1, "--c2": INFO[id].c2, "--k": k } }, INFO[id].mark)),
+    h("div", { class: "intro-core" }, rings("big"), h("b", {}, "One", h("span", {}, "In"), "Four")));
+  document.body.append(layer);
+  let done;
+  const finish = () => { if (layer.classList.contains("out")) return; layer.classList.add("out"); setTimeout(() => layer.remove(), 700); done(); };
+  return new Promise((res) => { done = res; setTimeout(finish, 2100); });
+}
+
 (async () => {
+  starfield(); pointerFx();
+  const shown = intro();
   try { await loadMe(); } catch (e) { console.warn(e); }
+  await shown;
   route();
 })();
