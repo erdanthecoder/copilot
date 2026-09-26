@@ -78,7 +78,7 @@ const INFO = {
       "Opened from The4Workspace, Kadam signs you in with this same account."],
   },
   akylduukodo: {
-    name: "AkylduuKodo", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://akylduukodo.web.app/",
+    name: "AkylduuKodo", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://compactit.web.app/",
     points: ["Real JavaScript through short, clear lessons", "Guided practice, drills and a Code Lab", "A weekly study goal to keep you going"],
     how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
       "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",

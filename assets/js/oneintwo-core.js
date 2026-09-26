@@ -11,9 +11,9 @@ export const APPS = [
   { id: "learnkyrgyz", name: "LearnKyrgyz", url: "https://studentlrnkyrgyz.web.app/", teacherUrl: "https://teachlrnkyrgyz.web.app/", color: "#58cc02", sso: true },
   { id: "quoldek", name: "Quoldek", url: "https://quoldek.web.app/", color: "#7c5cff", sso: true },
   { id: "kadam", name: "Kadam", url: "https://kadam.web.app/", color: "#0f9d58", sso: true },
-  { id: "akylduukodo", name: "AkylduuKodo", url: "https://akylduukodo.web.app/", color: "#1cb0f6", sso: true },
+  { id: "akylduukodo", name: "AkylduuKodo", url: "https://compactit.web.app/", color: "#1cb0f6", sso: true },
 ];
-const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|oneintwo|oneinfour|the4workspace)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
+const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactit|oneintwo|oneinfour|the4workspace)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };
 
 const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
