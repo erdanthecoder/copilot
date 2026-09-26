@@ -21,7 +21,7 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Ilbirs reacts to every answer in Kyrgyz ("Азамат!", "Кабатыр болбо!", "Ураа! 5 катары менен!"), with the translation underneath.
 - **Unit tests:** a timed test for every unit (20 questions, 15 minutes, no hints) that shows a 5-point grade and lets you review your answers.
 - Optional **Zamyatkin dialogues** (turn on in Profile): 10 short Kyrgyz dialogues in four stages (listen & read → shadowing → ears only → say it), with a listen counter (goal 30) and tap-for-meaning on every word.
-- Kyrgyz is spoken aloud when shown or tapped. It uses a Kyrgyz voice if the device has one, otherwise a Turkish voice reading Turkish spelling as a close approximation.
+- Kyrgyz is spoken aloud when shown or tapped, with **real Kyrgyz pronunciation**. Almost no device has a Kyrgyz voice, so the app includes the eSpeak NG Kyrgyz synthesiser compiled to WebAssembly (`assets/vendor/espeak`, about 1.5 MB, loaded on first tap). It gets Kyrgyz sounds right: қ/к, ғ/г, ң, ө, ү, ы, long vowels and final-syllable stress. A device's own Kyrgyz voice is used if there is one.
 - Explanations in English or Russian, plus light and dark themes.
 - Classroom: join by code, invite link or email invite. Homework shows its due date and grade. There's a class leaderboard, shared presentations, a "Join" banner when the teacher starts a live lesson, and "Follow" for live slides.
 - Guest mode, so people can try it without an account. Guest progress moves into the account on sign-up.
@@ -55,6 +55,11 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 ## Google sign-in
 
 "Continue with Google" uses **Firebase Authentication**, and the `auth-bridge` edge function turns it into a Supabase session. To turn it on, open the Firebase console → Authentication → Sign-in method → enable **Google**. The deploy workflow registers the web app and adds all three `.web.app` domains to Firebase's authorized domains. The button only appears on the Firebase-hosted sites, not on the GitHub Pages preview.
+
+## Third-party code
+
+- `assets/vendor/supabase.js`: supabase-js (MIT).
+- `assets/vendor/espeak/`: eSpeak NG (GPL-3.0; see `assets/vendor/espeak/COPYING`). This is the Emscripten build from `@echogarden/espeak-ng-emscripten` 0.3.5, with its data package cut down to the Kyrgyz voice. Source: https://github.com/espeak-ng/espeak-ng.
 
 ## Kyrgyz content
 

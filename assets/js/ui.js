@@ -1,3 +1,4 @@
+import { sayKy, voice } from "./speech.js";
 // Shared UI helpers: DOM builder, icons, mascot, sounds, confetti, toasts, modals.
 
 export function h(tag, attrs = {}, ...kids) {
@@ -181,16 +182,9 @@ export const sound = {
   ring() { if (!this.enabled) return; bell(784, 0, 0.5, 0.07); bell(988, 0.25, 0.7, 0.07); },
 };
 
-// Kyrgyz text-to-speech, only when the device really has a Kyrgyz voice.
-export function kyVoice() {
-  if (!("speechSynthesis" in window)) return null;
-  return speechSynthesis.getVoices().find(v => /^ky/i.test(v.lang)) || null;
-}
-export function speakKy(text) {
-  const v = kyVoice(); if (!v) return false;
-  const u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang; u.rate = .9;
-  speechSynthesis.cancel(); speechSynthesis.speak(u); return true;
-}
+// Kyrgyz text-to-speech (see speech.js).
+export function kyVoice() { return voice.available(); }
+export function speakKy(text) { return sayKy(text, { force: true }); }
 
 export function confetti(duration = 1800) {
   const cv = h("canvas", { class: "confetti" }); document.body.append(cv);

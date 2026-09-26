@@ -216,7 +216,10 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
   }
 
   async function play() {
+    if (!voice.enabled) { voice.set(true); toast(ru ? "Озвучка включена" : "Voice turned on"); }
+    playBtn.classList.add("loading");
     await ensureVoices();
+    playBtn.classList.remove("loading");
     if (!voice.enabled) { voice.set(true); toast(ru ? "Озвучка включена" : "Voice turned on"); }
     if (!voice.available()) toast(ru ? "На устройстве нет голоса — будет подсветка без звука" : "No voice on this device — lines will highlight silently");
     playing = true; stopFlag = false; draw();
@@ -225,7 +228,7 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
         current = i; draw();
         const el = linesEl.children[i]; if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
         if (stage === 3) revealed.add(i);
-        await sayKyAsync(d.lines[i][1], { rate: speed, pitch: d.lines[i][0] === "А" ? 0.95 : 1.2 });
+        await sayKyAsync(d.lines[i][1], { rate: speed, speaker: d.lines[i][0] === "А" ? "A" : "B" });
         if (stopFlag) break;
         if (stage === 1) { // shadowing pause: time to repeat
           el && el.classList.add("your-turn");
@@ -245,6 +248,6 @@ export function openDialogue({ dialogue: d, progress = {}, onProgress }) {
 
 export function dialogueExplainer(ru) {
   return ru
-    ? "Метод Замяткина («матрица»): берёте один короткий диалог и слушаете его много раз — сначала с текстом и переводом, потом повторяете за диктором, потом только на слух, и наконец говорите сами. Звук — синтезированный голос, близкий к кыргызскому произношению."
-    : "The Zamyatkin “matrix” method: take one short dialogue and listen to it many times — first reading along with the translation, then repeating after the speaker, then by ear only, and finally saying it yourself. Audio uses a computer voice close to Kyrgyz pronunciation.";
+    ? "Метод Замяткина («матрица»): берёте один короткий диалог и слушаете его много раз — сначала с текстом и переводом, потом повторяете за диктором, потом только на слух, и наконец говорите сами. Звук — синтезированный кыргызский голос (eSpeak NG) с правильным кыргызским произношением."
+    : "The Zamyatkin “matrix” method: take one short dialogue and listen to it many times — first reading along with the translation, then repeating after the speaker, then by ear only, and finally saying it yourself. Audio is a computer-generated Kyrgyz voice (eSpeak NG) that follows real Kyrgyz pronunciation.";
 }
