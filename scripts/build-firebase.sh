@@ -21,5 +21,7 @@ for app in student teacher; do
 done
 # oneintwo.web.app — the shared-account hub
 cp -R assets "dist/hub/"
-for f in index.html hub.js hub.css; do sed 's#\.\./assets/#assets/#g' "oneintwo/$f" > "dist/hub/$f"; done
+for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneintwo/$f" > "dist/hub/$f"; done
+# module imports must stay relative ("./assets/…"), or the browser refuses to load them
+sed 's#"\.\./assets/#"./assets/#g' oneintwo/hub.js > dist/hub/hub.js
 echo "Built dist/{home,student,teacher,hub}"
