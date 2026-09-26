@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 rm -rf dist
-mkdir -p dist/home dist/student dist/teacher
+mkdir -p dist/home dist/student dist/teacher dist/hub
 # Game question bank for Quoldek and other quiz games (/api/quoldek/v1).
 if command -v node >/dev/null; then node scripts/quoldek-feed.mjs; fi
 cp index.html sw.js dist/home/
@@ -19,4 +19,7 @@ for app in student teacher; do
   sed 's#\.\./assets/#assets/#g' "$app/index.html" > "dist/$app/index.html"
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
-echo "Built dist/{home,student,teacher}"
+# oneintwo.web.app — the shared-account hub
+cp -R assets "dist/hub/"
+for f in index.html hub.js hub.css; do sed 's#\.\./assets/#assets/#g' "oneintwo/$f" > "dist/hub/$f"; done
+echo "Built dist/{home,student,teacher,hub}"

@@ -6,6 +6,7 @@ import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.j
 import { buildLesson, buildExam, buildReview, srsUpdate, srsDue, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
+import { acceptHandoff, handoffUrl, flyTo, hubNote, HUB, QUOLDEK } from "../assets/js/oneintwo.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { voice } from "../assets/js/speech.js";
 import { DIALOGUES, LISTEN_GOAL, openDialogue, dialogueExplainer } from "../assets/js/dialogues.js";
@@ -126,6 +127,7 @@ function checkAchievements() {
 async function boot() {
   setLang(getLang());
   applyTheme();
+  await acceptHandoff(client); // arriving from oneintwo.web.app or another app, already signed in
   const { data } = await client.auth.getSession();
   if (data.session) return signedIn(data.session.user);
   try { if (localStorage.getItem("lk.guestMode") === "1") return startGuest(); } catch {}
@@ -145,6 +147,7 @@ function renderAuth(mode = "welcome", msg = null) {
         googleBlock({ role: "student", learnFrom: getLang, label: getLang() === "ru" ? "Продолжить с Google" : "Continue with Google", orLabel: getLang() === "ru" ? "или" : "or", onSignedIn: async (u) => { await migrateGuest(u); signedIn(u); }, onError: (e) => toast(errMsg(e), "bad") }),
         h("button", { class: "btn primary block", onClick: () => renderAuth("signup") }, t("signUp")),
         h("button", { class: "btn ghost block", onClick: () => renderAuth("signin") }, t("signIn")),
+        h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?return=${encodeURIComponent(location.origin + location.pathname)}` }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), getLang() === "ru" ? "Войти через OneInTwo" : "Sign in with OneInTwo"),
         h("button", { class: "link-btn", onClick: startGuest }, t("guest")))];
   } else {
     const signup = mode === "signup";
@@ -550,11 +553,18 @@ function viewPractice(main) {
   draw();
   unitTests(main);
   const ru = getLang() === "ru";
-  main.append(h("a", { class: "card click quoldek-card", href: "https://quoldek.web.app", target: "_blank", rel: "noopener" },
+  // One tap: the topic you're on becomes a Quoldek quiz, and you arrive signed in.
+  const qTopic = currentTopic();
+  main.append(h("button", { class: "card click quoldek-card", onClick: async () => {
+      const { data: { session } } = await client.auth.getSession();
+      const url = handoffUrl(`${QUOLDEK}/?learnkyrgyz=${qTopic}&lang=${getLang()}&go=take`, session);
+      flyTo(url, { to: "Quoldek", cards: [tn(TOPICS[qTopic]), TOPICS[qTopic].ky], label: ru ? "Тема летит в Quoldek…" : "Your topic is flying to Quoldek…" });
+    } },
     h("span", { class: "up-ic" }, icon("star")),
-    h("div", { class: "grow" }, h("h3", { style: { margin: 0 } }, ru ? "Играйте в кыргызский на Quoldek" : "Play Kyrgyz on Quoldek"),
-      h("p", { class: "muted", style: { margin: "4px 0 0" } }, ru ? "Наш партнёр: викторины с друзьями по всем темам LearnKyrgyz." : "Our partner: quiz games with friends on every LearnKyrgyz topic.")),
-    icon("right")));
+    h("div", { class: "grow" }, h("h3", { style: { margin: 0 } }, ru ? `Сыграть «${tn(TOPICS[qTopic])}» в Quoldek` : `Play “${tn(TOPICS[qTopic])}” in Quoldek`),
+      h("p", { class: "muted", style: { margin: "4px 0 0" } }, ru ? "Одно нажатие: тема станет викториной в Quoldek, тот же аккаунт." : "One tap: your topic becomes a Quoldek quiz, same account.")),
+    icon("right")),
+    hubNote(ru));
   main.append(h("h2", { class: "section-title" }, `${t("words")} (${words.length})`), q, h("div", { style: { height: "12px" } }), list);
 }
 // Self-check unit tests: 20 mixed questions, 15-minute timer, no hints until the end.

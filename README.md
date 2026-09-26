@@ -71,6 +71,15 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - `assets/vendor/supabase.js`: supabase-js (MIT).
 - `assets/vendor/espeak/`: eSpeak NG (GPL-3.0; see `assets/vendor/espeak/COPYING`). This is the Emscripten build from `@echogarden/espeak-ng-emscripten` 0.3.5, with its data package cut down to the Kyrgyz voice. Source: https://github.com/espeak-ng/espeak-ng.
 
+## OneInTwo: one account for all the apps
+
+**oneintwo.web.app** (folder `oneintwo/`, deployed by the same Firebase workflow) is the account hub. It has an animated landing page, sign-in with Google or email (as a student or a teacher), and a dashboard.
+- **One account:** the OneInTwo account *is* the LearnKyrgyz account (Supabase).
+- **Opening an app:** LearnKyrgyz and Quoldek open already signed in. The session is handed over in the URL fragment (`#oit=…`), and only to trusted addresses (`assets/js/oneintwo-core.js`). The receiving app stores it and removes it from the address bar.
+- **Per-app data:** apps keep small data blobs in the account, such as Quoldek's quizzes. These are stored in `app_data` (migration `0008`), with row-level security so each person only sees their own rows.
+- **LearnKyrgyz → Quoldek:** pick topics in the teacher app, the student app or the dashboard and press *Play in Quoldek*. Quoldek opens (`?learnkyrgyz=…&go=host|studio|take`), makes the quiz, and goes straight to the game picker. There's nothing to download.
+- **Kadam** (kadam.web.app, the university-application suite) and **AkylduuKodo** (akylduukodo.web.app) are on the dashboard with explanations. They keep their own sign-in for now.
+
 ## Quiz game question bank (Quoldek)
 
 `scripts/quoldek-feed.mjs` generates `api/quoldek/v1/`:

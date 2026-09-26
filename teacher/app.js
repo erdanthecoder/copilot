@@ -4,8 +4,9 @@ import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeCh
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
 import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor, sealPaper } from "../assets/js/engine.js";
-import { topicQuestions, topicMeta, toCSV, BANK_VERSION } from "../assets/js/gamebank.js";
+import { topicQuestions } from "../assets/js/gamebank.js";
 import { showWhatsNew, versionBadge } from "../assets/js/version.js";
+import { acceptHandoff, handoffUrl, flyTo, HUB } from "../assets/js/oneintwo.js";
 import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
@@ -22,6 +23,7 @@ let user = null, profile = null, view = "classes", classes = [], currentClass = 
 // ───────────────────────── auth ─────────────────────────
 async function boot() {
   applyTheme();
+  await acceptHandoff(client);
   const { data } = await client.auth.getSession();
   if (data.session) return signedIn(data.session.user);
   renderAuth("signin");
@@ -57,6 +59,7 @@ function renderAuth(mode, msg) {
       } catch (ex) { err.textContent = errMsg(ex); err.classList.remove("hidden"); btn.disabled = false; }
     } }, msg ? h("div", { class: "auth-ok" }, msg) : null, err,
       googleBlock({ role: "teacher", learnFrom: getLang, onSignedIn: (u) => signedIn(u), onError: (e) => { err.textContent = errMsg(e); err.classList.remove("hidden"); } }),
+      h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?as=teacher&return=${encodeURIComponent(location.origin + location.pathname)}`, style: { marginBottom: "12px" } }, h("span", { class: "oit-rings sm" }, h("i"), h("i")), "Sign in with OneInTwo"),
       signup ? h("label", { class: "field" }, h("span", {}, "Name students will see"), name) : null,
       h("label", { class: "field" }, h("span", {}, t("email")), email),
       h("label", { class: "field" }, h("span", {}, t("password")), pw), btn),
@@ -669,7 +672,6 @@ function viewWorksheets(main) {
 
 // Questions for quiz games (Quoldek partnership). Same bank as /api/quoldek/v1 on learnkyrgyz.web.app.
 const QUOLDEK = "https://quoldek.web.app";
-const BANK_URL = "https://learnkyrgyz.web.app/api/quoldek/v1";
 function gamesDialog(topicIds = []) {
   const sel = new Set(topicIds);
   let lang = getLang();
@@ -684,19 +686,27 @@ function gamesDialog(topicIds = []) {
     const all = qs(); count.textContent = `${all.length} questions`;
     preview.replaceChildren(...all.slice(0, 4).map(q => h("div", { class: "item" }, h("div", { class: "grow" }, h("div", { class: "title" }, q.question[lang]), h("div", { class: "sub" }, q.options[lang].map((o, i) => i === q.answer ? `✓ ${o}` : o).join(" · "))))));
   }
-  const download = (name, text, type) => { const a = h("a", { href: URL.createObjectURL(new Blob([text], { type })), download: name }); document.body.append(a); a.click(); a.remove(); };
-  const name = () => sel.size === 1 ? [...sel][0] : `learnkyrgyz-${sel.size}-topics`;
+  // Straight into Quoldek: the chosen topics become a quiz there, and the same account comes along.
+  const go = async (mode) => {
+    if (!sel.size) { toast("Choose topics first", "bad"); return false; }
+    const { data: { session } } = await client.auth.getSession();
+    const url = handoffUrl(`${QUOLDEK}/?learnkyrgyz=${[...sel].join(",")}&lang=${lang}&go=${mode}`, session);
+    flyTo(url, { to: "Quoldek", cards: [...sel].slice(0, 6).map(id => tn(TOPICS[id])), label: mode === "host" ? "Your quiz is flying to Quoldek — pick a game and share the PIN" : "Your quiz is flying to Quoldek" });
+    return true;
+  };
   drawLang(); draw();
-  modal({ title: "Quiz games · Quoldek", wide: true, body: h("div", {},
-    h("p", { class: "muted" }, "LearnKyrgyz and ", h("a", { href: QUOLDEK, target: "_blank", rel: "noopener" }, "Quoldek"), " work together: pick topics here and press ", h("b", {}, "Open in Quoldek"), ". Quoldek opens with the same topics chosen and makes them into a quiz you can host live. In Quoldek you can also press “Kyrgyz from LearnKyrgyz” on the quiz list."),
+  modal({ title: "Play in Quoldek", wide: true, body: h("div", {},
+    h("div", { class: "q-hero" },
+      h("span", { class: "q-hero-logo lk" }, mascot("happy", 40, { hat: false })),
+      h("span", { class: "q-hero-dots" }, h("i"), h("i"), h("i")),
+      h("span", { class: "q-hero-logo q" }, "Q"),
+      h("p", { class: "muted", style: { margin: 0 } }, "Pick topics and press ", h("b", {}, "Play in Quoldek"), ". The quiz is made for you in Quoldek, where you pick a game and put the PIN on the board. There's nothing to download, and you stay signed in with the same account.")),
     h("div", { class: "field" }, h("span", {}, "Topics"), summary),
     h("div", { class: "field" }, h("span", {}, "Questions in"), langSeg),
-    h("div", { class: "row" }, count, h("span", { class: "muted small" }, " — first questions:")), preview,
-    h("p", { class: "small muted" }, "Open question bank for game makers: ", h("a", { href: BANK_URL + "/index.json", target: "_blank", rel: "noopener" }, BANK_URL + "/index.json"), ` (v${BANK_VERSION}, JSON, free to use).`)),
+    h("div", { class: "row" }, count, h("span", { class: "muted small" }, " — first questions:")), preview),
     actions: [
-      { label: "CSV (Kahoot-style)", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}-${lang}.csv`, toCSV(qs(), lang), "text/csv"); return false; } },
-      { label: "Download for Quoldek", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}.json`, JSON.stringify({ name: "LearnKyrgyz question bank", version: BANK_VERSION, source: "https://learnkyrgyz.web.app", language: lang, topics: [...sel].map(id => ({ topic: topicMeta(id), questions: topicQuestions(id) })) }, null, 1), "application/json"); return false; } },
-      { label: "Open in Quoldek", kind: "purple", onClick: () => { window.open(sel.size ? `${QUOLDEK}/?learnkyrgyz=${[...sel].join(",")}&lang=${lang}` : QUOLDEK, "_blank", "noopener"); return false; } },
+      { label: "Edit it in Quoldek first", kind: "ghost", onClick: () => go("studio") },
+      { label: "Play in Quoldek →", kind: "purple", onClick: () => go("host") },
     ] });
 }
 
