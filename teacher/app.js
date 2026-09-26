@@ -688,7 +688,7 @@ function gamesDialog(topicIds = []) {
   const name = () => sel.size === 1 ? [...sel][0] : `learnkyrgyz-${sel.size}-topics`;
   drawLang(); draw();
   modal({ title: "Quiz games · Quoldek", wide: true, body: h("div", {},
-    h("p", { class: "muted" }, "LearnKyrgyz and ", h("a", { href: QUOLDEK, target: "_blank", rel: "noopener" }, "Quoldek"), " work together: pick topics and play them as a quiz game with your class. Every question has four options, a time limit and the Kyrgyz word for audio."),
+    h("p", { class: "muted" }, "LearnKyrgyz and ", h("a", { href: QUOLDEK, target: "_blank", rel: "noopener" }, "Quoldek"), " work together: pick topics here and press ", h("b", {}, "Open in Quoldek"), ". Quoldek opens with the same topics chosen and makes them into a quiz you can host live. In Quoldek you can also press “Kyrgyz from LearnKyrgyz” on the quiz list."),
     h("div", { class: "field" }, h("span", {}, "Topics"), summary),
     h("div", { class: "field" }, h("span", {}, "Questions in"), langSeg),
     h("div", { class: "row" }, count, h("span", { class: "muted small" }, " — first questions:")), preview,
@@ -696,7 +696,7 @@ function gamesDialog(topicIds = []) {
     actions: [
       { label: "CSV (Kahoot-style)", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}-${lang}.csv`, toCSV(qs(), lang), "text/csv"); return false; } },
       { label: "Download for Quoldek", kind: "ghost", onClick: () => { if (!sel.size) { toast("Choose topics first", "bad"); return false; } download(`${name()}.json`, JSON.stringify({ name: "LearnKyrgyz question bank", version: BANK_VERSION, source: "https://learnkyrgyz.web.app", language: lang, topics: [...sel].map(id => ({ topic: topicMeta(id), questions: topicQuestions(id) })) }, null, 1), "application/json"); return false; } },
-      { label: "Open Quoldek", kind: "purple", onClick: () => { window.open(QUOLDEK, "_blank", "noopener"); return false; } },
+      { label: "Open in Quoldek", kind: "purple", onClick: () => { window.open(sel.size ? `${QUOLDEK}/?learnkyrgyz=${[...sel].join(",")}&lang=${lang}` : QUOLDEK, "_blank", "noopener"); return false; } },
     ] });
 }
 
