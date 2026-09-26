@@ -29,6 +29,6 @@ export function hubNote(ru) {
   return h("a", { class: "card click oit-note", href: HUB, target: "_blank", rel: "noopener" },
     h("span", { class: "oit-rings" }, h("i"), h("i")),
     h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — OneInFour" : "One account — OneInFour"),
-      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот аккаунт работает и в Quoldek. Kadam и AkylduuKodo — на той же панели." : "This account also works in Quoldek. Kadam and AkylduuKodo are on the same dashboard.")),
+      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и AkylduuKodo." : "The same account opens Quoldek, Kadam and AkylduuKodo.")),
     icon("right"));
 }

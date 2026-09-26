@@ -73,12 +73,12 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 
 ## OneInFour: one account for all four apps
 
-**oneinfour.web.app** (folder `oneinfour/`, deployed by the same Firebase workflow; the old address oneintwo.web.app forwards to it) is the account hub. It has an animated landing page, sign-in with Google or email (as a student or a teacher), and a dashboard.
+**oneinfour.web.app** (folder `oneinfour/`, deployed by the same Firebase workflow; the old address oneintwo.web.app forwards to it) is the account hub. It has a product landing page (single sign-on diagram, features, security, FAQ), sign-in with Google or email (as a student or a teacher), and a dashboard.
 - **One account:** the OneInFour account *is* the LearnKyrgyz account (Supabase).
-- **Opening an app:** LearnKyrgyz and Quoldek open already signed in. The session is handed over in the URL fragment (`#oit=…`), and only to trusted addresses (`assets/js/oneintwo-core.js`). The receiving app stores it and removes it from the address bar.
+- **Opening an app:** all four apps open already signed in. The session is handed over in the URL fragment (`#oit=…`), and only to trusted addresses (`assets/js/oneintwo-core.js`). The receiving app stores it and removes it from the address bar.
 - **Per-app data:** apps keep small data blobs in the account, such as Quoldek's quizzes. These are stored in `app_data` (migration `0008`), with row-level security so each person only sees their own rows.
 - **LearnKyrgyz → Quoldek:** pick topics in the teacher app, the student app or the dashboard and press *Play in Quoldek*. Quoldek opens (`?learnkyrgyz=…&go=host|studio|take`), makes the quiz, and goes straight to the game picker. There's nothing to download.
-- **Kadam** (kadam.web.app, the university-application suite) and **AkylduuKodo** (akylduukodo.web.app) are on the dashboard with explanations. They keep their own sign-in for now.
+- **Kadam** (kadam.web.app, the university-application suite) and **AkylduuKodo** (akylduukodo.web.app) use Firebase Auth. On arrival they swap the hand-off for a Firebase custom token from the `oit-firebase-token` edge function, then call `signInWithCustomToken`. Each app registered its own Firebase key once, through a workflow in its own repository. A Google-verified OneInFour account links to the same email's Firebase user; an email/password account gets its own user.
 
 ## Quiz game question bank (Quoldek)
 
