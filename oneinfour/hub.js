@@ -62,7 +62,7 @@ const INFO = {
       "Live lessons use video calls and your PowerPoint slides. A4 worksheets and tests print with an answer key."],
   },
   quoldek: {
-    name: "Quoldek", mark: "Q", icon: "icons/quoldek.svg", c1: "#7c5cff", c2: "#2ba8ff", tag: "Classroom quiz games", url: "https://quoldek.web.app/",
+    name: "Quoldek", mark: "Q", icon: "icons/quoldek.svg", c1: "#7c5cff", c2: "#2ba8ff", tag: "Classroom quiz games", url: "https://quoldek.web.app/signin.html",
     points: ["Write or paste a quiz, or bring a LearnKyrgyz topic in one tap", "11 live games: Kart Race, Laser Tag, Tug of War and more", "Homework links that mark themselves"],
     how: ["A teacher makes a quiz by writing it, pasting questions, or bringing LearnKyrgyz topics across in one tap.",
       "Host live: pick a game such as Kart Race, Laser Tag or Tug of War and put the PIN on the board.",
