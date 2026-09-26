@@ -20,7 +20,7 @@ for app in student teacher; do
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
 # oneinfour.web.app — the one-account hub (oneintwo.web.app forwards to it)
-cp -R assets "dist/hub/"
+cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg "dist/hub/"
 for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js

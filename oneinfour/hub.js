@@ -31,7 +31,7 @@ function h(tag, attrs = {}, ...kids) {
   for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
   return el;
 }
-const mark = (cls = "") => h("span", { class: "mark " + cls }, h("i"), h("i"), h("i"), h("i"));
+const mark = (size = 22) => h("img", { src: "icon.svg", alt: "", width: size, height: size, style: { "border-radius": Math.round(size * .28) + "px", display: "block", flex: "none" } });
 const svg = (path) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 const IC = {
   key: svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 9.2-9.2M17 6l3 3M14 9l2 2"/>'),
@@ -54,7 +54,7 @@ function toast(msg, kind = "") { const t = h("div", { class: "toast " + kind, ro
 // ── the apps ──
 const INFO = {
   learnkyrgyz: {
-    name: "LearnKyrgyz", mark: "LK", c1: "#58cc02", c2: "#1cb0f6", tag: "Learn Kyrgyz like a game", url: "https://studentlrnkyrgyz.web.app/", teacherUrl: "https://teachlrnkyrgyz.web.app/",
+    name: "LearnKyrgyz", mark: "LK", icon: "icons/learnkyrgyz.svg", c1: "#58cc02", c2: "#1cb0f6", tag: "Learn Kyrgyz like a game", url: "https://studentlrnkyrgyz.web.app/", teacherUrl: "https://teachlrnkyrgyz.web.app/",
     points: ["99 topics from A1 to B1, with real Kyrgyz pronunciation", "Lessons, spaced review, unit tests and dialogues", "Teachers: classes, homework, sealed exams and a gradebook"],
     how: ["Students follow a path of 99 topics. Each one teaches a few words, practises them, then builds sentences, and every word is spoken with correct Kyrgyz pronunciation.",
       "Spaced review brings words back just before you'd forget them. Unit tests check what stuck, and dialogues train listening and speaking.",
@@ -62,7 +62,7 @@ const INFO = {
       "Live lessons use video calls and your PowerPoint slides. A4 worksheets and tests print with an answer key."],
   },
   quoldek: {
-    name: "Quoldek", mark: "Q", c1: "#7c5cff", c2: "#22d3ee", tag: "Classroom quiz games", url: "https://quoldek.web.app/",
+    name: "Quoldek", mark: "Q", icon: "icons/quoldek.svg", c1: "#7c5cff", c2: "#2ba8ff", tag: "Classroom quiz games", url: "https://quoldek.web.app/",
     points: ["Write or paste a quiz, or bring a LearnKyrgyz topic in one tap", "11 live games: Kart Race, Laser Tag, Tug of War and more", "Homework links that mark themselves"],
     how: ["A teacher makes a quiz by writing it, pasting questions, or bringing LearnKyrgyz topics across in one tap.",
       "Host live: pick a game such as Kart Race, Laser Tag or Tug of War and put the PIN on the board.",
@@ -70,7 +70,7 @@ const INFO = {
       "Or share it as homework, and it marks itself. Your quizzes are saved to your account."],
   },
   kadam: {
-    name: "Kadam", mark: "K", c1: "#0f9d58", c2: "#34d399", tag: "Workspace for your university path", url: "https://kadam.web.app/",
+    name: "Kadam", mark: "K", icon: "icons/kadam.svg", c1: "#14b8a6", c2: "#c2410c", tag: "Workspace for your university path", url: "https://kadam.web.app/",
     points: ["Notes, Sheets, Slides and Canvas in one suite", "Tasks, UniSave, an AI study helper and Languages", "English, Русский and Кыргызча; works offline"],
     how: ["Eight tools for getting into university, all behind the nine-dot launcher: Notes, Sheets, Slides, Canvas, Tasks, UniSave, AI and Languages.",
       "Templates for university comparison tables, essay outlines, scholarship and deadline trackers.",
@@ -78,7 +78,7 @@ const INFO = {
       "Opened from OneInFour, Kadam signs you in with this same account."],
   },
   akylduukodo: {
-    name: "AkylduuKodo", mark: "</>", c1: "#1cb0f6", c2: "#7c5cff", tag: "Learn programming step by step", url: "https://akylduukodo.web.app/",
+    name: "AkylduuKodo", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://akylduukodo.web.app/",
     points: ["Real JavaScript through short, clear lessons", "Guided practice, drills and a Code Lab", "A weekly study goal to keep you going"],
     how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
       "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",
@@ -87,7 +87,7 @@ const INFO = {
   },
 };
 const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo"];
-const tile = (id, size = "") => { const a = INFO[id]; return h("span", { class: "tile " + size, style: { "--c1": a.c1, "--c2": a.c2 }, "aria-hidden": "true" }, a.mark); };
+const tile = (id, size = "") => { const a = INFO[id]; return h("span", { class: "tile ico " + size, style: { "--c1": a.c1, "--c2": a.c2 }, "aria-hidden": "true" }, h("img", { src: a.icon, alt: "", draggable: "false", decoding: "async" })); };
 const urlFor = (id) => profile?.role === "teacher" && INFO[id].teacherUrl ? INFO[id].teacherUrl : INFO[id].url;
 const appFor = (url) => ORDER.find(id => { try { const u = new URL(url); return [INFO[id].url, INFO[id].teacherUrl].filter(Boolean).some(x => new URL(x).host === u.host) || (id === "quoldek" && /quoldek\.web\.app$/.test(u.host)); } catch { return false; } });
 
@@ -104,14 +104,44 @@ function countUp(el, to) {
   const step = (t) => { const p = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString(); if (p < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
-// Leave for an app: a short card with a progress bar, then the app opens signed in.
+// Cards lean toward the pointer in 3D, with a soft light where it is.
+const finePointer = matchMedia("(pointer: fine)").matches;
+function tilt(el, max = 8) {
+  el.classList.add("tilt");
+  if (reduce || !finePointer) return el;
+  el.addEventListener("pointermove", (e) => {
+    const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    el.style.transition = "transform .12s ease-out";
+    el.style.transform = `perspective(900px) rotateX(${(.5 - y) * max}deg) rotateY(${(x - .5) * max}deg) translateY(-4px)`;
+    el.style.setProperty("--mx", x * 100 + "%"); el.style.setProperty("--my", y * 100 + "%");
+  });
+  el.addEventListener("pointerleave", () => { el.style.transition = "transform .6s cubic-bezier(.2,.8,.2,1)"; el.style.transform = ""; });
+  return el;
+}
+function glow(el) { if (finePointer) el.addEventListener("pointermove", (e) => { const r = el.getBoundingClientRect(); el.style.setProperty("--mx", e.clientX - r.left + "px"); el.style.setProperty("--my", e.clientY - r.top + "px"); }); return el; }
+function confetti(x = innerWidth / 2, y = innerHeight / 3) {
+  if (reduce) return;
+  const colors = ["#7c5cff", "#58cc02", "#22d3ee", "#14b8a6", "#1cb0f6", "#ffc857"];
+  for (let i = 0; i < 80; i++) {
+    const a = Math.random() * Math.PI * 2, d = 120 + Math.random() * 300;
+    const c = h("i", { class: "confetti", style: { left: x + "px", top: y + "px", background: colors[i % colors.length], "--dx": Math.cos(a) * d + "px", "--dy": Math.sin(a) * d + 220 + "px", "--r": Math.random() * 900 + "deg" } });
+    document.body.append(c); setTimeout(() => c.remove(), 1600);
+  }
+}
+// Leave for an app: a bubble in the app's colour grows from where you pressed,
+// its logo flips in, and the app opens already signed in.
+let lastPoint = null;
+addEventListener("pointerdown", (e) => { lastPoint = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true });
 function portal(url, id) {
   const a = INFO[id] || INFO.learnkyrgyz;
-  const p = h("div", { class: "portal", style: { "--c1": a.c1 }, role: "status" },
-    h("div", { class: "portal-card card" }, tile(id, "lg"), h("b", {}, `Opening ${a.name}`),
+  const { x, y } = lastPoint || { x: innerWidth / 2, y: innerHeight / 2 };
+  const far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const p = h("div", { class: "portal", role: "status", style: { "--c1": a.c1, "--c2": a.c2, "--x": x + "px", "--y": y + "px", "--s": (far * 2 / 20 + 2).toFixed(1) } },
+    h("i", { class: "disc" }),
+    h("div", { class: "msg" }, tile(id), h("b", {}, `Opening ${a.name}`),
       h("span", {}, session ? `Signed in as ${session.user.email}` : "Taking you there"), h("div", { class: "bar" }, h("i"))));
   document.body.append(p);
-  setTimeout(() => { location.href = handoffUrl(url, session); }, reduce ? 120 : 900);
+  setTimeout(() => { location.href = handoffUrl(url, session); }, reduce ? 150 : 1250);
 }
 window.addEventListener("pageshow", (e) => { if (e.persisted) document.querySelectorAll(".portal").forEach(x => x.remove()); });
 
@@ -183,23 +213,58 @@ function consoleCard({ animate = true, name = "Aigerim Asanova", email = "aigeri
   return el;
 }
 
+// Headline words rise in one after another.
+const words = (text, k0 = 0, cls = "") => text.split(" ").map((w, i) => [h("span", { class: "w " + cls, "aria-hidden": "true", style: { "--i": k0 + i, "--gi": i } }, w), " "]);
+
+// The hero's 3D stage: the four apps orbit your one account, each lighting up
+// as it signs in, while the scene leans toward the pointer.
+function stage() {
+  const hellos = ["Салам! 👋", "Hello! 👋", "Привет! 👋"];
+  const bubble = h("span", { class: "hello-bubble" }, hellos[0]);
+  const scene = h("div", { class: "scene" },
+    h("i", { class: "floor" }), h("i", { class: "orbit-ring" }), h("i", { class: "orbit-ring r2" }),
+    [0, 1, 2].map(i => h("i", { class: "wave", style: { "--i": i } })),
+    h("div", { class: "orbit" }, ORDER.map((id, k) => h("div", { class: "sat", style: { "--a": k * 90 + "deg" } },
+      h("div", { class: "face", style: { "--a": k * 90 + "deg", "--k": k, "--c1": INFO[id].c1 } }, tile(id), h("b", {}, INFO[id].name), h("i", { class: "ok" }, "✓"))))),
+    h("div", { class: "core" }, h("img", { src: "icon.svg", alt: "" })),
+    bubble);
+  const el = h("div", { class: "stage rise", style: { "--d": 2 }, "aria-hidden": "true" }, scene);
+  if (reduce) return el;
+  let n = 0;
+  const say = () => { n = (n + 1) % hellos.length; bubble.textContent = hellos[n]; bubble.style.animation = "none"; void bubble.offsetWidth; bubble.style.animation = ""; later(say, 2800); };
+  later(say, 2800);
+  let tx = 0, ty = 0, rx = 0, ry = 0;
+  const onMove = (e) => { tx = (.5 - e.clientY / innerHeight) * 14; ty = (e.clientX / innerWidth - .5) * 22; };
+  if (finePointer) addEventListener("pointermove", onMove, { passive: true });
+  const t0 = performance.now();
+  const tick = (t) => {
+    if (!el.isConnected) { removeEventListener("pointermove", onMove); return; }
+    if (!finePointer) { tx = Math.sin((t - t0) / 2400) * 5; ty = Math.sin((t - t0) / 3100) * 12; }
+    rx += (tx - rx) * .06; ry += (ty - ry) * .06;
+    scene.style.setProperty("--rx", rx.toFixed(2) + "deg"); scene.style.setProperty("--ry", ry.toFixed(2) + "deg");
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return el;
+}
+
 // ── landing ──
 function landing() {
-  const feature = (ic, t, d, k) => h("div", { class: "feature reveal", style: { "--d": k } }, h("div", { class: "ic", html: IC[ic] }), h("h3", {}, t), h("p", {}, d));
+  const feature = (ic, t, d, k) => glow(h("div", { class: "feature reveal", style: { "--d": k } }, h("div", { class: "ic", html: IC[ic] }), h("h3", {}, t), h("p", {}, d)));
   const checkItem = (ic, t, d) => h("div", { class: "check-item" }, h("span", { class: "ic", html: IC[ic] }), h("div", {}, h("b", {}, t), h("p", {}, d)));
   const q = (t, d) => h("details", { class: "card" }, h("summary", {}, t), h("p", {}, d));
 
   app.replaceChildren(
     h("section", { class: "hero" },
       h("div", {},
-        h("span", { class: "pill rise" }, h("b", {}, "New"), "Kadam and AkylduuKodo now open signed in"),
-        h("h1", { class: "rise", style: { "--d": 1 } }, "One account for ", h("span", { class: "grad" }, "all four apps.")),
+        h("span", { class: "pill rise" }, h("b", {}, "New"), "Every app now signs you in automatically"),
+        h("h1", { "aria-label": "One account for all four apps." }, words("One account for"), words("all four apps.", 3, "grad")),
         h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and AkylduuKodo open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
         h("div", { class: "trust rise", style: { "--d": 4 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · AkylduuKodo"))),
-      h("div", { class: "rise", style: { "--d": 2 } }, consoleCard())),
+      stage()),
 
     h("div", { class: "strip reveal" }, [["4", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
 
@@ -211,8 +276,8 @@ function landing() {
           const x = 125 + k * 250, d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
           return `<path class="dline" style="--c:${INFO[id].c1};--k:${k}" d="${d}"/>` + (reduce ? "" : `<circle class="dpulse" style="--c:${INFO[id].c1}" r="4"><animateMotion dur="2.6s" begin="${k * .4}s" repeatCount="indefinite" path="${d}"/></circle>`);
         }).join("") + "</svg>" }),
-        h("div", { class: "key card" }, mark(), h("div", {}, h("b", {}, "Your OneInFour account"), h("span", {}, "Google or email"))),
-        h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door card", style: { "--k": k } }, tile(id), h("b", {}, INFO[id].name), h("span", { class: "badge" }, "Opens signed in")))))),
+        h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your OneInFour account"), h("span", {}, "Google or email"))),
+        h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door card", style: { "--k": k, "--c1": INFO[id].c1 } }, tile(id, "lg"), h("b", {}, INFO[id].name), h("span", { class: "badge" }, "Opens signed in")))))),
 
     h("section", { id: "features", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "Why OneInFour"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
@@ -290,12 +355,12 @@ function fitFlow() {
 }
 function appCard(id, k) {
   const a = INFO[id];
-  return h("div", { class: "app card reveal", style: { "--c1": a.c1, "--c2": a.c2, "--d": k } },
+  return tilt(h("div", { class: "app card reveal", style: { "--c1": a.c1, "--c2": a.c2, "--d": k } },
     h("div", { class: "app-head" }, tile(id), h("div", {}, h("h3", {}, a.name), h("div", { class: "tag" }, a.tag))),
     h("ul", {}, a.points.map(p => h("li", {}, p))),
     h("div", { class: "foot-row" },
       h("a", { class: "open", href: session ? "#" : "#signup", onClick: session ? (e) => { e.preventDefault(); portal(urlFor(id), id); } : null }, session ? `Open ${a.name}` : "Get started", arrow()),
-      h("span", { class: "badge" }, "Single sign-on")));
+      h("span", { class: "badge" }, "Auto sign-in"))));
 }
 
 // ── sign in / create account ──
@@ -320,6 +385,7 @@ function authView(mode) {
   async function done() {
     await loadMe();
     toast(signup ? "Account created. Welcome!" : "Signed in", "good");
+    if (signup) confetti();
     history.replaceState(null, "", location.pathname + location.search);
     route(); top();
   }
@@ -370,7 +436,7 @@ function dashboard() {
 
   app.replaceChildren(h("div", { class: "dash" },
     h("div", { class: "hello rise" },
-      h("div", {}, h("h1", {}, "Салам, ", first, "!"), h("p", {}, "Your account works in all four apps. Pick one to open it signed in.")),
+      h("div", {}, h("h1", {}, "Салам, ", first, "! ", h("span", { class: "wave-hand" }, "👋")), h("p", {}, "Your account works in all four apps. Pick one to open it signed in.")),
       h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow())),
     h("div", { class: "kpis" },
       kpi("learnkyrgyz", profile.xp || 0, "XP", 0),
@@ -379,10 +445,10 @@ function dashboard() {
       kpi("quoldek", quizzes, "Quoldek quizzes", 3)),
 
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "4 of 4 connected")),
-    h("div", { class: "launch" }, ORDER.map((id, k) => h("div", { class: "item card reveal", style: { "--c1": INFO[id].c1, "--d": k } },
-      h("div", { class: "row" }, tile(id), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "tag" }, INFO[id].tag))),
+    h("div", { class: "launch" }, ORDER.map((id, k) => tilt(h("div", { class: "item card reveal", style: { "--c1": INFO[id].c1, "--d": k } },
+      h("div", { class: "row" }, tile(id, "lg"), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "tag" }, INFO[id].tag))),
       h("span", { class: "badge", style: { "margin-left": 0, "justify-self": "start" } }, "Opens signed in"),
-      h("button", { class: "btn ghost block", onClick: () => portal(urlFor(id), id) }, `Open ${INFO[id].name}`, arrow())))),
+      h("button", { class: "btn ghost block", onClick: () => portal(urlFor(id), id) }, `Open ${INFO[id].name}`, arrow()))))),
 
     h("div", { class: "sec-h", id: "bridge" }, h("h2", {}, "LearnKyrgyz topics → Quoldek"), h("p", {}, "A topic becomes a game in one tap")),
     h("div", { class: "two" },
@@ -437,7 +503,7 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (session && returnTo) { // came from an app to sign in: send them straight back
     const id = appFor(returnTo) || "learnkyrgyz";
-    app.replaceChildren(h("div", { class: "boot" }, mark("big")));
+    app.replaceChildren(h("div", { class: "boot" }, mark(72)));
     return portal(returnTo, id);
   }
   if (!session && (hash === "signin" || hash === "signup" || returnTo)) return authView(hash === "signup" ? "signup" : "signin");
@@ -450,7 +516,89 @@ window.addEventListener("hashchange", () => {
   else if (!document.getElementById(hh) || app.querySelector(".auth-wrap")) route();
 });
 
+// ── ambient motion: drifting points of light, a soft cursor light, buttons that respond ──
+function starfield() {
+  if (reduce) return;
+  const cv = h("canvas", { class: "stars" }); document.querySelector(".bg").append(cv);
+  const g = cv.getContext("2d"); let W, H, dpr, pts = [], mx = -1e4, my = -1e4;
+  const colors = ["#a78bfa", "#58cc02", "#22d3ee", "#14b8a6", "#1cb0f6"];
+  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; cv.style.width = innerWidth + "px"; cv.style.height = innerHeight + "px";
+    const count = Math.round(Math.min(70, innerWidth * innerHeight / 20000)); pts = Array.from({ length: count }, () => ({ x: Math.random() * W, y: Math.random() * H, z: .4 + Math.random() * .8, vx: (Math.random() - .5) * .2 * dpr, vy: (Math.random() - .5) * .2 * dpr, c: colors[Math.floor(Math.random() * colors.length)] })); };
+  size(); addEventListener("resize", size);
+  addEventListener("pointermove", (e) => { mx = e.clientX * dpr; my = e.clientY * dpr; }, { passive: true });
+  let sy = 0; addEventListener("scroll", () => { sy = scrollY; }, { passive: true });
+  const link = 120 * (devicePixelRatio || 1);
+  const tick = () => {
+    if (!document.hidden) {
+      g.clearRect(0, 0, W, H);
+      for (const p of pts) {
+        const dx = mx - p.x, dy = my - p.y, d = Math.hypot(dx, dy) || 1;
+        if (d < 200 * dpr) { p.vx -= dx / d * .01 * dpr; p.vy -= dy / d * .01 * dpr; }
+        p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1;
+        p.py = ((p.y - sy * dpr * p.z * .15) % H + H) % H;
+        g.globalAlpha = .55 * p.z; g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.py, 1.4 * dpr * p.z, 0, 7); g.fill();
+      }
+      g.lineWidth = dpr * .7;
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+        const a = pts[i], b = pts[j], d = Math.hypot(a.x - b.x, a.py - b.py);
+        if (d < link) { g.globalAlpha = (1 - d / link) * .22; g.strokeStyle = a.c; g.beginPath(); g.moveTo(a.x, a.py); g.lineTo(b.x, b.py); g.stroke(); }
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function pointerFx() {
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".btn"); if (!b || reduce) return;
+    const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height);
+    const rip = h("span", { class: "ripple", style: { width: d + "px", height: d + "px", left: e.clientX - r.left - d / 2 + "px", top: e.clientY - r.top - d / 2 + "px" } });
+    b.append(rip); setTimeout(() => rip.remove(), 650);
+  });
+  if (reduce || !finePointer) return;
+  const spot = h("i", { class: "spot" }); document.body.append(spot);
+  let sx = innerWidth / 2, sy = innerHeight / 3, tx = sx, ty = sy;
+  addEventListener("pointermove", (e) => { tx = e.clientX; ty = e.clientY; }, { passive: true });
+  const loop = () => { sx += (tx - sx) * .12; sy += (ty - sy) * .12; spot.style.transform = `translate(${sx - 320}px, ${sy - 320}px)`; requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+  document.addEventListener("pointermove", (e) => {
+    const b = e.target.closest(".btn.lg");
+    document.querySelectorAll(".btn.pulled").forEach(x => { if (x !== b) { x.classList.remove("pulled"); x.style.translate = ""; } });
+    if (!b) return;
+    const r = b.getBoundingClientRect(); b.classList.add("pulled");
+    b.style.translate = `${(e.clientX - r.left - r.width / 2) * .2}px ${(e.clientY - r.top - r.height / 2) * .3}px`;
+  }, { passive: true });
+}
+// First visit in a tab: the four app logos fly in and become one account.
+function intro() {
+  let seen = false; try { seen = sessionStorage.getItem("oi4.intro") === "1"; sessionStorage.setItem("oi4.intro", "1"); } catch {}
+  if (seen || reduce || returnTo) return Promise.resolve();
+  const from = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  let done;
+  const finish = () => { if (layer.classList.contains("out")) return; layer.classList.add("out"); setTimeout(() => layer.remove(), 750); done(); };
+  const layer = h("div", { class: "intro", onClick: () => finish() },
+    ORDER.map((id, k) => h("span", { class: "fly", style: { "--k": k, "--c1": INFO[id].c1, "--fx": from[k][0] * innerWidth * .6 + "px", "--fy": from[k][1] * innerHeight * .6 + "px", "--fr": (k % 2 ? 1 : -1) * 120 + "deg", "--tx": from[k][0] * 46 + "px", "--ty": from[k][1] * 46 + "px" } }, h("img", { src: INFO[id].icon, alt: "" }))),
+    h("i", { class: "burst" }), h("i", { class: "burst b2" }),
+    h("div", { class: "one" }, h("img", { src: "icon.svg", alt: "" }), h("b", {}, "One", h("span", {}, "In"), "Four")));
+  document.body.append(layer);
+  return new Promise((res) => { done = res; setTimeout(finish, 2300); });
+}
+
 (async () => {
+  // Single sign-on check from an app (?return=…&silent=1): answer at once and
+  // send the visitor straight back, with the session or with #oit=none.
+  if (params.get("silent") === "1" && returnTo) {
+    let s = null;
+    try { s = (await client.auth.getSession()).data.session; } catch {}
+    if (s) return location.replace(handoffUrl(returnTo, s));
+    const u = new URL(returnTo);
+    u.hash = "oit=none" + (u.hash.length > 1 ? "&" + u.hash.slice(1) : "");
+    return location.replace(u.href);
+  }
+  starfield(); pointerFx();
+  const shown = intro();
   try { await loadMe(); } catch (e) { console.warn(e); }
+  await shown;
   route();
 })();
