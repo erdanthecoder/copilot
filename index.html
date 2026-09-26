@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LearnKyrgyz 2.0</title>
+<meta name="description" content="The fun way to learn Kyrgyz. Game-like lessons for students; classrooms, homework, live lessons and presentations for teachers.">
+<meta name="theme-color" content="#58cc02">
+<link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="land-top" id="top">
+  <nav class="land-nav">
+    <div id="brand"></div>
+    <span class="spacer"></span>
+    <a class="btn ghost sm" id="teacher-top">For teachers</a>
+    <a class="btn primary sm" id="student-top">Start learning</a>
+  </nav>
+  <section class="land-hero">
+    <div>
+      <div class="kicker">Кыргыз тилин үйрөнөбүз</div>
+      <h1>The free, fun way to learn <em>Kyrgyz</em>.</h1>
+      <p>Bite-sized lessons with streaks, XP and a snow leopard in a kalpak. Teachers get classrooms, homework with due dates, a gradebook and live video lessons.</p>
+      <div class="stack" style="max-width:380px">
+        <a class="btn primary block" id="go-student">I'm a student — start learning</a>
+        <a class="btn purple block" id="go-teacher">I'm a teacher — set up a class</a>
+      </div>
+    </div>
+    <div style="position:relative" id="phone-wrap"></div>
+  </section>
+</div>
+<div class="stat-band" id="stats"></div>
+
+<section class="section release-band">
+  <div class="kicker">New · LearnKyrgyz 2.0 · 26 September 2026</div>
+  <h2>LearnKyrgyz 2.0 is here</h2>
+  <div class="land-feats" id="new20" style="padding:12px 0 0"></div>
+</section>
+
+<section class="section">
+  <div class="kicker">Why it works</div>
+  <h2>Learning that feels like playing</h2>
+  <p class="muted" style="max-width:640px">Every lesson is a mix of short, randomised challenges. You earn XP, keep your streak alive and unlock new topics as you go.</p>
+  <div class="land-feats" id="feats" style="padding:12px 0 0"></div>
+</section>
+
+<section class="section">
+  <div class="kicker" style="color:var(--purple-d)">For teachers</div>
+  <h2>Run your Kyrgyz class in three steps</h2>
+  <div class="steps" style="margin-top:16px">
+    <div class="st"><h3>Create a class</h3><p class="muted">Share the join code or an invite link. Students join in seconds.</p></div>
+    <div class="st"><h3>Set homework</h3><p class="muted">Pick from every topic, add your own questions and writing tasks, choose the due date.</p></div>
+    <div class="st"><h3>Teach live &amp; grade</h3><p class="muted">Video or voice lessons, your PowerPoint slides shown live, and an automatic 5-point gradebook. Missed homework = 2.</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="kicker">The whole curriculum</div>
+  <h2>Every topic, from А to Ү</h2>
+  <p class="muted">All quizzes are randomised from these topics. Students can also write their own sentences.</p>
+  <div id="catalog"></div>
+</section>
+
+<section class="section" id="quoldek">
+  <div class="kicker" style="color:var(--purple-d)">Partner</div>
+  <h2>Play Kyrgyz on Quoldek</h2>
+  <p class="muted" style="max-width:680px">LearnKyrgyz and <a href="https://quoldek.web.app" target="_blank" rel="noopener">Quoldek</a> work together: every LearnKyrgyz topic is a ready quiz game, with four options, a timer and the Kyrgyz word for audio. Teachers can export any topic from the teacher app (Worksheets &amp; tests → Quiz games). Game makers can use the open question bank, which is JSON with open CORS:</p>
+  <div class="row wrap" style="gap:10px">
+    <a class="btn purple" href="https://quoldek.web.app" target="_blank" rel="noopener">Open Quoldek</a>
+    <a class="btn ghost" href="api/quoldek/v1/index.json" target="_blank" rel="noopener">Question bank · index.json</a>
+  </div>
+</section>
+
+<div style="padding:0 20px"><div class="cta-band" id="cta"></div></div>
+<footer class="center small muted" style="padding:20px 16px 40px">
+  LearnKyrgyz · Content follows standard literary Kyrgyz. Spotted a mistake? Use “Report a mistake” in the app.
+</footer>
+<script type="module">
+import { SITES } from "./assets/js/config.js";
+import { h, icon, mascot, mountains, ornamentUrl } from "./assets/js/ui.js";
+import { UNITS, TOPICS, TOPIC_ORDER } from "./assets/js/curriculum.js";
+for (const id of ["go-student", "student-top"]) document.getElementById(id).href = SITES.student;
+for (const id of ["go-teacher", "teacher-top"]) document.getElementById(id).href = SITES.teacher;
+document.getElementById("top").prepend(mountains());
+document.getElementById("brand").append(h("div", { class: "brand", style: { padding: 0 } }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz")));
+
+// Phone mock-up with a playable mini exercise.
+const opts = [["Thank you", true], ["Hello", false], ["Goodbye", false]];
+const optEls = opts.map(([t, ok]) => h("button", { class: "opt", onClick: (e) => { optEls.forEach(o => o.classList.remove("right", "wrong", "sel")); e.currentTarget.classList.add(ok ? "right" : "wrong"); } }, t));
+document.getElementById("phone-wrap").append(
+  h("div", { class: "phone" }, h("div", { class: "phone-screen" },
+    h("div", { class: "ph-bar" }, h("i")),
+    h("h5", {}, "Select the correct meaning"),
+    h("div", { class: "prompt-row", style: { margin: 0 } }, mascot("happy", 70), h("div", { class: "speech", style: { fontSize: "18px" } }, h("span", { class: "ky" }, "Рахмат"), h("span", { class: "tl" }, "Rakhmat"))),
+    h("div", { class: "options" }, optEls),
+    h("button", { class: "btn primary block ph-check" }, "Check"))),
+  h("div", { class: "phone-float f1" }, icon("flame"), "7 day streak"),
+  h("div", { class: "phone-float f2" }, icon("bolt"), "+15 XP"),
+  h("div", { class: "phone-float f3" }, icon("crown"), "Topic mastered"));
+
+const words = TOPIC_ORDER.reduce((a, id) => a + TOPICS[id].words.length, 0);
+const sents = TOPIC_ORDER.reduce((a, id) => a + TOPICS[id].sentences.length, 0);
+document.getElementById("stats").append(...[[TOPIC_ORDER.length, "topics"], [words.toLocaleString("en"), "words"], [sents, "sentences"], ["A1 → B1", "levels"]].map(([v, l]) => h("div", { class: "sb" }, h("b", {}, v), h("span", {}, l))));
+
+const feats = [
+  ["star", "var(--green)", "Game-like lessons", "Streaks, XP, hearts, crowns, treasure chests and a snow-leopard coach."],
+  ["shuffle", "var(--blue)", "Always randomised", "Choose, match, build sentences, fill gaps, read stories and type full sentences in Kyrgyz."],
+  ["pen", "var(--purple-d)", "Homework with due dates", "Teachers pick topics, add their own questions and writing tasks, and choose the deadline."],
+  ["grid", "var(--orange)", "Russian 5-point grades", "Automatic 5 / 4 / 3 / 2 grades. Not submitted by the deadline? That's a 2."],
+  ["cam", "var(--red)", "Live voice & video", "Teachers start a call from the class page; students get a Join banner instantly."],
+  ["book", "var(--green-d)", "Made to remember", "Tip cards, word recaps and spaced review bring every word back right before you'd forget it."],
+  ["check", "var(--blue-d)", "Tests, exams & A4 worksheets", "Timed unit exams in the app, plus printable A4 worksheets and tests with an answer key for every topic."],
+  ["slides", "var(--yellow-d)", "PowerPoint presentations", "Upload your PowerPoint and present it live — students follow your slides on their own screens."],
+];
+const new20 = [
+  ["speaker", "var(--blue)", "Real Kyrgyz pronunciation", "A built-in Kyrgyz voice gets the deep к and г, ң, ө, ү, ы, long vowels and stress right, on every device."],
+  ["lock", "var(--red)", "Sealed & full-screen exams", "Every student gets their own paper, answers never leave the server, and leaving full screen means a 0."],
+  ["chat", "var(--purple-d)", "Better dialogues", "16 proofread dialogues with role-play: you speak one part, the app plays the other."],
+  ["star", "var(--orange)", "Quiz games with Quoldek", "2,400+ ready questions across 99 topics, for class games on Quoldek."],
+];
+document.getElementById("new20").append(...new20.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
+document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));
+
+const cat = document.getElementById("catalog");
+for (const [i, u] of UNITS.entries()) {
+  cat.append(h("div", { class: "unit-head", style: { backgroundColor: u.color, backgroundImage: ornamentUrl(), margin: "18px 0 10px" } }, h("div", {}, h("p", { style: { margin: 0, fontSize: "12px", fontWeight: 900, letterSpacing: ".8px", textTransform: "uppercase" } }, `Unit ${i + 1} · ${u.level}`), h("h2", {}, u.en), h("p", {}, u.ky))),
+    h("div", { class: "row wrap" }, u.topics.map(id => h("span", { class: "pill" }, TOPICS[id].en, " · ", h("span", { class: "ky" }, TOPICS[id].ky)))));
+}
+const cta = document.getElementById("cta");
+cta.style.backgroundImage = ornamentUrl();
+cta.append(mascot("cheer", 110), h("div", { class: "grow" }, h("h2", {}, "Ready? Баштайлы!"), h("p", { style: { margin: "4px 0 0", fontWeight: 700 } }, "Free for students and teachers.")), h("a", { class: "btn", href: SITES.student }, "Start learning"));
+</script>
+</body>
+</html>
