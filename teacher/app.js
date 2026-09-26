@@ -3,7 +3,8 @@ import { sb, SITES } from "../assets/js/config.js";
 import { h, $, icon, mascot, toast, modal, confirmBox, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, ornamentUrl, mountains } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, AREAS, topicLevel, topicArea } from "../assets/js/curriculum.js";
-import { buildLesson, customExercise, translit, shuffle, gradeFor } from "../assets/js/engine.js";
+import { buildLesson, buildExam, customExercise, translit, shuffle, gradeFor } from "../assets/js/engine.js";
+import { buildWorksheet, SECTIONS } from "../assets/js/worksheet.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { openMeeting } from "../assets/js/call.js";
@@ -84,14 +85,14 @@ async function loadClasses() {
 // ───────────────────────── shell ─────────────────────────
 function brandEl() { return h("div", { class: "brand teacher" }, h("span", { class: "brand-mark" }, mascot("happy", 26, { hat: false })), "Learn", h("b", {}, "Kyrgyz")); }
 function render() {
-  const nav = [["classes", "users", "Classes"], ["topics", "book", "Topics"], ["questions", "pen", "My questions"], ["slides", "slides", "Presentations"], ["account", "settings", "Account"]];
+  const nav = [["classes", "users", "Classes"], ["topics", "book", "Topics"], ["worksheets", "list", "Worksheets & tests"], ["questions", "pen", "My questions"], ["slides", "slides", "Presentations"], ["account", "settings", "Account"]];
   const main = h("main", { class: "main" });
   app.replaceChildren(h("div", { class: "shell teacher-app" },
     h("nav", { class: "side" }, brandEl(),
       nav.map(([id, ic, label]) => h("button", { class: "nav-btn" + (view === id ? " on" : ""), onClick: () => { view = id; if (id === "classes") currentClass = null; render(); } }, icon(ic), h("span", { class: "lbl" }, label))),
       h("div", { class: "spacer" }), h("div", { class: "side-foot row", style: { padding: "0 8px" } }, avatar(profile.full_name, "#a560e8", 32), h("span", { class: "small" }, profile.full_name))),
     main));
-  ({ classes: currentClass ? viewClass : viewClasses, topics: viewTopics, questions: viewQuestions, slides: viewSlides, account: viewAccount })[view](main);
+  ({ classes: currentClass ? viewClass : viewClasses, topics: viewTopics, worksheets: viewWorksheets, questions: viewQuestions, slides: viewSlides, account: viewAccount })[view](main);
   window.scrollTo(0, 0);
 }
 
@@ -223,7 +224,7 @@ async function tabHomework(body, c) {
     const past = new Date(hw.due_at) < new Date();
     const avg = s.length ? Math.round(s.reduce((a, b) => a + Number(b.score), 0) / s.length) : null;
     list.append(h("div", { class: "item click hw-card", style: { "--c": past ? "var(--ink-3)" : "var(--purple-d)" }, onClick: () => homeworkReport(hw, c) },
-      h("div", { class: "grow" }, h("div", { class: "title" }, hw.title),
+      h("div", { class: "grow" }, h("div", { class: "title" }, hw.kind === "exam" ? h("span", { class: "pill red", style: { marginRight: "6px" } }, `EXAM${hw.time_limit_minutes ? " · " + hw.time_limit_minutes + " min" : ""}`) : null, hw.title),
         h("div", { class: "sub" }, past ? "Closed " : "Due ", fmtDate(hw.due_at, getLang()), ` (${relTime(hw.due_at, getLang())})`),
         h("div", { class: "sub" }, [hw.topic_ids.map(id => TOPICS[id] ? tn(TOPICS[id]) : id).join(", "), hw.set_ids?.length ? `${hw.set_ids.length} question set(s)` : "", (hw.writing_prompts || []).length ? `${hw.writing_prompts.length} writing` : ""].filter(Boolean).join(" · "))),
       h("div", { class: "center" }, h("div", { style: { fontWeight: 900, fontSize: "20px" } }, `${s.length}/${ms.length}`), h("div", { class: "small muted" }, "submitted")),
@@ -236,13 +237,19 @@ async function tabHomework(body, c) {
 let setsCache = null;
 async function loadSets() { const { data } = await client.from("question_sets").select("*").eq("teacher_id", user.id).order("updated_at", { ascending: false }); setsCache = data || []; return setsCache; }
 
-async function homeworkDialog({ classroom, hw = null, topics = [] }) {
+async function homeworkDialog({ classroom, hw = null, topics = [], exam = false, title: presetTitle = "" }) {
   const sets = await loadSets();
   const selTopics = new Set(hw ? hw.topic_ids : topics);
   const selSets = new Set(hw ? hw.set_ids || [] : []);
-  const title = h("input", { class: "input", value: hw?.title || (topics.length === 1 ? tn(TOPICS[topics[0]]) : ""), maxlength: 120, placeholder: "Family & greetings practice" });
+  const title = h("input", { class: "input", value: hw?.title || presetTitle || (topics.length === 1 ? tn(TOPICS[topics[0]]) : ""), maxlength: 120, placeholder: "Family & greetings practice" });
   const instr = h("textarea", { class: "input", maxlength: 2000, placeholder: "Instructions for students (optional)" }, hw?.instructions || "");
-  const count = h("input", { class: "input", type: "number", min: 0, max: 60, value: hw?.question_count ?? 12, style: { maxWidth: "120px" } });
+  let kind = hw?.kind || (exam ? "exam" : "homework");
+  const count = h("input", { class: "input", type: "number", min: 0, max: 60, value: hw?.question_count ?? (kind === "exam" ? 20 : 12), style: { maxWidth: "120px" } });
+  const timeLimit = h("input", { class: "input", type: "number", min: 1, max: 240, value: hw?.time_limit_minutes ?? 20, style: { maxWidth: "120px" } });
+  const examOpts = h("label", { class: "field" }, h("span", {}, "Time limit (minutes)"), timeLimit);
+  const kindSeg = h("div", { class: "seg" });
+  const drawKind = () => { kindSeg.replaceChildren(...[["homework", "Homework"], ["exam", "Exam (timed, no hints)"]].map(([k, l]) => h("button", { type: "button", class: kind === k ? "on" : "", onClick: () => { kind = k; drawKind(); } }, l))); examOpts.classList.toggle("hidden", kind !== "exam"); };
+  drawKind();
   let diff = hw?.difficulty ?? 1;
   const diffSeg = h("div", { class: "seg" });
   const drawDiff = () => diffSeg.replaceChildren(...["Words only (easiest)", "Words & phrases", "Sentences & typing"].map((l, i) => h("button", { type: "button", class: diff === i ? "on" : "", onClick: () => { diff = i; drawDiff(); } }, l)));
@@ -263,25 +270,26 @@ async function homeworkDialog({ classroom, hw = null, topics = [] }) {
     return row;
   }) : h("p", { class: "muted small" }, "No question sets yet — create them in “My questions”."));
 
-  modal({ title: hw ? "Edit homework" : "Set homework", wide: true, body: h("div", {},
+  modal({ title: hw ? "Edit homework" : exam ? "Set an exam" : "Set homework", wide: true, body: h("div", {},
+    h("div", { class: "field" }, h("span", {}, "Type"), kindSeg),
     !classroom ? h("label", { class: "field" }, h("span", {}, "Class"), classSel) : null,
     h("label", { class: "field" }, h("span", {}, "Title"), title),
     h("label", { class: "field" }, h("span", {}, "Instructions"), instr),
     h("div", { class: "field" }, h("span", {}, "Topics (randomised questions from the curriculum)"), topicSummary),
-    h("div", { class: "row wrap", style: { gap: "20px" } }, h("label", { class: "field" }, h("span", {}, "Number of questions"), count), h("div", { class: "field" }, h("span", {}, "Difficulty"), diffSeg)),
+    h("div", { class: "row wrap", style: { gap: "20px" } }, h("label", { class: "field" }, h("span", {}, "Number of questions"), count), h("div", { class: "field" }, h("span", {}, "Difficulty (homework)"), diffSeg), examOpts),
     h("div", { class: "field" }, h("span", {}, "Your own question sets"), setsBox),
     h("div", { class: "field" }, h("span", {}, "Writing tasks (students write sentences, you read and grade)"), promptList),
     h("label", { class: "field" }, h("span", {}, "Due date & time"), due),
     h("p", { class: "small muted" }, "Grades: ≥90% → 5 · ≥75% → 4 · ≥50% → 3 · otherwise 2. Not submitted by the due date → 2. You can override any grade.")), actions: [
     hw ? { label: "Delete", kind: "danger", onClick: async () => { if (!(await confirmBox("Delete homework?", "All submissions and grades for it will be deleted.", "Delete", true))) return false; await client.from("homework").delete().eq("id", hw.id); render(); } } : null,
-    { label: "Preview", kind: "ghost", onClick: async () => { previewHomework([...selTopics], Number(count.value), diff, [...selSets]); return false; } },
+    { label: "Preview", kind: "ghost", onClick: async () => { if (kind === "exam" && selTopics.size) runLesson({ exercises: buildExam([...selTopics], { count: Number(count.value) || 20, lang: getLang() }), mode: "preview", hearts: null }); else previewHomework([...selTopics], Number(count.value), diff, [...selSets]); return false; } },
     { label: hw ? t("save") : "Set homework", kind: "purple", onClick: async () => {
       const d = new Date(due.value);
       if (!title.value.trim()) { toast("Add a title", "bad"); return false; }
       if (isNaN(d)) { toast("Choose a due date", "bad"); return false; }
       if (!hw && d < new Date()) { toast("The due date is in the past", "bad"); return false; }
       if (!selTopics.size && !selSets.size && !prompts.some(p => p.trim())) { toast("Choose topics, a question set or a writing task", "bad"); return false; }
-      const row = { classroom_id: classId, title: title.value.trim(), instructions: instr.value.trim(), topic_ids: [...selTopics], set_ids: [...selSets], question_count: selTopics.size ? Math.max(4, Math.min(60, Number(count.value) || 12)) : 0, difficulty: diff, writing_prompts: prompts.map(p => p.trim()).filter(Boolean).map(p => ({ prompt: p })), due_at: d.toISOString() };
+      const row = { classroom_id: classId, title: title.value.trim(), instructions: instr.value.trim(), topic_ids: [...selTopics], set_ids: [...selSets], question_count: selTopics.size ? Math.max(4, Math.min(60, Number(count.value) || 12)) : 0, difficulty: diff, writing_prompts: prompts.map(p => p.trim()).filter(Boolean).map(p => ({ prompt: p })), due_at: d.toISOString(), kind, time_limit_minutes: kind === "exam" ? Math.max(1, Math.min(240, Number(timeLimit.value) || 20)) : null };
       const { error } = hw ? await client.from("homework").update(row).eq("id", hw.id) : await client.from("homework").insert(row);
       if (error) { toast(errMsg(error), "bad"); return false; }
       toast(hw ? "Saved" : "Homework set!", "good");
@@ -514,6 +522,19 @@ function presSettings(p) {
 }
 
 // ───────────────────────── Topic catalogue ─────────────────────────
+// One ready-made exam per unit: assign it online (timed) or print it.
+function unitExams() {
+  const list = h("div", { class: "unit-exams" }, UNITS.map((u, i) => h("div", { class: "ue", style: { "--c": u.color } },
+    h("div", { class: "ue-head" }, h("span", { class: "lvl-tag" }, u.level), h("b", {}, `Unit ${i + 1}: ${tn(u)}`)),
+    h("div", { class: "small muted" }, u.topics.map(id => tn(TOPICS[id])).join(" · ")),
+    h("div", { class: "row wrap", style: { marginTop: "8px" } },
+      h("button", { class: "btn purple sm", onClick: () => { if (!classes.length) return toast("Create a class first", "bad"); homeworkDialog({ classroom: currentClass, topics: u.topics, exam: true, title: `Unit ${i + 1} exam: ${tn(u)}` }); } }, icon("clock"), "Assign exam"),
+      h("button", { class: "btn ghost sm", onClick: () => worksheetDialog({ topicIds: u.topics, kind: "test", title: `Unit ${i + 1} test` }) }, icon("list"), "Print test"),
+      h("button", { class: "btn ghost sm", onClick: () => runLesson({ exercises: buildExam(u.topics, { count: 20, lang: getLang() }), mode: "preview", hearts: null }) }, icon("play"), "Try")))));
+  const wrap = h("details", { class: "panel unit-exam-panel" }, h("summary", {}, h("b", {}, `Unit exams (${UNITS.length})`), h("span", { class: "muted small" }, " — a 20-question test for every unit, online or printable")), list);
+  return wrap;
+}
+
 function viewTopics(main) {
   const total = TOPIC_ORDER.length;
   const words = TOPIC_ORDER.reduce((a, id) => a + TOPICS[id].words.length, 0);
@@ -542,7 +563,7 @@ function viewTopics(main) {
   };
   q.addEventListener("input", draw);
   drawSeg(); draw();
-  main.append(q, h("div", { class: "row wrap", style: { margin: "12px 0" } }, segL, segA), host);
+  main.append(unitExams(), q, h("div", { class: "row wrap", style: { margin: "12px 0" } }, segL, segA), host);
 }
 function topicCard(id) {
   const tp = TOPICS[id];
@@ -552,6 +573,7 @@ function topicCard(id) {
     h("div", { class: "row wrap" },
       h("button", { class: "btn purple sm", onClick: () => { if (!classes.length) return toast("Create a class first", "bad"); homeworkDialog({ classroom: currentClass, topics: [id] }); } }, icon("pen"), "Assign"),
       h("button", { class: "btn ghost sm", onClick: () => topicDetail(id) }, icon("eye"), "View"),
+      h("button", { class: "btn ghost sm", onClick: () => worksheetDialog({ topicIds: [id] }) }, icon("list"), "Worksheet"),
       h("button", { class: "btn ghost sm", onClick: () => runLesson({ exercises: buildLesson([id], { count: 10, level: 1, lang: getLang() }), mode: "preview", hearts: null }) }, icon("play"), "Try")));
 }
 function topicDetail(id) {
@@ -562,6 +584,65 @@ function topicDetail(id) {
     h("h3", { class: "section-title" }, "Sentences"), h("div", { class: "card", style: { padding: 0 } }, tp.sentences.map(row)),
     ...(tp.passages || []).map(p => h("div", {}, h("h3", { class: "section-title" }, "Reading passage"), h("div", { class: "reading" }, h("div", { class: "ky" }, p.ky), h("div", { class: "trans" }, p[getLang()]))))),
     actions: [{ label: "Assign as homework", kind: "purple", onClick: () => { if (!classes.length) { toast("Create a class first", "bad"); return false; } homeworkDialog({ classroom: currentClass, topics: [id] }); } }] });
+}
+
+// ───────────────────────── Worksheets & printable tests (A4) ─────────────────────────
+function viewWorksheets(main) {
+  main.append(h("h1", { class: "page-title" }, "Worksheets & tests"), h("p", { class: "page-sub" }, "Printable A4 sheets made from any topics — every version is randomised, with an answer key for you."));
+  const make = (kind) => h("div", { class: "card click ws-card", onClick: () => worksheetDialog({ topicIds: [], kind }) },
+    h("span", { class: "up-ic", style: { background: kind === "test" ? "var(--red)" : "var(--green)", boxShadow: `0 4px 0 ${kind === "test" ? "var(--red-d)" : "var(--green-d)"}` } }, icon(kind === "test" ? "clock" : "list")),
+    h("h3", {}, kind === "test" ? "Printable test" : "Worksheet"), h("p", { class: "muted" }, kind === "test" ? "Points per task, total score, grade box (5/4/3/2) and time limit." : "Matching, translation, gap-fill, word order, multiple choice, reading and writing."));
+  main.append(h("div", { class: "grid" }, make("worksheet"), make("test")),
+    h("h2", { class: "section-title" }, "Unit tests"), unitExams());
+}
+
+function worksheetDialog({ topicIds = [], kind = "worksheet", title = "" } = {}) {
+  const sel = new Set(topicIds);
+  const secs = new Set(Object.keys(SECTIONS));
+  let k = kind, lang = getLang(), withKey = true;
+  const titleIn = h("input", { class: "input", value: title, placeholder: kind === "test" ? "Unit 2 test" : "Family worksheet", maxlength: 80 });
+  const classIn = h("input", { class: "input", placeholder: "7A", maxlength: 20, style: { maxWidth: "120px" } });
+  const minutes = h("input", { class: "input", type: "number", value: 40, min: 5, max: 180, style: { maxWidth: "100px" } });
+  const topicsBox = h("div", { class: "row wrap" });
+  const drawTopics = () => topicsBox.replaceChildren(...[...sel].map(id => h("span", { class: "pill", style: { background: "#f5e8ff", color: "var(--purple-d)", borderColor: "transparent" } }, tn(TOPICS[id]))), h("button", { type: "button", class: "btn ghost sm", onClick: () => topicPicker(sel, drawTopics) }, icon("plus"), sel.size ? "Change topics" : "Choose topics"));
+  drawTopics();
+  const kindSeg = h("div", { class: "seg" }), langSeg = h("div", { class: "seg" });
+  const drawSegs = () => {
+    kindSeg.replaceChildren(...[["worksheet", "Worksheet"], ["test", "Test"]].map(([v, l]) => h("button", { type: "button", class: k === v ? "on" : "", onClick: () => { k = v; drawSegs(); } }, l)));
+    langSeg.replaceChildren(...[["en", "English"], ["ru", "Русский"]].map(([v, l]) => h("button", { type: "button", class: lang === v ? "on" : "", onClick: () => { lang = v; drawSegs(); } }, l)));
+    minutesWrap.classList.toggle("hidden", k !== "test");
+  };
+  const minutesWrap = h("label", { class: "field" }, h("span", {}, "Time (minutes)"), minutes);
+  const secBox = h("div", { class: "grid", style: { gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "8px" } }, Object.entries(SECTIONS).map(([id, sct]) => {
+    const chip = h("div", { class: "topic-chip on", onClick: () => { secs.has(id) ? secs.delete(id) : secs.add(id); chip.classList.toggle("on"); } }, h("span", { class: "chk" }, icon("check")), h("div", {}, h("b", {}, sct.en), h("div", { class: "ky" }, sct.ky)));
+    return chip;
+  }));
+  const keyCb = h("input", { type: "checkbox", checked: true, onChange: (e) => withKey = e.target.checked });
+  drawSegs();
+  modal({ title: "Create a worksheet or test", wide: true, body: h("div", {},
+    h("div", { class: "row wrap", style: { gap: "16px" } }, h("div", { class: "field" }, h("span", {}, "Type"), kindSeg), h("div", { class: "field" }, h("span", {}, "Translations in"), langSeg), minutesWrap),
+    h("div", { class: "row wrap" }, h("label", { class: "field grow" }, h("span", {}, "Title (optional)"), titleIn), h("label", { class: "field" }, h("span", {}, "Class (optional)"), classIn)),
+    h("div", { class: "field" }, h("span", {}, "Topics"), topicsBox),
+    h("div", { class: "field" }, h("span", {}, "Tasks"), secBox),
+    h("label", { class: "row" }, keyCb, "Add an answer key page (for you)")), actions: [
+    { label: t("cancel"), kind: "ghost" },
+    { label: "Create", kind: "purple", onClick: () => {
+      if (!sel.size) { toast("Choose at least one topic", "bad"); return false; }
+      if (!secs.size) { toast("Choose at least one task", "bad"); return false; }
+      const opts = { topicIds: [...sel], lang, kind: k, sections: Object.keys(SECTIONS).filter(x => secs.has(x)), withKey, title: titleIn.value.trim(), className: classIn.value.trim(), minutes: Number(minutes.value) || 40 };
+      worksheetPreview(opts);
+    } },
+  ] });
+}
+
+function worksheetPreview(opts) {
+  const frame = h("iframe", { class: "ws-frame", title: "Worksheet preview" });
+  const load = () => { frame.srcdoc = buildWorksheet(opts).html; };
+  load();
+  modal({ title: opts.kind === "test" ? "Test preview (A4)" : "Worksheet preview (A4)", wide: true, body: h("div", {}, h("p", { class: "small muted" }, "Print it, or choose “Save as PDF” in the print window to share it digitally. “New version” makes a different random sheet."), frame), actions: [
+    { label: "New version", kind: "ghost", onClick: () => { load(); return false; } },
+    { label: "Print / Save PDF", kind: "purple", onClick: () => { frame.contentWindow.focus(); frame.contentWindow.print(); return false; } },
+  ] });
 }
 
 // ───────────────────────── My questions (teacher-made) ─────────────────────────

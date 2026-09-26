@@ -339,3 +339,61 @@ export function glossKy(word, lang = "en") {
   }
   return null;
 }
+
+// ── Exams: a mixed test over topics, easy → hard, randomised per student ──
+// Each question uses a different word or sentence where possible.
+export function buildExam(topicIds, { count = 20, lang = "en" } = {}) {
+  const P = pool(topicIds), all = allPool();
+  const words = shuffle(P.words), sents = shuffle(P.sentences.filter(x => tokens(first(x.ky)).length >= 2));
+  let wi = 0, si = 0;
+  const W = () => words[wi++ % words.length], S = () => sents[si++ % sents.length];
+  const recipe = [
+    ["w", "choose-ky", 0.25], ["w", "choose-tr", 0.2], ["m", "match", 0.05],
+    ["s", "choose-ky", 0.1], ["s", "build-tr", 0.1], ["s", "blank", 0.1],
+    ["w", "type-tr", 0.08], ["s", "build-ky", 0.07], ["w", "type-ky", 0.05],
+  ];
+  const plan = [];
+  for (const [what, kind, share] of recipe) {
+    const n = Math.max(what === "m" ? (P.words.length >= 4 ? 1 : 0) : 1, Math.round(count * share));
+    for (let i = 0; i < n && plan.length < count; i++) {
+      if (what === "m") { if (P.words.length >= 4) plan.push(makeExercise("match", null, P, lang, all)); continue; }
+      const item = what === "s" && sents.length ? S() : W();
+      if (!item) continue;
+      let k = kind;
+      if (item.id.includes(":s") && tokens(first(item.ky)).length < 3 && (k.startsWith("build") || k === "blank")) k = "choose-tr";
+      plan.push(makeExercise(k, item, P, lang, all));
+    }
+  }
+  const reads = readingExercises(topicIds, lang);
+  if (reads.length) plan.splice(Math.floor(plan.length / 2), 0, ...shuffle(reads).slice(0, 3));
+  return plan.filter(Boolean);
+}
+
+// ── Spaced repetition (Leitner boxes): words come back just before you'd forget ──
+const GAPS = [0, 1, 2, 4, 7, 14, 30]; // days until the next review, by box
+export function srsUpdate(entry, ok, today) {
+  const box = ok ? Math.min(GAPS.length - 1, (entry?.box || 0) + 1) : 1;
+  const d = new Date(today); d.setDate(d.getDate() + GAPS[box]);
+  return { box, due: d.toISOString().slice(0, 10) };
+}
+export function srsDue(srs, today) { return Object.entries(srs || {}).filter(([, e]) => e.due <= today).map(([id]) => id); }
+export function wordById(id) {
+  const [topic, w] = id.split(":w"); const t = TOPICS[topic]; const i = +w;
+  if (!t || !t.words[i]) return null;
+  const x = t.words[i]; return { ky: x[0], en: x[1], ru: x[2], id, topic };
+}
+// A review lesson built only from the given word ids.
+export function buildReview(ids, { count = 12, lang = "en" } = {}) {
+  const words = ids.map(wordById).filter(Boolean);
+  if (!words.length) return [];
+  const small = { words, sentences: [] }, all = allPool();
+  const plan = [];
+  const pickW = () => words[Math.floor(Math.random() * words.length)];
+  let matched = 0;
+  while (plan.length < Math.min(count, Math.max(6, words.length * 2))) {
+    if (words.length >= 4 && matched < 1 && plan.length === Math.floor(count / 2)) { plan.push(makeExercise("match", null, small, lang, all)); matched++; continue; }
+    const kind = plan.length < count / 3 ? "choose-ky" : plan.length < (count * 2) / 3 ? "choose-tr" : pick(["type-tr", "choose-tr"]);
+    plan.push(makeExercise(kind, pickW(), small, lang, all));
+  }
+  return plan;
+}

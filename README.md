@@ -17,6 +17,9 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Randomised exercises: pick the meaning, pick the Kyrgyz, match pairs, build sentences from tiles, fill in the blank, reading comprehension, and typing whole sentences in Kyrgyz. There's an on-screen ң ө ү keyboard. Small typos are forgiven, and a missing special letter is flagged.
 - XP, daily goal, streaks, hearts (they refill over time or through practice), combo counters, achievements, confetti, sounds, and Ilbirs the snow-leopard mascot.
 - Practice modes: mixed review, mistakes review, flashcards, and a searchable word list with transliteration.
+- **Made to remember:** a quick tip card before each new topic, a word recap at the end of every lesson (tap to hear), and **spaced review**. Every word you learn comes back after 1, 2, 4, 7, 14 and 30 days, and a mistake sends it back to the start.
+- Ilbirs reacts to every answer in Kyrgyz ("Азамат!", "Кабатыр болбо!", "Ураа! 5 катары менен!"), with the translation underneath.
+- **Unit tests:** a timed test for every unit (20 questions, 15 minutes, no hints) that shows a 5-point grade and lets you review your answers.
 - Optional **Zamyatkin dialogues** (turn on in Profile): 10 short Kyrgyz dialogues in four stages (listen & read → shadowing → ears only → say it), with a listen counter (goal 30) and tap-for-meaning on every word.
 - Kyrgyz is spoken aloud when shown or tapped. It uses a Kyrgyz voice if the device has one, otherwise a Turkish voice reading Turkish spelling as a close approximation.
 - Explanations in English or Russian, plus light and dark themes.
@@ -30,6 +33,8 @@ Preview (GitHub Pages): https://erdanthecoder.github.io/copilot/ · `/student/` 
 - Homework: pick topics, set the number of questions and difficulty, attach question sets, add writing tasks (students write sentences and you read them), and **choose the due date and time**.
 - Gradebook on the Russian 5-point scale: ≥90% → 5, ≥75% → 4, ≥50% → 3, otherwise 2. **Homework not submitted by the due date counts as 2.** You can override any grade and add a comment. Per-homework reports show the grade spread and the hardest questions. Exports to CSV.
 - Live lessons: **video or voice calls** with the whole class, including screen sharing, raise hand and chat.
+- **Exams:** set a timed exam for any unit or any mix of topics. There are no hints during the exam, and it submits itself when time runs out. It's graded in the gradebook like homework.
+- **Printable A4 worksheets and tests** for every topic: matching, translation, gap-fill, word order, multiple choice, reading and writing. Tests have a name/class/date header, a score box and the 5/4/3/2 scale. There's an optional answer key page, and **New version** reshuffles the questions. Print or save as PDF.
 - Presentations: **upload your PowerPoint (.pptx)**. Share it with a class, or present it live and students' screens follow yours. "Original" opens the exact file in Microsoft's online viewer. (Presentations come only from PowerPoint; there is no in-app slide builder.)
 
 ## How it works
@@ -57,4 +62,4 @@ All curriculum data is in `assets/js/curriculum.js` and `assets/js/curriculum-ex
 
 ## Database migrations
 
-`supabase/migrations/0001_init.sql` … `0004_homework_difficulty.sql` are already applied to the live project. To rebuild elsewhere, run them in order.
+`supabase/migrations/0001_init.sql` … `0006_homework_exams.sql` are already applied to the live project. To rebuild elsewhere, run them in order.

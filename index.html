@@ -93,6 +93,8 @@ const feats = [
   ["pen", "var(--purple-d)", "Homework with due dates", "Teachers pick topics, add their own questions and writing tasks, and choose the deadline."],
   ["grid", "var(--orange)", "Russian 5-point grades", "Automatic 5 / 4 / 3 / 2 grades. Not submitted by the deadline? That's a 2."],
   ["cam", "var(--red)", "Live voice & video", "Teachers start a call from the class page; students get a Join banner instantly."],
+  ["book", "var(--green-d)", "Made to remember", "Tip cards, word recaps and spaced review bring every word back right before you'd forget it."],
+  ["check", "var(--blue-d)", "Tests, exams & A4 worksheets", "Timed unit exams in the app, plus printable A4 worksheets and tests with an answer key for every topic."],
   ["slides", "var(--yellow-d)", "PowerPoint presentations", "Upload your PowerPoint and present it live — students follow your slides on their own screens."],
 ];
 document.getElementById("feats").append(...feats.map(([ic, c, t, d]) => h("div", { class: "feat", style: { "--c": c } }, h("div", { class: "ftile" }, icon(ic)), h("h3", {}, t), h("p", {}, d))));

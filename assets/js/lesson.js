@@ -14,10 +14,12 @@ import { TOPICS } from "./curriculum.js";
 */
 export function runLesson(opts) {
   const lang = getLang();
-  const homework = opts.mode === "homework";
+  const exam = opts.mode === "exam";
+  const homework = opts.mode === "homework" || exam;  // graded: no retries, one pass
   // "intro" cards teach a new word and aren't scored; everything else is.
   let scoredIdx = 0;
-  const queue = opts.exercises.map((ex) => ({ ex, i: ex.type === "intro" ? -1 : scoredIdx++, retry: false }));
+  const unscored = (ex) => ex.type === "intro" || ex.type === "tip";
+  const queue = opts.exercises.map((ex) => ({ ex, i: unscored(ex) ? -1 : scoredIdx++, retry: false }));
   const total = scoredIdx;
   const answers = new Array(total).fill(null);
   let hearts = opts.hearts ?? null;
@@ -27,6 +29,19 @@ export function runLesson(opts) {
   let current = null, state = "answer", getAnswer = null, checkFn = null;
 
   const bar = h("i", { style: { width: "0%" } });
+  // Exam timer
+  const timerEl = h("span", { class: "exam-timer hidden" }, icon("clock"), h("span", {}));
+  let deadline = null, timerIv = null;
+  if (opts.timeLimit) {
+    deadline = Date.now() + opts.timeLimit * 1000; timerEl.classList.remove("hidden");
+    const tick = () => {
+      const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+      timerEl.lastChild.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+      timerEl.classList.toggle("low", left <= 60);
+      if (left <= 0 && state !== "over") { clearInterval(timerIv); toast(lang === "ru" ? "Время вышло!" : "Time's up!", "bad"); finish(); }
+    };
+    tick(); timerIv = setInterval(tick, 500);
+  }
   const heartEl = h("span", { class: "stat heart" }, icon("heart"), h("span", {}, hearts ?? ""));
   if (hearts == null) heartEl.classList.add("hidden");
   const body = h("div", { class: "lesson-inner" });
@@ -35,7 +50,7 @@ export function runLesson(opts) {
   const root = h("div", { class: "lesson", role: "dialog" },
     h("div", { class: "lesson-top" },
       h("button", { class: "icon-btn", "aria-label": t("close"), onClick: quit }, icon("x")),
-      h("div", { class: "bar" }, bar), heartEl),
+      h("div", { class: "bar" }, bar), heartEl, timerEl),
     h("div", { class: "lesson-body" }, body), foot);
   document.body.append(root);
   document.body.style.overflow = "hidden";
@@ -49,10 +64,17 @@ export function runLesson(opts) {
   };
   document.addEventListener("keydown", onKey);
 
-  function cleanup() { document.removeEventListener("keydown", onKey); root.remove(); document.body.style.overflow = ""; }
+  function cleanup() { clearInterval(timerIv); document.removeEventListener("keydown", onKey); root.remove(); document.body.style.overflow = ""; }
 
   function quit() {
     if (opts.mode === "preview") { cleanup(); opts.onQuit && opts.onQuit(); return; }
+    if (exam) {
+      modal({ title: lang === "ru" ? "Завершить экзамен?" : "Finish the exam?", body: lang === "ru" ? "Ваши ответы будут отправлены. Вопросы без ответа засчитываются как неверные." : "Your answers will be submitted. Unanswered questions count as wrong.", actions: [
+        { label: lang === "ru" ? "Продолжить" : "Keep going", kind: "ghost" },
+        { label: lang === "ru" ? "Завершить" : "Finish", kind: "danger", onClick: () => finish() },
+      ] });
+      return;
+    }
     modal({ title: t("quitTitle"), body: h("div", { class: "center" }, mascot("sad", 100), h("p", {}, t("quitText"))), actions: [
       { label: t("endSession"), kind: "ghost plain", onClick: () => { cleanup(); opts.onQuit && opts.onQuit(); } },
       { label: t("keepLearning"), kind: "primary" },
@@ -82,6 +104,12 @@ export function runLesson(opts) {
     const { ex, i, retry } = current;
     const ms = Date.now() - exStart;
     if (!retry) answers[i] = { id: ex.item?.id || ex.type, type: ex.type, prompt: ex.prompt || ex.before || "", given: r.given ?? "", ok: !!r.ok, ms };
+    if (exam) { // no feedback during an exam — just move on
+      sound.tap(); doneCount++; progress();
+      setFoot("", [h("div", { class: "fb saved" }, icon("check"), lang === "ru" ? "Ответ сохранён" : "Answer saved"), h("span")]);
+      setTimeout(next, 350);
+      return;
+    }
     if (r.ok) {
       sound.correct(); streak++; bestStreak = Math.max(bestStreak, streak);
       if (streak >= 3 && streak % 5 === 0) { const c = h("div", { class: "combo" }, `${streak} ${t("inARow")}`); document.body.append(c); setTimeout(() => c.remove(), 1500); }
@@ -99,10 +127,16 @@ export function runLesson(opts) {
     const sol = r.ok ? (r.note || "") : r.solution;
     const explain = !r.ok ? (ex.explain || (ex.item?.topic && TOPICS[ex.item.topic]?.tip?.[lang]) || "") : "";
     const reportBtn = ex.item && !ex.item.custom && opts.onReport ? h("button", { class: "link-btn small", onClick: () => opts.onReport(ex.item) }, icon("flag"), " ", t("report")) : null;
+    const line = buddyLine(r.ok, streak);
+    const promptMascot = body.querySelector(".prompt-row .mascot");
+    if (promptMascot) promptMascot.replaceWith(mascot(r.ok ? (streak >= 3 ? "cheer" : "happy") : "sad", 96));
+    const solKy = sol && /[а-яёңөү]/i.test(sol);
     setFoot(r.ok ? "right" : "wrong", [
       h("div", { class: "fb" },
-        h("div", { class: "badge" }, icon(r.ok ? "check" : "x")),
-        h("div", {}, h("h3", {}, r.ok ? t("correct2") : t("incorrect")), sol ? h("div", { class: "sol" }, sol) : null, explain ? h("div", { class: "explain" }, explain) : null, reportBtn)),
+        h("div", { class: "fb-buddy" + (r.ok ? " jump" : " droop") }, mascot(r.ok ? (streak >= 3 ? "cheer" : "happy") : "sad", 64), h("span", { class: "buddy-say" }, h("b", {}, line[0]), line[1] ? h("span", {}, line[1]) : null)),
+        h("div", {}, h("h3", {}, r.ok ? t("correct2") : t("incorrect")),
+          sol ? h("div", { class: "sol" }, solKy ? h("button", { class: "icon-btn mini-speak", "aria-label": "Listen", onClick: () => sayKy(r.solution && !r.ok ? r.solution : sol, { force: true }) }, icon("speaker")) : null, sol) : null,
+          explain ? h("div", { class: "explain" }, explain) : null, reportBtn)),
       h("button", { class: "btn " + (r.ok ? "primary" : "danger"), onClick: next }, t("continue")),
     ]);
     body.querySelectorAll("button.opt, .tile, textarea, input").forEach(b => { if (!b.classList.contains("right") && !b.classList.contains("wrong")) b.setAttribute("disabled", ""); });
@@ -120,13 +154,21 @@ export function runLesson(opts) {
     setFoot("", [h("span"), h("button", { class: "btn primary", onClick: () => { cleanup(); opts.onDone && opts.onDone(result(true)); } }, t("continue"))]);
   }
 
+  // Words the lesson practised (for the recap and for spaced repetition).
+  function recapWords() {
+    const seen = new Map();
+    const add = (item) => { if (item && item.id && item.id.includes(":w") && !seen.has(item.id)) seen.set(item.id, { id: item.id, ky: (item.ky || "").split("|")[0], tr: ((lang === "ru" ? item.ru : item.en) || "").split("|")[0] }); };
+    for (const x of opts.exercises) { add(x.item); (x.pairs || []).forEach(p => add(p.item)); }
+    return [...seen.values()].slice(0, 12);
+  }
+
   function result(failed = false) {
     const firstTry = answers.filter(Boolean);
     const correct = firstTry.filter(a => a.ok).length;
     const secs = Math.round((Date.now() - t0) / 1000);
     const acc = total ? Math.round(100 * correct / total) : 0;
     const xp = failed ? 0 : 10 + (acc === 100 ? 5 : 0) + Math.min(5, Math.floor(bestStreak / 5) * 2);
-    return { correct, total, answers: answers.map(a => a || { ok: false, given: "" }), secs, acc, xp, failed, mistakes: firstTry.filter(a => !a.ok).map(a => a.id) };
+    return { correct, total, answers: answers.map(a => a || { ok: false, given: "" }), secs, acc, xp, failed, mistakes: firstTry.filter(a => !a.ok).map(a => a.id), words: recapWords().map(w => w.id) };
   }
 
   async function next() {
@@ -135,10 +177,10 @@ export function runLesson(opts) {
     current = queue.shift();
     state = "answer";
     exStart = Date.now();
-    try { if (localStorage.getItem("lk.debug")) window.__lkEx = current.ex; } catch {}
-    if (current.ex.type === "intro") {
+    try { if (localStorage.getItem("lk.debug")) { window.__lkEx = current.ex; window.__lkExN = (window.__lkExN || 0) + 1; } } catch {}
+    if (current.ex.type === "intro" || current.ex.type === "tip") {
       state = "feedback";
-      body.replaceChildren(renderIntro(current.ex));
+      body.replaceChildren(current.ex.type === "tip" ? renderTip(current.ex) : renderIntro(current.ex));
       sound.tap();
       setFoot("", [h("span"), h("button", { class: "btn primary", onClick: next }, t("continue"))]);
       return;
@@ -158,15 +200,21 @@ export function runLesson(opts) {
     }
     sound.done(); confetti();
     const mins = Math.floor(res.secs / 60), s = res.secs % 60;
-    const moodTitle = res.acc >= 90 ? t("lessonComplete") : res.acc >= 60 ? t("lessonComplete") : t("lessonComplete");
+    const ru = lang === "ru";
+    const moodTitle = exam ? (ru ? "Экзамен завершён" : "Exam finished")
+      : res.acc >= 90 ? (ru ? "Идеальный урок!" : "Perfect lesson!") : res.acc >= 60 ? t("lessonComplete") : (ru ? "Урок пройден — повторим ещё!" : "Done — let's practise more!");
+    const recap = recapWords();
     body.replaceChildren(h("div", { class: "results" },
       mascot(res.acc >= 90 ? "cheer" : res.acc >= 60 ? "happy" : "think", 150),
       h("h1", {}, moodTitle),
+      exam ? h("p", { class: "exam-score" }, `${res.correct} / ${res.total}`) : null,
       opts.resultExtra ? opts.resultExtra(res) : null,
       h("div", { class: "res-cards" },
         h("div", { class: "res-card", style: { "--c": "var(--yellow)" } }, h("b", {}, t("totalXp")), h("span", {}, icon("bolt"), h("span", { class: "cu", "data-to": res.xp }, "0"))),
         h("div", { class: "res-card", style: { "--c": "var(--green)" } }, h("b", {}, t("accuracy")), h("span", {}, icon("target"), h("span", { class: "cu", "data-to": res.acc, "data-suffix": "%" }, "0%"))),
-        h("div", { class: "res-card", style: { "--c": "var(--blue)" } }, h("b", {}, t("time")), h("span", {}, icon("clock"), `${mins}:${String(s).padStart(2, "0")}`)))));
+        h("div", { class: "res-card", style: { "--c": "var(--blue)" } }, h("b", {}, t("time")), h("span", {}, icon("clock"), `${mins}:${String(s).padStart(2, "0")}`))),
+      recap.length && !exam ? h("div", { class: "recap" }, h("h3", {}, ru ? "Слова из этого урока — повторите вслух" : "Words from this lesson — say them out loud"),
+        h("div", { class: "recap-list" }, recap.map(w => h("button", { class: "recap-word", onClick: () => sayKy(w.ky, { force: true }) }, icon("speaker"), h("b", { class: "ky" }, w.ky), h("span", {}, w.tr))))) : null));
     body.querySelectorAll(".cu").forEach(el => countUp(el, +el.dataset.to, 900, el.dataset.suffix || ""));
     setFoot("", [h("span"), h("button", { class: "btn primary", onClick: () => { cleanup(); opts.onDone && opts.onDone(res); } }, t("continue"))]);
   }
@@ -198,7 +246,25 @@ export function runLesson(opts) {
   }
   function promptBubble(text, isKy) {
     if (isKy) setTimeout(() => sayKy(text), 250);
-    return h("div", { class: "prompt-row" }, mascot(isKy ? "think" : "happy", 96), h("div", { class: "speech" }, isKy ? kyText(text) : text));
+    return h("div", { class: "prompt-row" }, mascot(isKy ? "wow" : "happy", 96), h("div", { class: "speech" }, isKy ? kyText(text) : text));
+  }
+
+  // The mascot's reactions: Kyrgyz phrase + translation.
+  function buddyLine(ok, st) {
+    const L = ok ? (st >= 5 && st % 5 === 0 ? [["Ураа! 5 катары менен!", "Hooray! 5 in a row!", "Ура! 5 подряд!"]] : [
+      ["Азамат!", "Well done!", "Молодец!"], ["Мыкты!", "Excellent!", "Отлично!"], ["Кандай сонун!", "How wonderful!", "Как чудесно!"],
+      ["Бали!", "Bravo!", "Браво!"], ["Туура!", "Correct!", "Верно!"], ["Сен чебер экенсиң!", "You're a pro!", "Да ты мастер!"]])
+      : [["Эч нерсе эмес!", "No worries!", "Ничего страшного!"], ["Дагы аракет кыл!", "Try again!", "Попробуй ещё!"], ["Кабатыр болбо!", "Don't worry!", "Не волнуйся!"], ["Жакшы аракет!", "Good try!", "Хорошая попытка!"]];
+    const x = L[Math.floor(Math.random() * L.length)];
+    return [x[0], lang === "ru" ? x[2] : x[1]];
+  }
+
+  function renderTip(ex) {
+    return h("div", { class: "ex-card tip-card" },
+      h("div", { class: "intro-kicker", style: { background: "var(--blue)", boxShadow: "0 3px 0 var(--blue-d)" } }, icon("book"), lang === "ru" ? "Подсказка" : "Quick tip"),
+      h("h2", { class: "tip-title" }, ex.title),
+      h("div", { class: "tip-row" }, mascot("wave", 110), h("div", { class: "speech tip-speech" }, ex.text)),
+      ex.examples && ex.examples.length ? h("div", { class: "tip-examples" }, ex.examples.map(e => h("div", { class: "tip-ex" }, h("span", { class: "ky-line" }, speakBtn(e[0]), h("span", { class: "ky" }, hintWords(e[0]))), h("span", { class: "muted" }, e[1])))) : null);
   }
 
   function renderIntro(ex) {

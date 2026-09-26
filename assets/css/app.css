@@ -706,3 +706,49 @@ body { letter-spacing: .1px; }
 .upload-card .up-ic { width: 64px; height: 64px; border-radius: 18px; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 32px; box-shadow: 0 4px 0 var(--purple-d); flex: none; }
 :root[data-theme="dark"] .upload-card { background: #231a2d; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .upload-card { background: #231a2d; } }
+/* mascot buddy in feedback */
+.fb-buddy { position: relative; flex: none; display: flex; align-items: flex-end; }
+.fb-buddy .mascot { filter: drop-shadow(0 3px 0 rgba(0,0,0,.08)); }
+.fb-buddy.jump .mascot { animation: buddyJump .5s cubic-bezier(.3,1.6,.5,1); }
+.fb-buddy.droop .mascot { animation: buddyDroop .5s; }
+@keyframes buddyJump { 30% { transform: translateY(-14px) rotate(-6deg); } 60% { transform: translateY(0) rotate(4deg); } }
+@keyframes buddyDroop { 25% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 75% { transform: rotate(-4deg); } }
+.buddy-say { position: absolute; left: -4px; bottom: calc(100% + 26px); background: #fff; color: var(--ink); border-radius: 14px; padding: 6px 12px; font-size: 13px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.12); display: grid; line-height: 1.25; animation: popIn .25s ease-out; }
+.buddy-say span { font-weight: 700; color: var(--ink-2); font-size: 12px; }
+:root[data-theme="dark"] .buddy-say { background: #1b2a31; }
+@media (max-width: 560px) { .buddy-say { display: none; } .fb-buddy .mascot svg { width: 52px; height: 62px; } }
+.fb .badge { display: none; }
+.mini-speak { width: 30px; height: 30px; font-size: 16px; color: inherit; vertical-align: middle; margin-right: 4px; }
+.fb.saved { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 800; }
+.exam-timer { display: inline-flex; align-items: center; gap: 6px; font-weight: 900; color: var(--blue-d); background: var(--blue-l); padding: 6px 12px; border-radius: 12px; font-variant-numeric: tabular-nums; }
+.exam-timer.low { color: #fff; background: var(--red); animation: pulse 1s infinite; }
+.exam-score { font-size: 40px; font-weight: 900; color: var(--blue); margin: 0; }
+/* tip card */
+.tip-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.tip-title { font-size: 26px; margin: 12px 0 14px; }
+.tip-row { display: flex; align-items: flex-end; gap: 12px; text-align: left; max-width: 620px; }
+.tip-speech { font-size: 18px; line-height: 1.5; font-weight: 700; }
+.tip-examples { display: grid; gap: 10px; margin-top: 18px; width: min(560px, 100%); text-align: left; }
+.tip-ex { border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; display: grid; gap: 4px; }
+/* recap */
+.recap { margin-top: 18px; text-align: left; }
+.recap h3 { font-size: 16px; text-align: center; color: var(--ink-2); }
+.recap-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.recap-word { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--line); border-radius: 14px; background: var(--card); padding: 8px 12px; cursor: pointer; font: inherit; color: var(--ink); box-shadow: 0 3px 0 var(--line); }
+.recap-word .ic { color: var(--blue); }
+.recap-word span { color: var(--ink-2); font-weight: 700; }
+.review-card { cursor: pointer; border-color: var(--purple); background: #faf3ff; }
+:root[data-theme="dark"] .review-card { background: #231a2d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .review-card { background: #231a2d; } }
+.exam-note { display: flex; gap: 8px; align-items: center; background: var(--red-l); color: var(--red-d); padding: 10px 12px; border-radius: 12px; font-weight: 800; }
+.test-card h3 { font-size: 20px; }
+/* worksheets & unit exams */
+.ws-frame { width: 100%; height: min(70vh, 900px); border: 2px solid var(--line); border-radius: 14px; background: #e9edf2; }
+.ws-card .up-ic { width: 60px; height: 60px; border-radius: 18px; color: #fff; display: grid; place-items: center; font-size: 30px; margin-bottom: 10px; }
+.unit-exam-panel summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.unit-exam-panel summary::before { content: "▸"; color: var(--purple-d); font-weight: 900; }
+.unit-exam-panel[open] summary::before { content: "▾"; }
+.unit-exams { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 14px; }
+.ue { border: 2px solid var(--line); border-left: 6px solid var(--c); border-radius: 14px; padding: 12px 14px; }
+.ue-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.buddy-say::after { content: ""; position: absolute; left: 26px; bottom: -6px; display: none; width: 12px; height: 12px; background: inherit; transform: rotate(45deg); border-radius: 2px; }

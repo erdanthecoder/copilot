@@ -3,7 +3,7 @@ import { sb, SITES } from "../assets/js/config.js";
 import { h, $, icon, mascot, toast, modal, confetti, sound, fmtDate, relTime, gradeChip, avatar, kyKeys, errMsg, speakKy, kyVoice, ornamentUrl, mountains, ring } from "../assets/js/ui.js";
 import { t, tn, getLang, setLang } from "../assets/js/i18n.js";
 import { UNITS, TOPICS, TOPIC_ORDER, topicUnit } from "../assets/js/curriculum.js";
-import { buildLesson, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
+import { buildLesson, buildExam, buildReview, srsUpdate, srsDue, customExercise, allWords, shuffle, translit } from "../assets/js/engine.js";
 import { runLesson } from "../assets/js/lesson.js";
 import { googleBlock, signUpWithPassword } from "../assets/js/google.js";
 import { voice } from "../assets/js/speech.js";
@@ -97,6 +97,8 @@ function awardLesson(res, { topicId = null, level = 0, review = false } = {}) {
   }
   for (const a of res.answers) if (a && a.id && a.id.includes(":w")) p.words[a.id] = (p.words[a.id] || 0) + (a.ok ? 1 : 0);
   p.mistakes = [...new Set(res.mistakes.concat(p.mistakes || []))].slice(0, 60);
+  // Spaced repetition: every practised word gets its next review date.
+  if (!res.failed) { p.srs = p.srs || {}; for (const id of res.words || []) p.srs[id] = srsUpdate(p.srs[id], !res.mistakes.includes(id), today()); }
   if (review) { p.mistakes = p.mistakes.filter(m => !res.answers.some(a => a.id === m && a.ok)); profile.hearts = Math.min(MAX_HEARTS, profile.hearts + 1); }
   checkAchievements();
   save();
@@ -376,7 +378,7 @@ function viewLearn(main) {
     col.append(h("div", { class: "path-deco " + (ui % 2 ? "left" : "right") }, mascot(DECO[ui % DECO.length], 130)));
     path.append(col);
   }
-  const rail = h("div", { class: "rail" }, streakPanel(), goalPanel(), wordOfDay(), classPanel(), unitsPanel());
+  const rail = h("div", { class: "rail" }, reviewPanel(), streakPanel(), goalPanel(), wordOfDay(), classPanel(), unitsPanel());
   main.append(h("div", { class: "home-grid" }, path, rail));
   setTimeout(() => { const c = main.querySelector(".is-current"); if (c) c.scrollIntoView({ block: "center" }); }, 50);
 }
@@ -430,6 +432,9 @@ function startTopic(id, level, jump = false) {
   regenHearts();
   if (profile.hearts <= 0) return noHearts();
   const ex = buildLesson([id], { count: jump ? 14 : level === 0 ? 10 : 12, level: jump ? 1 : level, lang: getLang(), intro: !jump && level !== 1, known: seenSet() });
+  // Before the very first lesson of a topic, explain it (with examples) so students understand, not just guess.
+  const tpx = TOPICS[id]; const li = getLang() === "ru" ? 2 : 1;
+  if (!jump && level === 0 && wordsLearned(id) === 0) ex.unshift({ type: "tip", title: tn(tpx), text: tn(tpx.tip), examples: tpx.sentences.slice(0, 2).map(x => [x[0], x[li].split("|")[0]]) });
   runLesson({
     exercises: ex, mode: "practice", hearts: profile.hearts,
     onHeart: (n) => { profile.hearts = n; if (n < MAX_HEARTS && !prog().heartsAt) prog().heartsAt = Date.now(); save(); },
@@ -447,6 +452,20 @@ function noHearts() {
   modal({ title: t("outOfHearts"), body: h("div", { class: "center" }, mascot("sad", 110), h("p", {}, t("outOfHeartsText"))), actions: [
     { label: t("practice"), kind: "primary", onClick: () => startReview(false) },
   ] });
+}
+
+// Words whose review date has come (spaced repetition).
+function dueWords() { return srsDue(prog().srs, today()); }
+function startSrsReview() {
+  const ids = shuffle(dueWords()).slice(0, 15);
+  if (!ids.length) return toast(getLang() === "ru" ? "Сегодня повторять нечего — отлично!" : "Nothing to review today — great!", "good");
+  runLesson({ exercises: buildReview(ids, { lang: getLang() }), mode: "practice", hearts: null, onReport: reportDialog, onDone: (res) => afterLesson(awardLesson(res, { review: true })), onQuit: render });
+}
+function reviewPanel() {
+  const n = dueWords().length; if (!n) return null; const ru = getLang() === "ru";
+  return h("div", { class: "panel review-card", onClick: startSrsReview }, h("div", { class: "panel-head" }, h("span", { style: { color: "var(--purple-d)" } }, icon("refresh")), h("h3", {}, ru ? "Повторение" : "Time to review")),
+    h("p", { style: { margin: "0 0 10px", fontWeight: 700 } }, ru ? `${n} слов пора повторить, чтобы не забыть.` : `${n} word${n === 1 ? "" : "s"} to review so you don't forget.`),
+    h("button", { class: "btn purple block sm" }, icon("play"), ru ? "Повторить" : "Review now"));
 }
 
 function streakPanel() {
@@ -509,6 +528,7 @@ function viewPractice(main) {
   const learned = TOPIC_ORDER.filter(id => topicCrowns(id) > 0);
   main.append(h("h1", { class: "page-title" }, t("practice")), h("p", { class: "page-sub" }, t("practiceText")));
   main.append(h("div", { class: "grid" },
+    practiceCard("refresh", getLang() === "ru" ? "Повторение слов" : "Word review", `${dueWords().length} ${getLang() === "ru" ? "к повторению" : "due today"}`, "var(--purple-d)", startSrsReview, !dueWords().length),
     practiceCard("shuffle", t("mixedReview"), `${learned.length} ${t("topicsDone").toLowerCase()}`, "var(--green)", () => startReview(false), !learned.length),
     practiceCard("target", t("mistakes"), `${(prog().mistakes || []).length}`, "var(--red)", () => startReview(true), !(prog().mistakes || []).length),
     practiceCard("grid", t("flashcards"), t("tapToFlip"), "var(--blue)", flashcards, false),
@@ -522,8 +542,37 @@ function viewPractice(main) {
     list.replaceChildren(...res.map(w => h("div", { class: "word-row" }, h("div", {}, h("div", { class: "ky" }, w.ky), h("div", { class: "tl" }, translit(w.ky))), h("div", {}, w.tr), h("span", { class: "pill" + ((prog().words[w.id] || 0) > 0 ? " green" : "") }, tn(TOPICS[w.topic])))));
   };
   draw();
+  unitTests(main);
   main.append(h("h2", { class: "section-title" }, `${t("words")} (${words.length})`), q, h("div", { style: { height: "12px" } }), list);
 }
+// Self-check unit tests: 20 mixed questions, 15-minute timer, no hints until the end.
+function unitTests(main) {
+  const ru = getLang() === "ru"; const p = prog(); p.tests = p.tests || {};
+  main.append(h("h2", { class: "section-title" }, ru ? "Тесты по разделам" : "Unit tests"), h("p", { class: "muted", style: { marginTop: "-6px" } }, ru ? "20 вопросов, 15 минут. Проверьте, что вы запомнили." : "20 questions, 15 minutes. Check what you've remembered."),
+    h("div", { class: "grid", style: { gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))" } }, UNITS.map((u, i) => {
+      const best = p.tests[u.id];
+      return h("div", { class: "card click test-card", style: { borderTop: `6px solid ${u.color}` }, onClick: () => startUnitTest(u, i) },
+        h("div", { class: "row" }, h("span", { class: "lvl-tag" }, u.level), h("span", { class: "grow" }), best != null ? gradeChip(best >= 90 ? 5 : best >= 75 ? 4 : best >= 50 ? 3 : 2) : null),
+        h("h3", { style: { margin: "8px 0 2px" } }, `${ru ? "Раздел" : "Unit"} ${i + 1}`), h("p", { class: "muted", style: { margin: 0 } }, tn(u)),
+        best != null ? h("p", { class: "small", style: { margin: "6px 0 0", fontWeight: 800 } }, `${ru ? "Лучший результат" : "Best"}: ${best}%`) : null);
+    })));
+}
+function startUnitTest(u, i) {
+  const ru = getLang() === "ru";
+  modal({ title: `${ru ? "Тест" : "Test"}: ${tn(u)}`, body: h("div", { class: "center" }, mascot("think", 100), h("p", {}, ru ? "20 вопросов · 15 минут · ответы покажем в конце." : "20 questions · 15 minutes · answers are shown at the end.")), actions: [
+    { label: t("cancel"), kind: "ghost" },
+    { label: t("start"), kind: "primary", onClick: () => runLesson({ exercises: buildExam(u.topics, { count: 20, lang: getLang() }), mode: "exam", timeLimit: 15 * 60, hearts: null,
+      onDone: (res) => { const p = prog(); p.tests = p.tests || {}; p.tests[u.id] = Math.max(p.tests[u.id] || 0, res.acc); showExamReview(res); afterLesson(awardLesson({ ...res, xp: Math.round(res.acc / 5) })); }, onQuit: render }) },
+  ] });
+}
+// After an exam: show which answers were right or wrong.
+function showExamReview(res) {
+  const ru = getLang() === "ru";
+  modal({ title: ru ? "Ваши ответы" : "Your answers", wide: true, body: h("div", {},
+    h("div", { class: "row", style: { justifyContent: "center", gap: "16px", marginBottom: "12px" } }, gradeChip(res.acc >= 90 ? 5 : res.acc >= 75 ? 4 : res.acc >= 50 ? 3 : 2, "big"), h("b", { style: { fontSize: "28px" } }, `${res.correct}/${res.total} · ${res.acc}%`)),
+    h("div", { class: "list" }, res.answers.map((a, i) => h("div", { class: "item" }, h("span", { style: { color: a.ok ? "var(--green)" : "var(--red)" } }, icon(a.ok ? "check" : "x")), h("div", { class: "grow" }, h("div", { class: "title" }, a.prompt || `#${i + 1}`), h("div", { class: "sub" }, a.given || (ru ? "— нет ответа" : "— no answer"))))))) });
+}
+
 function practiceCard(ic, title, sub, color, onClick, disabled) {
   return h("div", { class: "card click", style: { opacity: disabled ? .55 : 1 }, onClick: disabled ? null : onClick }, h("div", { style: { color, fontSize: "34px" } }, icon(ic)), h("h3", {}, title), h("p", { class: "muted", style: { margin: 0 } }, sub));
 }
@@ -656,7 +705,7 @@ function homeworkList(c, host) {
     const sub = st === "open" ? h("span", { class: "due-soon" }, `${t("due")}: ${fmtDate(hw.due_at, getLang())} (${relTime(hw.due_at, getLang())})`)
       : st === "missed" ? h("span", { class: "overdue" }, t("late")) : h("span", {}, `${t("submitted")} · ${Math.round(hw.submission.score)}%`);
     list.append(h("div", { class: "item click hw-card", style: { "--c": st === "missed" ? "var(--red)" : st === "done" ? "var(--green)" : "var(--blue)" }, onClick: () => st === "open" ? startHomework(hw, c) : showSubmission(hw, c) },
-      h("div", { class: "grow" }, h("div", { class: "title" }, hw.title), h("div", { class: "sub" }, sub), hw.topic_ids.length ? h("div", { class: "sub" }, hw.topic_ids.map(id => TOPICS[id] ? tn(TOPICS[id]) : id).join(" · ")) : null),
+      h("div", { class: "grow" }, h("div", { class: "title" }, hw.kind === "exam" ? h("span", { class: "pill red", style: { marginRight: "6px" } }, getLang() === "ru" ? "ЭКЗАМЕН" : "EXAM") : null, hw.title), h("div", { class: "sub" }, sub), hw.topic_ids.length ? h("div", { class: "sub" }, hw.topic_ids.map(id => TOPICS[id] ? tn(TOPICS[id]) : id).join(" · ")) : null),
       g ? gradeChip(g, st === "missed" ? "auto" : "") : h("button", { class: "btn primary sm" }, t("start"))));
   }
   host.append(list);
@@ -682,7 +731,8 @@ async function startHomework(hw, c) {
     if (error) return toast(errMsg(error), "bad");
     sets = data || [];
   }
-  let exercises = hw.topic_ids.length && hw.question_count ? buildLesson(hw.topic_ids, { count: hw.question_count, level: hw.difficulty ?? 1, lang: getLang(), typing: hw.difficulty === 2 }) : [];
+  const isExam = hw.kind === "exam";
+  let exercises = hw.topic_ids.length && hw.question_count ? (isExam ? buildExam(hw.topic_ids, { count: hw.question_count, lang: getLang() }) : buildLesson(hw.topic_ids, { count: hw.question_count, level: hw.difficulty ?? 1, lang: getLang(), typing: hw.difficulty === 2 })) : [];
   const custom = sets.flatMap(s => (s.questions || []).map((q, i) => customExercise(q, s.id, i))).filter(Boolean);
   // Every student gets a different order: the teacher's own questions land at random spots.
   for (const q of shuffle(custom)) exercises.splice(Math.floor(Math.random() * (exercises.length + 1)), 0, q);
@@ -691,6 +741,7 @@ async function startHomework(hw, c) {
   modal({ title: hw.title, body: h("div", {}, hw.instructions ? h("p", {}, hw.instructions) : null,
     h("p", { class: "muted" }, `${exercises.length} questions`, prompts.length ? ` + ${prompts.length} ${t("writing").toLowerCase()}` : ""),
     h("p", { class: "due-soon" }, `${t("due")}: ${fmtDate(hw.due_at, getLang())}`),
+    isExam ? h("p", { class: "exam-note" }, icon("clock"), getLang() === "ru" ? `Экзамен${hw.time_limit_minutes ? ` · ${hw.time_limit_minutes} мин` : ""}. Ответы покажут в конце. Если выйти — ответы будут отправлены.` : `Exam${hw.time_limit_minutes ? ` · ${hw.time_limit_minutes} min` : ""}. Answers are shown at the end. Leaving submits your answers.`) : null,
     h("p", { class: "small muted" }, "One attempt only. " + t("gradeScale"))), actions: [
     { label: t("cancel"), kind: "ghost" },
     { label: t("startHomework"), kind: "primary", onClick: () => go() },
@@ -710,9 +761,9 @@ async function startHomework(hw, c) {
       writingStep(host.querySelector(".lesson-inner"), setFoot).then(async (w) => { host.remove(); await submit({ correct: 1, total: 1, answers: [], ...w }); });
       return;
     }
-    runLesson({ exercises, mode: "homework", hearts: null, after: writingStep,
+    runLesson({ exercises, mode: isExam ? "exam" : "homework", timeLimit: isExam && hw.time_limit_minutes ? hw.time_limit_minutes * 60 : null, hearts: null, after: writingStep,
       resultExtra: (res) => h("p", { class: "muted" }, `${res.correct}/${res.total}`),
-      onDone: async (res) => { await submit(res); awardLesson(res); },
+      onDone: async (res) => { await submit(res); awardLesson(res); if (isExam) showExamReview(res); },
       onQuit: () => render() });
   }
   async function submit(res) {
