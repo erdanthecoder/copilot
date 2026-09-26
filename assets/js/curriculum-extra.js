@@ -84,15 +84,15 @@ export const EXTRA_TOPICS = {
     tip: { en: "In everyday Kyrgyz you “drink” a meal: тамак ичүү — to have a meal. Time: саат жетиде — at seven o'clock.", ru: "В разговорной речи еду «пьют»: тамак ичүү — поесть. Время: саат жетиде — в семь часов." },
     words: [
       ["ойгонуу", "to wake up|wake up", "просыпаться"], ["туруу", "to get up|get up|to stand", "вставать"],
-      ["жуунуу", "to wash (oneself)|to wash", "умываться"], ["тиш жуу", "to brush teeth|brush teeth", "чистить зубы"],
+      ["жуунуу", "to wash (oneself)|to wash", "умываться"], ["тиш тазалоо|тиш жуу", "to brush teeth|brush teeth", "чистить зубы"],
       ["кийинүү", "to get dressed|get dressed", "одеваться"], ["эртең мененки тамак", "breakfast", "завтрак"],
       ["түшкү тамак", "lunch", "обед"], ["кечки тамак", "dinner|supper", "ужин"], ["эс алуу", "to rest|rest", "отдыхать"],
     ],
     sentences: [
       ["Мен саат жетиде турам.", "I get up at seven o'clock.|I get up at seven.", "Я встаю в семь часов."],
-      ["Мен тишимди жууйм.", "I brush my teeth.", "Я чищу зубы."],
+      ["Мен тишимди тазалайм.", "I brush my teeth.", "Я чищу зубы."],
       ["Сабактан кийин мен эс алам.", "After lessons I rest.|I rest after school.", "После уроков я отдыхаю."],
-      ["Кечинде үй тапшырманы аткарам.", "In the evening I do my homework.", "Вечером я делаю домашнее задание."],
+      ["Кечинде үй тапшырмасын аткарам.", "In the evening I do my homework.", "Вечером я делаю домашнее задание."],
       ["Мен саат ондо уктайм.", "I go to sleep at ten.|I sleep at ten o'clock.", "Я ложусь спать в десять."],
     ],
   },
