@@ -621,3 +621,15 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 @media (prefers-reduced-motion: reduce) { .shoot, .bird { display: none; } }
 @media (max-width: 620px) { .sky .orb { left: 84% !important; top: 16% !important; width: 52px; height: 52px; margin: -26px 0 0 -26px; } }
 .dash .kpis { margin-bottom: 20px; }
+
+/* a teacher's classes */
+.cls-list { display: grid; gap: 6px; }
+.cls-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--c) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c) 22%, transparent); opacity: 0; animation: slidein .6s cubic-bezier(.2,.9,.2,1) forwards; animation-delay: calc(.3s + var(--i) * .1s); }
+.cls-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; }
+.cls-name { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.code-chip { font: 700 12px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; padding: 4px 8px; border-radius: 7px; border: 1px dashed var(--line-2); background: var(--surface); color: var(--ink); cursor: pointer; min-width: 74px; }
+.code-chip:hover { border-color: var(--c); }
+.cls-next { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border-left: 3px solid var(--warn); }
+@media (prefers-reduced-motion: reduce) { .cls-row { opacity: 1; animation: none; } }
+.widget { grid-template-columns: minmax(0, 1fr); } .cls-row .faint.tiny { white-space: nowrap; }
+.cls-list { grid-template-columns: minmax(0, 1fr); } .code-chip { min-width: 0; letter-spacing: .04em; padding: 4px 6px; flex: none; }

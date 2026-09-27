@@ -13,6 +13,7 @@ const params = new URLSearchParams(location.search);
 const returnTo = params.get("return") && isTrusted(params.get("return")) ? params.get("return") : null;
 let asRole = params.get("as") === "teacher" ? "teacher" : "student";
 let session = null, profile = null, appData = [];
+let teaching = null; // a teacher's classes, students and homework
 let timers = [];
 const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
 const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -157,6 +158,19 @@ async function loadMe() {
   ]);
   profile = p.data || { full_name: session.user.user_metadata?.full_name || session.user.email, role: "student", xp: 0, streak: 0 };
   appData = d.data || [];
+  teaching = null;
+  if (profile.role === "teacher") {
+    // teachers don't do lessons: their dashboard is about their classes
+    const { data: classes } = await client.from("classrooms").select("id,name,color,join_code,created_at").eq("teacher_id", session.user.id).order("created_at");
+    const ids = (classes || []).map(c => c.id);
+    const [m, hw] = ids.length ? await Promise.all([
+      client.from("classroom_members").select("classroom_id").in("classroom_id", ids),
+      client.from("homework").select("id,title,due_at,classroom_id").in("classroom_id", ids),
+    ]) : [{ data: [] }, { data: [] }];
+    const members = m.data || [], homework = hw.data || [];
+    teaching = { classes: (classes || []).map(c => ({ ...c, students: members.filter(x => x.classroom_id === c.id).length })),
+      students: members.length, open: homework.filter(x => new Date(x.due_at) > new Date()).sort((a, b) => new Date(a.due_at) - new Date(b.due_at)) };
+  }
 }
 client.auth.onAuthStateChange((ev, s) => { if (ev === "TOKEN_REFRESHED" || ev === "SIGNED_IN") session = s; });
 async function signOut() { await client.auth.signOut({ scope: "local" }); session = null; profile = null; history.replaceState(null, "", location.pathname); toast("Signed out"); route(); top(); }
@@ -453,13 +467,19 @@ function dashboard() {
   app.replaceChildren(h("div", { class: "dash" },
     skyBanner({ first, teacher }),
     h("div", { class: "kpis" },
-      kpi("learnkyrgyz", profile.xp || 0, "XP", 0, "⚡"),
-      kpi("learnkyrgyz", profile.streak || 0, "Day streak", 1, "🔥"),
-      kpi("learnkyrgyz", topicsDone || words, topicsDone ? "Topics done" : "Words learned", 2, "🏔️"),
+      teacher && teaching ? [
+        kpi("learnkyrgyz", teaching.classes.length, "Classes", 0, "🏫"),
+        kpi("learnkyrgyz", teaching.students, "Students", 1, "🧑‍🎓"),
+        kpi("learnkyrgyz", teaching.open.length, "Open homework", 2, "📝"),
+      ] : [
+        kpi("learnkyrgyz", profile.xp || 0, "XP", 0, "⚡"),
+        kpi("learnkyrgyz", profile.streak || 0, "Day streak", 1, "🔥"),
+        kpi("learnkyrgyz", topicsDone || words, topicsDone ? "Topics done" : "Words learned", 2, "🏔️"),
+      ],
       kpi("quoldek", quizzes, "Quoldek quizzes", 3, "🎮")),
 
     h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
-    h("div", { class: "bento" }, questCard(), streakCard(), focusCard(), statusCard(), recentCard()),
+    h("div", { class: "bento" }, questCard(), teacher ? classesCard() : streakCard(), focusCard(), statusCard(), recentCard()),
 
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "Drag to reorder · press 1–4 to open")),
     launcher(myOrder().map((id, k) => tilt(h("div", { class: "item card reveal", "data-id": id, draggable: "true", style: { "--c1": INFO[id].c1, "--d": k } },
@@ -783,6 +803,22 @@ function streakCard() {
       h("p", { class: "faint tiny" }, st ? "Do one lesson today to keep it alive." : "One lesson starts a new streak."),
       h("button", { class: "btn ghost sm", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, "Do a lesson", arrow())))));
 }
+// for teachers, in place of a streak: their classes, at a glance
+function classesCard() {
+  const t = teaching || { classes: [], students: 0, open: [] }, next = t.open[0];
+  const when = (d) => { const days = Math.ceil((new Date(d) - Date.now()) / 864e5); return days <= 0 ? "today" : days === 1 ? "tomorrow" : `in ${days} days`; };
+  const copy = async (code, b) => { try { await navigator.clipboard.writeText(code); b.textContent = "Copied!"; setTimeout(() => { b.textContent = code; }, 1400); } catch { toast("Join code: " + code); } };
+  return glow(h("div", { class: "widget classes card reveal", style: { "--d": 2 } },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Your classes"), h("span", { class: "faint tiny" }, "LearnKyrgyz")),
+    t.classes.length
+      ? h("div", { class: "cls-list" }, t.classes.slice(0, 3).map((c, i) => h("div", { class: "cls-row", style: { "--c": c.color || "#1cb0f6", "--i": i } },
+          h("i", { class: "cls-dot" }), h("span", { class: "cls-name" }, c.name), h("span", { class: "faint tiny" }, c.students + (c.students === 1 ? " student" : " students")),
+          h("button", { class: "code-chip", title: "Copy the join code", onClick: (e) => copy(c.join_code, e.currentTarget) }, c.join_code))))
+      : h("p", { class: "faint tiny", style: { margin: 0 } }, "No classes yet. Make one and share its join code with your students."),
+    next ? h("div", { class: "cls-next" }, h("span", { class: "faint tiny" }, "Next homework due " + when(next.due_at)), h("b", {}, next.title)) : null,
+    h("button", { class: "btn ghost sm", style: { "justify-self": "start" }, onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, t.classes.length ? "Open my classes" : "Make a class", arrow())));
+}
+
 // a focus timer that keeps running across reloads, and chimes at the end
 const focus = {
   state() { return store.get("focus", null); },
