@@ -141,6 +141,7 @@ function portal(url, id) {
     h("div", { class: "msg" }, tile(id), h("b", {}, `Opening ${a.name}`),
       h("span", {}, session ? `Signed in as ${session.user.email}` : "Taking you there"), h("div", { class: "bar" }, h("i"))));
   document.body.append(p);
+  if (INFO[id]) noteOpened(id);
   setTimeout(() => { location.href = handoffUrl(url, session); }, reduce ? 150 : 1250);
 }
 window.addEventListener("pageshow", (e) => { if (e.persisted) document.querySelectorAll(".portal").forEach(x => x.remove()); });
@@ -151,7 +152,7 @@ async function loadMe() {
   session = data.session;
   if (!session) { profile = null; appData = []; return; }
   const [p, d] = await Promise.all([
-    client.from("profiles").select("full_name,role,xp,streak,progress").eq("id", session.user.id).maybeSingle(),
+    client.from("profiles").select("full_name,role,xp,streak,progress,avatar_color").eq("id", session.user.id).maybeSingle(),
     client.from("app_data").select("app,key,data,updated_at"),
   ]);
   profile = p.data || { full_name: session.user.user_metadata?.full_name || session.user.email, role: "student", xp: 0, streak: 0 };
@@ -164,14 +165,19 @@ async function signOut() { await client.auth.signOut({ scope: "local" }); sessio
 const initials = (name) => (name || "?").trim().split(/[\s@]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
 function drawNav() {
   nav.replaceChildren();
+  const tools = [
+    h("button", { class: "search-pill", onClick: palette, "aria-label": "Search (" + (isMac ? "⌘" : "Ctrl") + " K)" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "sp-t" }, "Search"), kbd(isMac ? "⌘" : "Ctrl", "K")),
+    h("button", { class: "icon-btn", onClick: toggleTheme, title: themeNow() === "dark" ? "Light mode (T)" : "Dark mode (T)", "aria-label": "Switch theme", html: themeNow() === "dark" ? SUN : MOON }),
+    h("button", { class: "icon-btn bell" + (newsSeen() ? "" : " unread"), onClick: whatsNew, title: "What's new", "aria-label": "What's new", html: BELL }),
+  ];
   if (session) {
     const name = profile?.full_name || session.user.email;
-    nav.append(h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#bridge" }, "Topics → Quoldek"), h("a", { class: "link", href: "#guides" }, "Guides"),
-      h("span", { class: "me" }, h("span", { class: "avatar", title: session.user.email }, initials(name)),
+    nav.append(h("a", { class: "link", href: "#today" }, "Today"), h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#bridge" }, "Topics"), ...tools,
+      h("span", { class: "me" }, h("button", { class: "avatar", style: avatarStyle(), title: `${session.user.email} · Edit profile`, onClick: editProfile }, initials(name)),
         h("button", { class: "btn ghost sm", onClick: signOut }, "Sign out")));
   } else {
     nav.append(h("a", { class: "link", href: "#product", onClick: goLanding }, "Product"), h("a", { class: "link", href: "#apps", onClick: goLanding }, "Apps"),
-      h("a", { class: "link", href: "#security", onClick: goLanding }, "Security"), h("a", { class: "link", href: "#faq", onClick: goLanding }, "FAQ"),
+      h("a", { class: "link", href: "#security", onClick: goLanding }, "Security"), h("a", { class: "link", href: "#faq", onClick: goLanding }, "FAQ"), ...tools,
       h("a", { class: "btn ghost sm", href: "#signin", style: { "margin-left": "8px" } }, "Sign in"), h("a", { class: "btn primary sm", href: "#signup" }, "Get started"));
   }
 }
@@ -263,7 +269,8 @@ function landing() {
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
-        h("div", { class: "trust rise", style: { "--d": 4 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding"))),
+        h("button", { class: "k-hint rise", style: { "--d": 4 }, onClick: palette }, "Try it: press ", kbd(isMac ? "⌘" : "Ctrl", "K")),
+        h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding"))),
       stage()),
 
     h("div", { class: "strip reveal" }, [["4", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
@@ -278,6 +285,15 @@ function landing() {
         }).join("") + "</svg>" }),
         h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your The4Workspace account"), h("span", {}, "Google or email"))),
         h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door card", style: { "--k": k, "--c1": INFO[id].c1 } }, tile(id, "lg"), h("b", {}, INFO[id].name), h("span", { class: "badge" }, "Opens signed in")))))),
+
+    h("section", { id: "inside", style: { "padding-top": 0 } },
+      h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Inside your workspace"), h("h2", { class: "h2 reveal" }, "More than a sign-in page"),
+        h("p", { class: "lead reveal" }, "A Kyrgyz word every day, a focus timer, live app status and a command menu. These are real: try them.")),
+      h("div", { class: "bento landing-bento" }, wordCard(), focusCard(), statusCard(),
+        h("button", { class: "widget cmd-teaser card reveal", style: { "--d": 5 }, onClick: palette },
+          h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Command menu"), kbd(isMac ? "⌘" : "Ctrl", "K")),
+          h("div", { class: "teaser-box" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "typed" }, "family")),
+          h("p", { class: "faint tiny", style: { margin: 0 } }, "Every app, every Kyrgyz topic and every action, from the keyboard.")))),
 
     h("section", { id: "features", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "Why The4Workspace"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
@@ -436,7 +452,8 @@ function dashboard() {
 
   app.replaceChildren(h("div", { class: "dash" },
     h("div", { class: "hello rise" },
-      h("div", {}, h("h1", {}, "Салам, ", first, "! ", h("span", { class: "wave-hand" }, "👋")), h("p", {}, "Your account works in all four apps. Pick one to open it signed in.")),
+      h("div", {}, h("p", { class: "greet-en" }, greeting()[1] + " · " + new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })),
+        h("h1", {}, greeting()[0], ", ", first, "! ", h("span", { class: "wave-hand" }, "👋")), h("p", {}, "Your account works in all four apps. Press ", kbd(isMac ? "⌘" : "Ctrl", "K"), " to jump anywhere.")),
       h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow())),
     h("div", { class: "kpis" },
       kpi("learnkyrgyz", profile.xp || 0, "XP", 0),
@@ -444,8 +461,12 @@ function dashboard() {
       kpi("learnkyrgyz", topicsDone || words, topicsDone ? "Topics done" : "Words learned", 2),
       kpi("quoldek", quizzes, "Quoldek quizzes", 3)),
 
-    h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "4 of 4 connected")),
-    h("div", { class: "launch" }, ORDER.map((id, k) => tilt(h("div", { class: "item card reveal", style: { "--c1": INFO[id].c1, "--d": k } },
+    h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
+    h("div", { class: "bento" }, wordCard(), streakCard(), focusCard(), statusCard(), recentCard()),
+
+    h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "Drag to reorder · press 1–4 to open")),
+    launcher(myOrder().map((id, k) => tilt(h("div", { class: "item card reveal", "data-id": id, draggable: "true", style: { "--c1": INFO[id].c1, "--d": k } },
+      h("span", { class: "kbd-corner" }, kbd(String(k + 1))),
       h("div", { class: "row" }, tile(id, "lg"), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "tag" }, INFO[id].tag), h("div", { class: "host" }, new URL(INFO[id].url).host))),
       h("span", { class: "badge", style: { "margin-left": 0, "justify-self": "start" } }, "Opens signed in"),
       h("button", { class: "btn ghost block", onClick: () => portal(urlFor(id), id) }, `Open ${INFO[id].name}`, arrow()))))),
@@ -456,7 +477,7 @@ function dashboard() {
       h("div", { class: "panel card reveal" },
         h("div", { class: "row-between" }, h("b", {}, "Account"), h("span", { class: "badge" }, "Active")),
         h("div", { class: "kv" },
-          h("div", {}, h("span", {}, "Name"), h("b", {}, profile.full_name || "—")),
+          h("div", {}, h("span", {}, "Name"), h("b", {}, profile.full_name || "—", " ", h("button", { class: "linkish tiny", onClick: editProfile }, "Edit"))),
           h("div", {}, h("span", {}, "Email"), h("b", {}, session.user.email)),
           h("div", {}, h("span", {}, "Role"), h("b", {}, teacher ? "Teacher" : "Student")),
           h("div", {}, h("span", {}, "Signs in with"), h("b", {}, provider)),
@@ -496,8 +517,326 @@ function picker() {
         h("button", { class: "btn brand", onClick: go("host") }, "Play in Quoldek", arrow()))));
 }
 
+// ── small stores in this browser (conveniences only; nothing here is an account) ──
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("ws." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ws." + k, JSON.stringify(v)); } catch { /* private mode */ } },
+};
+
+// ── theme: follows the system until you choose ──
+const themeNow = () => document.documentElement.dataset.theme || "dark";
+function setTheme(t, save = true) {
+  const flip = () => { document.documentElement.dataset.theme = t; if (save) { try { localStorage.setItem("ws.theme", t); } catch {} } drawNav(); };
+  if (document.startViewTransition && !reduce && save) document.startViewTransition(flip); else flip();
+}
+const toggleTheme = () => setTheme(themeNow() === "dark" ? "light" : "dark");
+matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", (e) => { let saved = null; try { saved = localStorage.getItem("ws.theme"); } catch {} if (!saved) setTheme(e.matches ? "light" : "dark", false); });
+const SUN = svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>');
+const MOON = svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>');
+const BELL = svg('<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>');
+const SEARCH = svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>');
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const kbd = (...keys) => h("span", { class: "kbds" }, keys.map(k => h("kbd", {}, k)));
+
+// ── apps in the order you chose (drag to reorder on the dashboard) ──
+const myOrder = () => { const o = store.get("order", ORDER); return o.length === ORDER.length && ORDER.every(id => o.includes(id)) ? o : ORDER; };
+function openApp(id) { session ? portal(urlFor(id), id) : window.open(INFO[id].url, "_blank", "noopener"); }
+// the apps you opened most recently, newest first
+const recent = () => store.get("recent", []).filter(r => INFO[r.id]);
+function noteOpened(id) { store.set("recent", [{ id, at: Date.now() }, ...recent().filter(r => r.id !== id)].slice(0, 6)); }
+function ago(t) {
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 60) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) return Math.round(s / 3600) + " h ago"; return Math.round(s / 86400) + " d ago";
+}
+
+// ── ⌘K: search and jump anywhere ──
+function commands() {
+  const list = [];
+  const add = (group, label, run, extra = {}) => list.push({ group, label, run, ...extra });
+  myOrder().forEach((id, i) => add("Apps", `Open ${INFO[id].name}`, () => openApp(id), { icon: tile(id, "xs"), hint: INFO[id].tag, keys: session ? [String(i + 1)] : null }));
+  const go = (id) => () => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); else { location.hash = id; } };
+  if (session) {
+    [["today", "Today"], ["apps", "Your apps"], ["bridge", "Topics → Quoldek"], ["guides", "Guides"]].forEach(([id, l]) => add("Go to", l, go(id), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M5 12h14M13 6l6 6-6 6"/>') }) }));
+    add("Actions", "Start a 25-minute focus session", () => { focus.start(25); document.getElementById("today")?.scrollIntoView({ behavior: "smooth" }); }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>') }) });
+    add("Actions", "Hear today's Kyrgyz word", () => wordOfDay.say(), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>') }) });
+    add("Actions", "Edit my profile", () => editProfile(), { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>') }) });
+    add("Actions", "Sign out", () => signOut(), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>') }) });
+    Object.entries(TOPICS).forEach(([id, t]) => add("Play a topic in Quoldek", `${t.en} · ${t.ky}`, () => portal(`https://quoldek.web.app/?learnkyrgyz=${id}&lang=en&go=host`, "quoldek"), { icon: tile("quoldek", "xs"), hidden: true }));
+  } else {
+    [["product", "How it works"], ["apps", "The apps"], ["security", "Security"], ["faq", "FAQ"]].forEach(([id, l]) => add("Go to", l, go(id), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M5 12h14M13 6l6 6-6 6"/>') }) }));
+    add("Actions", "Create an account", () => { location.hash = "signup"; }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0M19 8v6M16 11h6"/>') }) });
+    add("Actions", "Sign in", () => { location.hash = "signin"; }, { icon: h("span", { class: "cmd-ic", html: svg('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>') }) });
+  }
+  add("Actions", themeNow() === "dark" ? "Switch to light mode" : "Switch to dark mode", toggleTheme, { icon: h("span", { class: "cmd-ic", html: themeNow() === "dark" ? SUN : MOON }), keys: ["T"] });
+  add("Actions", "What's new", () => whatsNew(), { icon: h("span", { class: "cmd-ic", html: BELL }) });
+  add("Actions", "Keyboard shortcuts", () => shortcuts(), { icon: h("span", { class: "cmd-ic", html: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>') }), keys: ["?"] });
+  return list;
+}
+function score(label, q) {
+  const l = label.toLowerCase(); if (!q) return 1;
+  if (l.startsWith(q)) return 3; if (l.includes(q)) return 2;
+  let i = 0; for (const ch of l) if (ch === q[i]) i++;
+  return i === q.length ? 1 : 0;
+}
+function palette() {
+  if (document.querySelector(".cmdk")) return;
+  const all = commands();
+  const input = h("input", { class: "cmd-input", placeholder: session ? "Search apps, topics and actions…" : "Search apps and actions…", "aria-label": "Search", autocomplete: "off", spellcheck: "false" });
+  const listEl = h("div", { class: "cmd-list", role: "listbox" });
+  let items = [], at = 0;
+  const close = () => { wrap.classList.add("out"); setTimeout(() => wrap.remove(), 160); };
+  const run = (c) => { close(); setTimeout(() => c.run(), 60); };
+  const draw = () => {
+    const q = input.value.trim().toLowerCase();
+    items = all.filter(c => (!c.hidden || q) && score(c.label, q) > 0).sort((a, b) => score(b.label, q) - score(a.label, q)).slice(0, q ? 40 : 30);
+    if (!q) items.sort((a, b) => all.indexOf(a) - all.indexOf(b));
+    at = Math.min(at, Math.max(0, items.length - 1));
+    const groups = [...new Set(items.map(c => c.group))];
+    listEl.replaceChildren(...(items.length ? groups.map(g => h("div", { class: "cmd-group" }, h("div", { class: "cmd-gh" }, g),
+      items.filter(c => c.group === g).map(c => { const i = items.indexOf(c);
+        return h("div", { class: "cmd-item" + (i === at ? " on" : ""), role: "option", "aria-selected": String(i === at), onMousemove: () => { if (at !== i) { at = i; mark(); } }, onClick: () => run(c) },
+          c.icon || null, h("span", { class: "cmd-label" }, c.label), c.hint ? h("span", { class: "cmd-hint" }, c.hint) : null, c.keys ? kbd(...c.keys) : null); })))
+      : [h("div", { class: "cmd-empty" }, "Nothing matches. Try a topic like “family” or an app name.")]));
+  };
+  const mark = () => listEl.querySelectorAll(".cmd-item").forEach((el, i) => { el.classList.toggle("on", i === at); el.setAttribute("aria-selected", String(i === at)); if (i === at) el.scrollIntoView({ block: "nearest" }); });
+  input.addEventListener("input", () => { at = 0; draw(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); at = Math.min(items.length - 1, at + 1); mark(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); at = Math.max(0, at - 1); mark(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (items[at]) run(items[at]); }
+    else if (e.key === "Escape") { e.preventDefault(); close(); }
+  });
+  const wrap = h("div", { class: "cmdk", onClick: (e) => { if (e.target === wrap) close(); } },
+    h("div", { class: "cmd-box", role: "dialog", "aria-label": "Command menu" },
+      h("div", { class: "cmd-top" }, h("span", { class: "cmd-ic", html: SEARCH }), input, h("kbd", {}, "esc")),
+      listEl,
+      h("div", { class: "cmd-foot" }, h("span", {}, kbd("↑", "↓"), " move"), h("span", {}, kbd("↵"), " open"), h("span", {}, kbd(isMac ? "⌘" : "Ctrl", "K"), " anywhere"))));
+  document.body.append(wrap); draw(); input.focus();
+}
+
+// ── a sheet that slides in from the side ──
+function sheet(title, body) {
+  document.querySelector(".sheet-wrap")?.remove();
+  const close = () => { wrap.classList.add("out"); setTimeout(() => wrap.remove(), 220); };
+  const wrap = h("div", { class: "sheet-wrap", onClick: (e) => { if (e.target === wrap) close(); } },
+    h("aside", { class: "sheet", role: "dialog", "aria-label": title },
+      h("div", { class: "sheet-h" }, h("b", {}, title), h("button", { class: "btn ghost sm", onClick: close, "aria-label": "Close" }, "Close")), body));
+  const esc = (e) => { if (e.key === "Escape") { close(); removeEventListener("keydown", esc); } };
+  addEventListener("keydown", esc);
+  document.body.append(wrap);
+  return close;
+}
+const NEWS = [
+  { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: a Kyrgyz word of the day you can hear, your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
+  { v: "2.1", date: "26 Sep 2026", title: "The4Workspace", items: ["OneInFour is now The4Workspace at the4workspace.web.app", "Quoldek 5.0 signs in with The4Workspace, then opens your TeachBoard or StudentBoard", "AkylduuKodo is now CompactCoding at compactcoding.web.app", "Every app has a The4Workspace button"] },
+  { v: "2.0", date: "26 Sep 2026", title: "One account, four apps", items: ["Kadam and CompactCoding sign you in automatically", "The four logos orbit your account in 3D; a bubble grows as you open an app"] },
+];
+const newsSeen = () => store.get("news", "") === NEWS[0].v;
+function whatsNew() {
+  store.set("news", NEWS[0].v); document.querySelector(".bell")?.classList.remove("unread");
+  sheet("What's new", h("div", { class: "news" }, NEWS.map((n, i) => h("article", { class: "news-item" + (i === 0 ? " latest" : "") },
+    h("div", { class: "news-meta" }, h("span", { class: "badge" }, "v" + n.v), h("span", { class: "faint tiny" }, n.date)),
+    h("h3", {}, n.title), h("ul", {}, n.items.map(x => h("li", {}, x)))))));
+}
+function shortcuts() {
+  const row = (keys, what) => h("div", { class: "sc-row" }, h("span", {}, what), kbd(...keys));
+  sheet("Keyboard shortcuts", h("div", { class: "sc" },
+    row([isMac ? "⌘" : "Ctrl", "K"], "Open the command menu"), row(["/"], "Search"),
+    session ? myOrder().map((id, i) => row([String(i + 1)], `Open ${INFO[id].name}`)) : null,
+    row(["T"], "Light or dark"), row(["F"], "Start or pause the focus timer"), row(["?"], "This list")));
+}
+addEventListener("keydown", (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palette(); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey || document.querySelector(".cmdk")) return;
+  if (e.key === "/") { e.preventDefault(); palette(); }
+  else if (e.key === "?") shortcuts();
+  else if (e.key.toLowerCase() === "t") toggleTheme();
+  else if (e.key.toLowerCase() === "f" && session) focus.toggle();
+  else if (session && /^[1-4]$/.test(e.key)) openApp(myOrder()[+e.key - 1]);
+});
+
+// ── Today: greeting, word of the day, streak ring, focus timer ──
+// the date in Kyrgyz (browsers have no Kyrgyz calendar names built in)
+function kyDate(d = new Date()) {
+  const days = ["жекшемби", "дүйшөмбү", "шейшемби", "шаршемби", "бейшемби", "жума", "ишемби"];
+  const months = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
+  return `${d.getDate()}-${months[d.getMonth()]}, ${days[d.getDay()]}`;
+}
+function greeting() {
+  const hr = new Date().getHours();
+  if (hr >= 5 && hr < 12) return ["Кутман таң", "Good morning"];
+  if (hr >= 12 && hr < 18) return ["Кутман күн", "Good afternoon"];
+  if (hr >= 18 && hr < 23) return ["Кутман кеч", "Good evening"];
+  return ["Жакшы түн", "Good night"];
+}
+const ALL_WORDS = Object.entries(TOPICS).flatMap(([id, t]) => (t.words || []).filter(w => w[0] && w[0].length < 28).map(w => ({ ky: w[0], en: String(w[1]).split("|")[0], ru: String(w[2] || "").split("|")[0], topic: id })));
+const dayIndex = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5)); };
+const wordOfDay = {
+  offset: 0,
+  get() { const n = ALL_WORDS.length; return ALL_WORDS[((dayIndex() * 7919 + this.offset) % n + n) % n]; },
+  async say() {
+    const w = this.get();
+    try { const sp = await import("../assets/js/speech.js"); await sp.sayKyAsync(w.ky); }
+    catch { try { const u = new SpeechSynthesisUtterance(w.ky); u.lang = "ky-KG"; speechSynthesis.speak(u); } catch { toast("Sound isn't available here", "bad"); } }
+  },
+};
+function wordCard() {
+  const box = h("div", { class: "widget word card reveal", id: "word", style: { "--d": 1 } });
+  const draw = () => {
+    const w = wordOfDay.get(), t = TOPICS[w.topic];
+    box.replaceChildren(
+      h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, wordOfDay.offset ? "Another word" : "Word of the day"), h("span", { class: "faint tiny" }, t.en)),
+      h("div", { class: "w-word" }, w.ky),
+      h("div", { class: "w-tr" }, w.en, w.ru ? h("span", { class: "faint" }, " · " + w.ru) : null),
+      h("div", { class: "w-actions" },
+        h("button", { class: "btn brand sm", onClick: async (e) => { const b = e.currentTarget; b.classList.add("speaking"); await wordOfDay.say(); b.classList.remove("speaking"); } }, h("span", { class: "cmd-ic", html: svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>') }), "Listen"),
+        h("button", { class: "btn ghost sm", onClick: () => { wordOfDay.offset++; box.classList.remove("flip"); void box.offsetWidth; box.classList.add("flip"); draw(); } }, "Next word"),
+        h("button", { class: "btn ghost sm", onClick: () => portal(`https://quoldek.web.app/?learnkyrgyz=${w.topic}&lang=en&go=take`, "quoldek") }, "Practise “" + t.en + "”")),
+      h("div", { class: "w-more" }, h("span", { class: "faint tiny" }, "More from " + t.en + " · tap to hear"),
+        h("div", { class: "w-chips" }, (t.words || []).filter(x => x[0] !== w.ky && x[0].length < 28).slice(0, 6).map(x =>
+          h("button", { class: "w-chip", title: String(x[1]).split("|")[0], onClick: async (e) => { const b = e.currentTarget; b.classList.add("on");
+            try { const sp = await import("../assets/js/speech.js"); await sp.sayKyAsync(x[0]); } catch { try { const u = new SpeechSynthesisUtterance(x[0]); u.lang = "ky-KG"; speechSynthesis.speak(u); } catch {} }
+            b.classList.remove("on"); } }, h("b", {}, x[0]), h("span", {}, String(x[1]).split("|")[0]))))));
+  };
+  draw(); return box;
+}
+function ring(pct, size = 120, stroke = 10, cls = "") {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const el = h("div", { class: "ring " + cls, style: { width: size + "px", height: size + "px" }, html:
+    `<svg viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs><linearGradient id="rg${cls}" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset=".6" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>`
+    + `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>`
+    + `<circle class="arc" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#rg${cls})" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>` });
+  el.set = (p) => { el.querySelector(".arc").style.strokeDashoffset = String(c * (1 - Math.max(0, Math.min(1, p)))); };
+  later(() => el.set(pct), 250);
+  return el;
+}
+function streakCard() {
+  const st = profile.streak || 0, next = Math.max(7, Math.ceil((st + 1) / 7) * 7), left = next - st;
+  const rg = ring(st / next, 118, 10, "st");
+  rg.append(h("div", { class: "ring-in" }, h("b", {}, "🔥 " + st), h("span", {}, st === 1 ? "day" : "days")));
+  return h("div", { class: "widget streak card reveal", style: { "--d": 2 } },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Streak"), h("span", { class: "faint tiny" }, "LearnKyrgyz")),
+    h("div", { class: "streak-row" }, rg, h("div", {},
+      h("b", { class: "big" }, st && st % 7 === 0 ? `${st / 7} full week${st > 7 ? "s" : ""}!` : `${left} day${left === 1 ? "" : "s"} to ${next}`),
+      h("p", { class: "faint tiny" }, st ? "Do one lesson today to keep it alive." : "One lesson starts a new streak."),
+      h("button", { class: "btn ghost sm", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, "Do a lesson", arrow()))));
+}
+// a focus timer that keeps running across reloads, and chimes at the end
+const focus = {
+  state() { return store.get("focus", null); },
+  start(mins) { store.set("focus", { end: Date.now() + mins * 60e3, mins, paused: null }); this.tick(); if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {}); },
+  toggle() { const s = this.state(); if (!s) return this.start(25); if (s.paused != null) store.set("focus", { ...s, end: Date.now() + s.paused, paused: null }); else store.set("focus", { ...s, paused: Math.max(0, s.end - Date.now()) }); this.tick(); },
+  reset() { store.set("focus", null); document.title = baseTitle; this.tick(); },
+  left() { const s = this.state(); if (!s) return 0; return s.paused != null ? s.paused : Math.max(0, s.end - Date.now()); },
+  chime() {
+    try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [0, .18, .36].forEach((t, i) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = [660, 880, 990][i]; g.gain.setValueAtTime(.0001, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(.25, ac.currentTime + t + .02); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + t + .5); o.connect(g).connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + .55); }); } catch {}
+    try { if (Notification.permission === "granted") new Notification("Focus session done", { body: "Take a five-minute break.", icon: "icon.svg" }); } catch {}
+  },
+  views: new Set(),
+  tick() {
+    const s = this.state(), ms = this.left();
+    if (s && s.paused == null && ms <= 0) { store.set("focus", null); this.chime(); toast("Focus session done. Take a break!", "good"); confetti(); }
+    this.views.forEach(v => v.isConnected ? v.paint() : this.views.delete(v));
+    const on = this.state() && this.state().paused == null;
+    const mm = String(Math.floor(this.left() / 60000)).padStart(2, "0"), ss = String(Math.floor(this.left() / 1000) % 60).padStart(2, "0");
+    document.title = on ? `${mm}:${ss} · Focus · The4Workspace` : baseTitle;
+  },
+};
+const baseTitle = document.title;
+setInterval(() => { if (focus.state()) focus.tick(); }, 1000);
+function focusCard() {
+  const rg = ring(0, 118, 10, "fc"), time = h("b", {}, "25:00"), label = h("span", {}, "focus");
+  rg.append(h("div", { class: "ring-in" }, time, label));
+  const main = h("button", { class: "btn brand sm", onClick: () => focus.toggle() }, "Start");
+  const modes = h("div", { class: "seg mini" }, [[25, "25m"], [50, "50m"], [5, "Break"]].map(([m, l]) => h("button", { type: "button", onClick: () => focus.start(m) }, l)));
+  const card = h("div", { class: "widget focus card reveal", id: "focus", style: { "--d": 3 } },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Focus"), kbd("F")),
+    h("div", { class: "streak-row" }, rg, h("div", { style: { display: "grid", gap: "8px" } }, main, h("button", { class: "btn ghost sm", onClick: () => focus.reset() }, "Reset"))),
+    modes);
+  card.paint = () => {
+    const s = focus.state(), ms = s ? focus.left() : 25 * 60e3, total = (s ? s.mins : 25) * 60e3;
+    time.textContent = `${String(Math.floor(ms / 60000)).padStart(2, "0")}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
+    label.textContent = !s ? "ready" : s.paused != null ? "paused" : s.mins === 5 ? "break" : "focus";
+    main.textContent = !s ? "Start" : s.paused != null ? "Resume" : "Pause";
+    rg.set(s ? 1 - ms / total : 0); card.classList.toggle("running", !!s && s.paused == null);
+  };
+  focus.views.add(card); later(() => card.paint(), 300);
+  return card;
+}
+// ── are the apps up? a real request to each, timed ──
+function statusCard() {
+  const rows = myOrder().map(id => { const dot = h("i", { class: "dot wait" }), ms = h("span", { class: "faint tiny" }, "checking…");
+    return { id, dot, ms, el: h("div", { class: "st-row" }, tile(id, "xs"), h("span", {}, INFO[id].name), h("span", { class: "grow" }), ms, dot) }; });
+  const check = () => rows.forEach(async (r) => {
+    r.dot.className = "dot wait"; r.ms.textContent = "checking…";
+    const t0 = performance.now();
+    try { await fetch(INFO[r.id].url, { mode: "no-cors", cache: "no-store" }); const t = Math.round(performance.now() - t0); r.dot.className = "dot ok"; r.ms.textContent = `Online · ${t} ms`; }
+    catch { r.dot.className = "dot bad"; r.ms.textContent = "Can't reach"; }
+  });
+  later(check, 400);
+  return h("div", { class: "widget status card reveal", style: { "--d": 4 } },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "App status"), h("button", { class: "linkish tiny", onClick: check }, "Check again")),
+    h("div", { class: "st-list" }, rows.map(r => r.el)));
+}
+function recentCard() {
+  const list = recent();
+  return h("div", { class: "widget recent card reveal", style: { "--d": 5 } },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Recently opened"), h("span", { class: "faint tiny" }, "on this device")),
+    list.length ? h("div", { class: "st-list" }, list.slice(0, 4).map(r => h("button", { class: "st-row clickable", onClick: () => openApp(r.id) }, tile(r.id, "xs"), h("span", {}, INFO[r.id].name), h("span", { class: "grow" }), h("span", { class: "faint tiny" }, ago(r.at)))))
+      : h("p", { class: "faint tiny", style: { margin: "6px 0 0" } }, "Apps you open from here show up here, so you can jump back in."));
+}
+// ── your profile: name and colour, saved to the account ──
+const COLORS = ["#7c5cff", "#22d3ee", "#58cc02", "#14b8a6", "#1cb0f6", "#f59e0b", "#ef4444", "#ec4899"];
+function avatarStyle() { const c = profile?.avatar_color; return c ? { background: c } : null; }
+function editProfile() {
+  let color = profile.avatar_color || COLORS[0];
+  const name = h("input", { class: "input", value: profile.full_name || "", maxlength: 80, autocomplete: "name" });
+  const prev = h("span", { class: "avatar xl", style: { background: color } }, initials(profile.full_name || session.user.email));
+  name.addEventListener("input", () => { prev.textContent = initials(name.value || session.user.email); });
+  const sw = h("div", { class: "swatches" }, COLORS.map(c => h("button", { type: "button", class: "sw" + (c === color ? " on" : ""), style: { background: c }, "aria-label": "Colour " + c, onClick: (e) => { color = c; prev.style.background = c; sw.querySelectorAll(".sw").forEach(x => x.classList.toggle("on", x === e.currentTarget)); } })));
+  const save = h("button", { class: "btn brand block", onClick: async () => {
+    save.disabled = true;
+    const { error } = await client.from("profiles").update({ full_name: name.value.trim() || profile.full_name, avatar_color: color }).eq("id", session.user.id);
+    if (error) { toast(error.message, "bad"); save.disabled = false; return; }
+    profile.full_name = name.value.trim() || profile.full_name; profile.avatar_color = color;
+    close(); toast("Profile saved", "good"); route();
+  } }, "Save");
+  const close = sheet("Your profile", h("div", { class: "prof" }, h("div", { style: { display: "flex", "justify-content": "center" } }, prev),
+    h("label", { class: "field" }, h("span", {}, "Name"), name), h("div", { class: "field" }, h("span", {}, "Colour"), sw),
+    h("p", { class: "faint tiny" }, "Your name shows in LearnKyrgyz and here. Your email and sign-in stay the same."), save,
+    h("button", { class: "btn ghost block", onClick: () => { close(); signOut(); } }, "Sign out")));
+}
+
+// drag the app cards into the order you like; it is kept on this device
+function launcher(items) {
+  const box = h("div", { class: "launch" }, items);
+  let dragged = null;
+  box.addEventListener("dragstart", (e) => { dragged = e.target.closest(".item"); if (!dragged) return; dragged.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", dragged.dataset.id); } catch {} });
+  box.addEventListener("dragover", (e) => {
+    if (!dragged) return; e.preventDefault();
+    const over = e.target.closest(".item"); if (!over || over === dragged) return;
+    const r = over.getBoundingClientRect(), after = (e.clientX - r.left) > r.width / 2;
+    const first = [...box.children].map(x => [x, x.getBoundingClientRect()]);
+    over[after ? "after" : "before"](dragged);
+    if (!reduce) first.forEach(([x, a]) => { const b = x.getBoundingClientRect(); const dx = a.left - b.left, dy = a.top - b.top; if (dx || dy) x.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }); });
+  });
+  box.addEventListener("dragend", () => {
+    if (!dragged) return; dragged.classList.remove("dragging"); dragged = null;
+    const order = [...box.children].map(x => x.dataset.id); store.set("order", order);
+    [...box.children].forEach((x, i) => { const k = x.querySelector(".kbd-corner kbd"); if (k) k.textContent = String(i + 1); });
+    toast("Order saved: press 1–4 to open", "good");
+  });
+  return box;
+}
+
 // ── router ──
 function route() {
+  if (document.startViewTransition && !reduce && app.firstElementChild && !app.querySelector(".boot")) return void document.startViewTransition(render);
+  render();
+}
+function render() {
   clearTimers();
   drawNav(); drawFoot();
   const hash = location.hash.replace("#", "");
@@ -570,6 +909,16 @@ function pointerFx() {
     b.style.translate = `${(e.clientX - r.left - r.width / 2) * .2}px ${(e.clientY - r.top - r.height / 2) * .3}px`;
   }, { passive: true });
 }
+// The header floats, tightens as you scroll, and a thin bar shows how far down you are.
+function headerFx() {
+  const top = document.querySelector(".top"), bar = h("div", { class: "progress", "aria-hidden": "true" }, h("i"));
+  document.body.append(bar);
+  let ticking = false;
+  const upd = () => { ticking = false; const y = scrollY, max = document.documentElement.scrollHeight - innerHeight;
+    top.classList.toggle("scrolled", y > 8); bar.firstChild.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`; };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(upd); } }, { passive: true });
+  upd();
+}
 // First visit in a tab: the four app logos fly in and become one account.
 function intro() {
   let seen = false; try { seen = sessionStorage.getItem("oi4.intro") === "1"; sessionStorage.setItem("oi4.intro", "1"); } catch {}
@@ -598,7 +947,7 @@ function intro() {
   }
   // Arriving from a LearnKyrgyz app's The4Workspace button, already signed in there.
   try { await acceptHandoff(client); } catch {}
-  starfield(); pointerFx();
+  starfield(); pointerFx(); headerFx();
   const shown = intro();
   try { await loadMe(); } catch (e) { console.warn(e); }
   await shown;
