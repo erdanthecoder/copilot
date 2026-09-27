@@ -288,8 +288,8 @@ function landing() {
 
     h("section", { id: "inside", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Inside your workspace"), h("h2", { class: "h2 reveal" }, "More than a sign-in page"),
-        h("p", { class: "lead reveal" }, "A Kyrgyz word every day, a focus timer, live app status and a command menu. These are real: try them.")),
-      h("div", { class: "bento landing-bento" }, wordCard(), focusCard(), statusCard(),
+        h("p", { class: "lead reveal" }, "A daily quest across your four apps, a focus timer, live app status and a command menu. These are real: try them.")),
+      h("div", { class: "bento landing-bento" }, questCard(), focusCard(), statusCard(),
         h("button", { class: "widget cmd-teaser card reveal", style: { "--d": 5 }, onClick: palette },
           h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Command menu"), kbd(isMac ? "⌘" : "Ctrl", "K")),
           h("div", { class: "teaser-box" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "typed" }, "family")),
@@ -447,22 +447,19 @@ function dashboard() {
   const words = Object.keys(pr.words || {}).length;
   const qz = appData.find(r => r.app === "quoldek" && r.key === "quizzes");
   const quizzes = qz ? Object.keys(qz.data || {}).length : 0;
-  const kpi = (id, value, label, k) => { const b = h("b", {}, "0"); later(() => countUp(b, value), 200); return h("div", { class: "kpi card reveal", style: { "--d": k } }, h("span", {}, tile(id, "sm"), label), b); };
+  const kpi = (id, value, label, k, emoji) => glow(h("div", { class: "kpi card reveal", style: { "--d": k, "--c1": INFO[id].c1 } }, h("span", {}, tile(id, "sm"), label), odometer(value), h("i", { class: "kpi-emoji", "aria-hidden": "true" }, emoji)));
   const provider = session.user.app_metadata?.provider === "google" || (session.user.identities || []).some(i => i.provider === "google") ? "Google" : "Email";
 
   app.replaceChildren(h("div", { class: "dash" },
-    h("div", { class: "hello rise" },
-      h("div", {}, h("p", { class: "greet-en" }, greeting()[1] + " · " + new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })),
-        h("h1", {}, greeting()[0], ", ", first, "! ", h("span", { class: "wave-hand" }, "👋")), h("p", {}, "Your account works in all four apps. Press ", kbd(isMac ? "⌘" : "Ctrl", "K"), " to jump anywhere.")),
-      h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow())),
+    skyBanner({ first, teacher }),
     h("div", { class: "kpis" },
-      kpi("learnkyrgyz", profile.xp || 0, "XP", 0),
-      kpi("learnkyrgyz", profile.streak || 0, "Day streak", 1),
-      kpi("learnkyrgyz", topicsDone || words, topicsDone ? "Topics done" : "Words learned", 2),
-      kpi("quoldek", quizzes, "Quoldek quizzes", 3)),
+      kpi("learnkyrgyz", profile.xp || 0, "XP", 0, "⚡"),
+      kpi("learnkyrgyz", profile.streak || 0, "Day streak", 1, "🔥"),
+      kpi("learnkyrgyz", topicsDone || words, topicsDone ? "Topics done" : "Words learned", 2, "🏔️"),
+      kpi("quoldek", quizzes, "Quoldek quizzes", 3, "🎮")),
 
     h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
-    h("div", { class: "bento" }, wordCard(), streakCard(), focusCard(), statusCard(), recentCard()),
+    h("div", { class: "bento" }, questCard(), streakCard(), focusCard(), statusCard(), recentCard()),
 
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "Drag to reorder · press 1–4 to open")),
     launcher(myOrder().map((id, k) => tilt(h("div", { class: "item card reveal", "data-id": id, draggable: "true", style: { "--c1": INFO[id].c1, "--d": k } },
@@ -559,7 +556,7 @@ function commands() {
   if (session) {
     [["today", "Today"], ["apps", "Your apps"], ["bridge", "Topics → Quoldek"], ["guides", "Guides"]].forEach(([id, l]) => add("Go to", l, go(id), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M5 12h14M13 6l6 6-6 6"/>') }) }));
     add("Actions", "Start a 25-minute focus session", () => { focus.start(25); document.getElementById("today")?.scrollIntoView({ behavior: "smooth" }); }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>') }) });
-    add("Actions", "Hear today's Kyrgyz word", () => wordOfDay.say(), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>') }) });
+    add("Actions", "Today's quest", () => document.getElementById("quest")?.scrollIntoView({ behavior: "smooth", block: "center" }), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M12 2l3 7h7l-5.5 4.5 2 7.5-6.5-4.5-6.5 4.5 2-7.5L2 9h7z"/>') }) });
     add("Actions", "Edit my profile", () => editProfile(), { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>') }) });
     add("Actions", "Sign out", () => signOut(), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>') }) });
     Object.entries(TOPICS).forEach(([id, t]) => add("Play a topic in Quoldek", `${t.en} · ${t.ky}`, () => portal(`https://quoldek.web.app/?learnkyrgyz=${id}&lang=en&go=host`, "quoldek"), { icon: tile("quoldek", "xs"), hidden: true }));
@@ -628,7 +625,8 @@ function sheet(title, body) {
   return close;
 }
 const NEWS = [
-  { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: a Kyrgyz word of the day you can hear, your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
+  { v: "2.3", date: "27 Sep 2026", title: "A friendlier dashboard", items: ["A live sky over your dashboard: the sun or moon where it really is, stars at night, clouds and the Ala-Too", "Today's quest: one small thing in each app, ticked off as you open them, with a daily quest streak", "Numbers roll into place, cards glow where your cursor is, app icons wiggle hello"] },
+  { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
   { v: "2.1", date: "26 Sep 2026", title: "The4Workspace", items: ["OneInFour is now The4Workspace at the4workspace.web.app", "Quoldek 5.0 signs in with The4Workspace, then opens your TeachBoard or StudentBoard", "AkylduuKodo is now CompactCoding at compactcoding.web.app", "Every app has a The4Workspace button"] },
   { v: "2.0", date: "26 Sep 2026", title: "One account, four apps", items: ["Kadam and CompactCoding sign you in automatically", "The four logos orbit your account in 3D; a bubble grows as you open an app"] },
 ];
@@ -657,7 +655,7 @@ addEventListener("keydown", (e) => {
   else if (session && /^[1-4]$/.test(e.key)) openApp(myOrder()[+e.key - 1]);
 });
 
-// ── Today: greeting, word of the day, streak ring, focus timer ──
+// ── Today: greeting, quest, streak ring, focus timer ──
 // the date in Kyrgyz (browsers have no Kyrgyz calendar names built in)
 function kyDate(d = new Date()) {
   const days = ["жекшемби", "дүйшөмбү", "шейшемби", "шаршемби", "бейшемби", "жума", "ишемби"];
@@ -671,57 +669,119 @@ function greeting() {
   if (hr >= 18 && hr < 23) return ["Кутман кеч", "Good evening"];
   return ["Жакшы түн", "Good night"];
 }
-const ALL_WORDS = Object.entries(TOPICS).flatMap(([id, t]) => (t.words || []).filter(w => w[0] && w[0].length < 28).map(w => ({ ky: w[0], en: String(w[1]).split("|")[0], ru: String(w[2] || "").split("|")[0], topic: id })));
-const dayIndex = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5)); };
-const wordOfDay = {
-  offset: 0,
-  get() { const n = ALL_WORDS.length; return ALL_WORDS[((dayIndex() * 7919 + this.offset) % n + n) % n]; },
-  async say() {
-    const w = this.get();
-    try { const sp = await import("../assets/js/speech.js"); await sp.sayKyAsync(w.ky); }
-    catch { try { const u = new SpeechSynthesisUtterance(w.ky); u.lang = "ky-KG"; speechSynthesis.speak(u); } catch { toast("Sound isn't available here", "bad"); } }
-  },
+// ── Today's quest: one small thing in each app. Opening an app from here ticks it off. ──
+const QUEST = {
+  learnkyrgyz: { teacher: "Check on your classes", student: "Do one Kyrgyz lesson", emoji: "📚" },
+  quoldek: { teacher: "Run a quiz game", student: "Play a quiz game", emoji: "🎮" },
+  kadam: { teacher: "Plan your week", student: "Plan one university task", emoji: "🗂️" },
+  akylduukodo: { teacher: "Try a coding lesson", student: "Write a little code", emoji: "💻" },
 };
-function wordCard() {
-  const box = h("div", { class: "widget word card reveal", id: "word", style: { "--d": 1 } });
-  const draw = () => {
-    const w = wordOfDay.get(), t = TOPICS[w.topic];
-    box.replaceChildren(
-      h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, wordOfDay.offset ? "Another word" : "Word of the day"), h("span", { class: "faint tiny" }, t.en)),
-      h("div", { class: "w-word" }, w.ky),
-      h("div", { class: "w-tr" }, w.en, w.ru ? h("span", { class: "faint" }, " · " + w.ru) : null),
-      h("div", { class: "w-actions" },
-        h("button", { class: "btn brand sm", onClick: async (e) => { const b = e.currentTarget; b.classList.add("speaking"); await wordOfDay.say(); b.classList.remove("speaking"); } }, h("span", { class: "cmd-ic", html: svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>') }), "Listen"),
-        h("button", { class: "btn ghost sm", onClick: () => { wordOfDay.offset++; box.classList.remove("flip"); void box.offsetWidth; box.classList.add("flip"); draw(); } }, "Next word"),
-        h("button", { class: "btn ghost sm", onClick: () => portal(`https://quoldek.web.app/?learnkyrgyz=${w.topic}&lang=en&go=take`, "quoldek") }, "Practise “" + t.en + "”")),
-      h("div", { class: "w-more" }, h("span", { class: "faint tiny" }, "More from " + t.en + " · tap to hear"),
-        h("div", { class: "w-chips" }, (t.words || []).filter(x => x[0] !== w.ky && x[0].length < 28).slice(0, 6).map(x =>
-          h("button", { class: "w-chip", title: String(x[1]).split("|")[0], onClick: async (e) => { const b = e.currentTarget; b.classList.add("on");
-            try { const sp = await import("../assets/js/speech.js"); await sp.sayKyAsync(x[0]); } catch { try { const u = new SpeechSynthesisUtterance(x[0]); u.lang = "ky-KG"; speechSynthesis.speak(u); } catch {} }
-            b.classList.remove("on"); } }, h("b", {}, x[0]), h("span", {}, String(x[1]).split("|")[0]))))));
-  };
-  draw(); return box;
+const todayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+const questDone = () => { const at = new Date(); at.setHours(0, 0, 0, 0); return new Set(recent().filter(r => r.at >= at.getTime()).map(r => r.id)); };
+function questStreak() {
+  // days in a row the whole quest was finished (kept on this device)
+  const log = store.get("quests", {}); let n = 0; const d = new Date();
+  if (!log[todayKey(d)]) d.setDate(d.getDate() - 1);
+  while (log[todayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
 }
+function questCard() {
+  const done = session ? questDone() : new Set(), role = profile?.role === "teacher" ? "teacher" : "student";
+  const n = done.size, all = n === ORDER.length;
+  if (all && session) { const log = store.get("quests", {}); if (!log[todayKey()]) { log[todayKey()] = true; store.set("quests", log); later(() => { confetti(innerWidth / 2, innerHeight / 3); toast("Quest complete! See you tomorrow 🎉", "good"); }, 900); } }
+  const segs = h("div", { class: "q-segs" }, ORDER.map((id, i) => h("i", { class: done.has(id) ? "on" : "", style: { "--c1": INFO[id].c1, "--i": i } })));
+  const streak = questStreak();
+  return glow(h("div", { class: "widget quest card reveal" + (all ? " complete" : ""), id: "quest", style: { "--d": 1 } },
+    h("div", { class: "q-glow", "aria-hidden": "true" }),
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Today's quest"), h("span", { class: "q-streak", title: "Days in a row you finished the quest" }, "⚡ ", streak, streak === 1 ? " day" : " days")),
+    h("div", { class: "q-title" }, all ? h("span", {}, "All four done. ", h("span", { class: "grad" }, "Legend!")) : h("span", {}, h("b", { class: "q-count" }, n), " of 4 done")),
+    segs,
+    h("div", { class: "q-list" }, myOrder().map((id, i) => {
+      const ok = done.has(id);
+      return h("button", { class: "q-item" + (ok ? " ok" : ""), style: { "--c1": INFO[id].c1, "--i": i }, onClick: () => openApp(id) },
+        h("span", { class: "q-check", html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7 12.5 3.2 3.2L17 9"/></svg>` }),
+        tile(id, "xs"),
+        h("span", { class: "q-text" }, h("b", {}, QUEST[id][role]), h("span", {}, ok ? "Done today" : `Open ${INFO[id].name}`)),
+        h("span", { class: "q-emoji", "aria-hidden": "true" }, QUEST[id].emoji));
+    })),
+    h("p", { class: "faint tiny", style: { margin: 0 } }, session ? "Open an app from here and its task ticks itself off. A new quest every morning." : "Sign in and every app you open ticks off a task. A new quest every morning.")));
+}
+
+// ── the sky over the dashboard: the real time of day, over Ala-Too ──
+function skyBanner({ first, teacher }) {
+  const now = new Date(), hr = now.getHours() + now.getMinutes() / 60;
+  const day = hr >= 6 && hr < 19.5;
+  // where the sun (or moon) is along its arc, 0..1
+  const t = day ? (hr - 6) / 13.5 : ((hr < 6 ? hr + 24 : hr) - 19.5) / 10.5;
+  const phase = hr < 5 || hr >= 21 ? "night" : hr < 8 ? "dawn" : hr < 17 ? "day" : hr < 21 ? "dusk" : "night";
+  // kept to the open right half of the sky, above the hills
+  const x = 62 + t * 32, y = 70 - Math.sin(Math.PI * Math.min(1, Math.max(0, t))) * 52;
+  const stars = phase === "night" || phase === "dusk" ? Array.from({ length: 46 }, (_, i) => h("i", { class: "star", style: { left: (i * 37.3 % 100) + "%", top: (i * 23.7 % 60) + "%", "--tw": (1.5 + (i % 7) * .4) + "s", "--d": (i % 5) * -.6 + "s", "--s": (1 + (i % 3)) + "px" } })) : [];
+  const clouds = [0, 1, 2].map(i => h("i", { class: "cloud", style: { top: (14 + i * 14) + "%", "--dur": (60 + i * 25) + "s", "--delay": (-i * 22) + "s", "--sc": (1 - i * .18) } }));
+  const mountains = h("div", { class: "mtn", html:
+    `<svg viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true">
+      <path class="m3" d="M0 150 L120 90 L210 130 L330 60 L450 120 L560 70 L690 125 L800 80 L930 130 L1040 75 L1200 120 V220 H0Z"/>
+      <path class="m2" d="M0 175 L150 110 L260 150 L400 95 L520 160 L640 105 L760 150 L900 100 L1030 160 L1200 115 V220 H0Z"/>
+      <path class="snow" d="M400 95 L372 112 L390 110 L404 118 L418 108 L432 112Z M900 100 L874 116 L890 114 L903 121 L916 112 L930 117Z M150 110 L128 124 L142 122 L152 128 L162 121 L174 125Z"/>
+      <path class="m1" d="M0 200 L180 150 L330 185 L480 140 L640 190 L800 150 L960 190 L1100 160 L1200 180 V220 H0Z"/>
+    </svg>` });
+  const [ky, en] = greeting();
+  const el = h("div", { class: "sky " + phase + " rise" },
+    h("div", { class: "sky-layer stars-l" }, stars),
+    h("i", { class: "orb " + (day ? "sun" : "moon"), style: { left: x + "%", top: y + "%" } }),
+    h("div", { class: "sky-layer clouds-l" }, clouds),
+    phase === "night" || phase === "dusk"
+      ? h("div", { class: "sky-layer" }, [0, 1].map(i => h("i", { class: "shoot", style: { "--d": (i * 5.5 + 2) + "s", top: (10 + i * 18) + "%", left: (55 + i * 20) + "%" } })))
+      : h("div", { class: "sky-layer birds" }, [0, 1, 2].map(i => h("i", { class: "bird", style: { "--d": (-i * 1.3) + "s", top: (22 + i * 7) + "%", "--dur": (22 + i * 4) + "s" }, html: '<svg viewBox="0 0 24 10" aria-hidden="true"><path d="M1 8 Q6 1 12 7 Q18 1 23 8"/></svg>' }))),
+    mountains,
+    h("div", { class: "sky-text" },
+      h("p", { class: "greet-en" }, en + " · " + now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })),
+      h("h1", {}, words(`${ky}, ${first}!`), h("span", { class: "wave-hand" }, " 👋")),
+      h("p", { class: "sky-sub" }, "Everything you need is one click away. Press ", kbd(isMac ? "⌘" : "Ctrl", "K"), " to jump anywhere."),
+      h("div", { class: "sky-cta" },
+        h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow()),
+        h("button", { class: "btn ghost lg glassy", onClick: () => document.getElementById("quest")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }) }, "Today's quest"))));
+  // the far hills move least, the near ones most
+  if (!reduce && finePointer) el.addEventListener("pointermove", (e) => {
+    const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
+    el.style.setProperty("--px", px.toFixed(3)); el.style.setProperty("--py", py.toFixed(3));
+  });
+  return el;
+}
+
+// numbers that roll into place like an odometer
+function odometer(value) {
+  const s = Number(value || 0).toLocaleString("en-US"), el = h("b", { class: "odo", "aria-label": s });
+  [...s].forEach((ch, i) => {
+    if (!/\d/.test(ch)) return el.append(h("span", { class: "odo-sep" }, ch));
+    const col = h("span", { class: "odo-col", style: { "--i": i } }, h("span", { class: "odo-strip" }, Array.from({ length: 20 }, (_, k) => h("span", {}, k % 10))));
+    el.append(col);
+    later(() => { col.firstChild.style.transform = `translateY(-${(10 + Number(ch)) * 5}%)`; }, 250 + i * 90);
+  });
+  return el;
+}
+
 function ring(pct, size = 120, stroke = 10, cls = "") {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r;
   const el = h("div", { class: "ring " + cls, style: { width: size + "px", height: size + "px" }, html:
     `<svg viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs><linearGradient id="rg${cls}" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset=".6" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>`
     + `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>`
-    + `<circle class="arc" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#rg${cls})" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>` });
-  el.set = (p) => { el.querySelector(".arc").style.strokeDashoffset = String(c * (1 - Math.max(0, Math.min(1, p)))); };
+    + `<circle class="arc" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#rg${cls})" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`
+    + `<g class="tip-g" style="transform-origin:${size / 2}px ${size / 2}px"><circle class="tip" cx="${size / 2}" cy="${stroke / 2}" r="${stroke / 2 + 2}"/></g></svg>` });
+  el.set = (p) => { p = Math.max(0, Math.min(1, p)); el.querySelector(".arc").style.strokeDashoffset = String(c * (1 - p)); el.querySelector(".tip-g").style.transform = `rotate(${p * 360}deg)`; el.classList.toggle("has-tip", p > 0.005 && p < 0.995); };
   later(() => el.set(pct), 250);
   return el;
 }
 function streakCard() {
   const st = profile.streak || 0, next = Math.max(7, Math.ceil((st + 1) / 7) * 7), left = next - st;
   const rg = ring(st / next, 118, 10, "st");
-  rg.append(h("div", { class: "ring-in" }, h("b", {}, "🔥 " + st), h("span", {}, st === 1 ? "day" : "days")));
-  return h("div", { class: "widget streak card reveal", style: { "--d": 2 } },
+  rg.append(h("div", { class: "ring-in" }, h("b", {}, h("span", { class: "flame" }, "🔥"), " " + st), h("span", {}, st === 1 ? "day" : "days")));
+  return glow(h("div", { class: "widget streak card reveal", style: { "--d": 2 } },
     h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Streak"), h("span", { class: "faint tiny" }, "LearnKyrgyz")),
     h("div", { class: "streak-row" }, rg, h("div", {},
       h("b", { class: "big" }, st && st % 7 === 0 ? `${st / 7} full week${st > 7 ? "s" : ""}!` : `${left} day${left === 1 ? "" : "s"} to ${next}`),
       h("p", { class: "faint tiny" }, st ? "Do one lesson today to keep it alive." : "One lesson starts a new streak."),
-      h("button", { class: "btn ghost sm", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, "Do a lesson", arrow()))));
+      h("button", { class: "btn ghost sm", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, "Do a lesson", arrow())))));
 }
 // a focus timer that keeps running across reloads, and chimes at the end
 const focus = {
@@ -751,10 +811,10 @@ function focusCard() {
   rg.append(h("div", { class: "ring-in" }, time, label));
   const main = h("button", { class: "btn brand sm", onClick: () => focus.toggle() }, "Start");
   const modes = h("div", { class: "seg mini" }, [[25, "25m"], [50, "50m"], [5, "Break"]].map(([m, l]) => h("button", { type: "button", onClick: () => focus.start(m) }, l)));
-  const card = h("div", { class: "widget focus card reveal", id: "focus", style: { "--d": 3 } },
+  const card = glow(h("div", { class: "widget focus card reveal", id: "focus", style: { "--d": 3 } },
     h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Focus"), kbd("F")),
     h("div", { class: "streak-row" }, rg, h("div", { style: { display: "grid", gap: "8px" } }, main, h("button", { class: "btn ghost sm", onClick: () => focus.reset() }, "Reset"))),
-    modes);
+    modes));
   card.paint = () => {
     const s = focus.state(), ms = s ? focus.left() : 25 * 60e3, total = (s ? s.mins : 25) * 60e3;
     time.textContent = `${String(Math.floor(ms / 60000)).padStart(2, "0")}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
@@ -776,16 +836,16 @@ function statusCard() {
     catch { r.dot.className = "dot bad"; r.ms.textContent = "Can't reach"; }
   });
   later(check, 400);
-  return h("div", { class: "widget status card reveal", style: { "--d": 4 } },
+  return glow(h("div", { class: "widget status card reveal", style: { "--d": 4 } },
     h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "App status"), h("button", { class: "linkish tiny", onClick: check }, "Check again")),
-    h("div", { class: "st-list" }, rows.map(r => r.el)));
+    h("div", { class: "st-list" }, rows.map(r => r.el))));
 }
 function recentCard() {
   const list = recent();
-  return h("div", { class: "widget recent card reveal", style: { "--d": 5 } },
+  return glow(h("div", { class: "widget recent card reveal", style: { "--d": 5 } },
     h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Recently opened"), h("span", { class: "faint tiny" }, "on this device")),
     list.length ? h("div", { class: "st-list" }, list.slice(0, 4).map(r => h("button", { class: "st-row clickable", onClick: () => openApp(r.id) }, tile(r.id, "xs"), h("span", {}, INFO[r.id].name), h("span", { class: "grow" }), h("span", { class: "faint tiny" }, ago(r.at)))))
-      : h("p", { class: "faint tiny", style: { margin: "6px 0 0" } }, "Apps you open from here show up here, so you can jump back in."));
+      : h("p", { class: "faint tiny", style: { margin: "6px 0 0" } }, "Apps you open from here show up here, so you can jump back in.")));
 }
 // ── your profile: name and colour, saved to the account ──
 const COLORS = ["#7c5cff", "#22d3ee", "#58cc02", "#14b8a6", "#1cb0f6", "#f59e0b", "#ef4444", "#ec4899"];
