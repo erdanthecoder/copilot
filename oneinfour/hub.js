@@ -183,15 +183,16 @@ function drawNav() {
     h("button", { class: "search-pill", onClick: palette, "aria-label": "Search (" + (isMac ? "⌘" : "Ctrl") + " K)" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "sp-t" }, "Search"), kbd(isMac ? "⌘" : "Ctrl", "K")),
     h("button", { class: "icon-btn", onClick: toggleTheme, title: themeNow() === "dark" ? "Light mode (T)" : "Dark mode (T)", "aria-label": "Switch theme", html: themeNow() === "dark" ? SUN : MOON }),
     h("button", { class: "icon-btn bell" + (newsSeen() ? "" : " unread"), onClick: whatsNew, title: "What's new", "aria-label": "What's new", html: BELL }),
+    installEvt ? h("button", { class: "icon-btn install-btn", onClick: install, title: "Install The4Workspace as an app", "aria-label": "Install app", html: DOWNLOAD }) : null,
   ];
   if (session) {
     const name = profile?.full_name || session.user.email;
-    nav.append(h("a", { class: "link", href: "#today" }, "Today"), h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#bridge" }, "Topics"), ...tools,
+    nav.append(h("a", { class: "link", href: "#today" }, "Today"), h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#bridge" }, "Topics"), ...tools.filter(Boolean),
       h("span", { class: "me" }, h("button", { class: "avatar", style: avatarStyle(), title: `${session.user.email} · Edit profile`, onClick: editProfile }, initials(name)),
         h("button", { class: "btn ghost sm", onClick: signOut }, "Sign out")));
   } else {
     nav.append(h("a", { class: "link", href: "#product", onClick: goLanding }, "Product"), h("a", { class: "link", href: "#apps", onClick: goLanding }, "Apps"),
-      h("a", { class: "link", href: "#security", onClick: goLanding }, "Security"), h("a", { class: "link", href: "#faq", onClick: goLanding }, "FAQ"), ...tools,
+      h("a", { class: "link", href: "#security", onClick: goLanding }, "Security"), h("a", { class: "link", href: "#faq", onClick: goLanding }, "FAQ"), ...tools.filter(Boolean),
       h("a", { class: "btn ghost sm", href: "#signin", style: { "margin-left": "8px" } }, "Sign in"), h("a", { class: "btn primary sm", href: "#signup" }, "Get started"));
   }
 }
@@ -481,6 +482,9 @@ function dashboard() {
     h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
     h("div", { class: "bento" }, questCard(), teacher ? classesCard() : streakCard(), focusCard(), statusCard(), recentCard()),
 
+    h("div", { class: "sec-h", id: "badges" }, h("h2", {}, "Achievements"), h("p", {}, "Little wins, kept on this device")),
+    badgeShelf(),
+
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "Drag to reorder · press 1–4 to open")),
     launcher(myOrder().map((id, k) => tilt(h("div", { class: "item card reveal", "data-id": id, draggable: "true", style: { "--c1": INFO[id].c1, "--d": k } },
       h("span", { class: "kbd-corner" }, kbd(String(k + 1))),
@@ -510,6 +514,10 @@ function dashboard() {
           h("li", {}, "Kadam and CompactCoding swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
   reveal(app);
+  const hr = new Date().getHours();
+  if (hr >= 22 || hr < 5) flag("owl"); else if (hr >= 5 && hr < 7) flag("bird");
+  later(() => checkBadges(), 1600);
+  later(tour, 1400);
 }
 
 function picker() {
@@ -543,7 +551,7 @@ const store = {
 // ── theme: follows the system until you choose ──
 const themeNow = () => document.documentElement.dataset.theme || "dark";
 function setTheme(t, save = true) {
-  const flip = () => { document.documentElement.dataset.theme = t; if (save) { try { localStorage.setItem("ws.theme", t); } catch {} } drawNav(); };
+  const flip = () => { document.documentElement.dataset.theme = t; if (save) { try { localStorage.setItem("ws.theme", t); } catch {} if (session) flag("style"); } drawNav(); };
   if (document.startViewTransition && !reduce && save) document.startViewTransition(flip); else flip();
 }
 const toggleTheme = () => setTheme(themeNow() === "dark" ? "light" : "dark");
@@ -560,7 +568,7 @@ const myOrder = () => { const o = store.get("order", ORDER); return o.length ===
 function openApp(id) { session ? portal(urlFor(id), id) : window.open(INFO[id].url, "_blank", "noopener"); }
 // the apps you opened most recently, newest first
 const recent = () => store.get("recent", []).filter(r => INFO[r.id]);
-function noteOpened(id) { store.set("recent", [{ id, at: Date.now() }, ...recent().filter(r => r.id !== id)].slice(0, 6)); }
+function noteOpened(id) { store.set("recent", [{ id, at: Date.now() }, ...recent().filter(r => r.id !== id)].slice(0, 6)); store.set("opened", [...new Set([...store.get("opened", []), id])]); }
 function ago(t) {
   const s = Math.round((Date.now() - t) / 1000);
   if (s < 60) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago";
@@ -587,6 +595,11 @@ function commands() {
   }
   add("Actions", themeNow() === "dark" ? "Switch to light mode" : "Switch to dark mode", toggleTheme, { icon: h("span", { class: "cmd-ic", html: themeNow() === "dark" ? SUN : MOON }), keys: ["T"] });
   add("Actions", "What's new", () => whatsNew(), { icon: h("span", { class: "cmd-ic", html: BELL }) });
+  add("Actions", "Install The4Workspace as an app", () => install(), { icon: h("span", { class: "cmd-ic", html: DOWNLOAD }) });
+  if (session) {
+    add("Actions", "Take the tour again", () => { store.set("toured", false); scrollTo({ top: 0 }); tour(); }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>') }) });
+    add("Go to", "Achievements", go("badges"), { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/>') }) });
+  }
   add("Actions", "Keyboard shortcuts", () => shortcuts(), { icon: h("span", { class: "cmd-ic", html: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>') }), keys: ["?"] });
   return list;
 }
@@ -598,6 +611,7 @@ function score(label, q) {
 }
 function palette() {
   if (document.querySelector(".cmdk")) return;
+  if (session) flag("command");
   const all = commands();
   const input = h("input", { class: "cmd-input", placeholder: session ? "Search apps, topics and actions…" : "Search apps and actions…", "aria-label": "Search", autocomplete: "off", spellcheck: "false" });
   const listEl = h("div", { class: "cmd-list", role: "listbox" });
@@ -645,6 +659,7 @@ function sheet(title, body) {
   return close;
 }
 const NEWS = [
+  { v: "2.4", date: "28 Sep 2026", title: "One workspace, everywhere", items: ["A switcher in every app: press the The4Workspace button (or Alt+W) in LearnKyrgyz, Quoldek, Kadam or CompactCoding to jump to another app, signed in", "Install The4Workspace as an app on your phone or computer", "Achievements: 12 badges to collect, with a shiny unlock", "A short tour for your first visit"] },
   { v: "2.3", date: "27 Sep 2026", title: "A friendlier dashboard", items: ["A live sky over your dashboard: the sun or moon where it really is, stars at night, clouds and the Ala-Too", "Today's quest: one small thing in each app, ticked off as you open them, with a daily quest streak", "Numbers roll into place, cards glow where your cursor is, app icons wiggle hello"] },
   { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
   { v: "2.1", date: "26 Sep 2026", title: "The4Workspace", items: ["OneInFour is now The4Workspace at the4workspace.web.app", "Quoldek 5.0 signs in with The4Workspace, then opens your TeachBoard or StudentBoard", "AkylduuKodo is now CompactCoding at compactcoding.web.app", "Every app has a The4Workspace button"] },
@@ -833,7 +848,7 @@ const focus = {
   views: new Set(),
   tick() {
     const s = this.state(), ms = this.left();
-    if (s && s.paused == null && ms <= 0) { store.set("focus", null); this.chime(); toast("Focus session done. Take a break!", "good"); confetti(); }
+    if (s && s.paused == null && ms <= 0) { store.set("focus", null); if (s.mins !== 5) store.set("focusDone", store.get("focusDone", 0) + 1); this.chime(); toast("Focus session done. Take a break!", "good"); confetti(); later(checkBadges, 1200); }
     this.views.forEach(v => v.isConnected ? v.paint() : this.views.delete(v));
     const on = this.state() && this.state().paused == null;
     const mm = String(Math.floor(this.left() / 60000)).padStart(2, "0"), ss = String(Math.floor(this.left() / 1000) % 60).padStart(2, "0");
@@ -922,10 +937,98 @@ function launcher(items) {
     if (!dragged) return; dragged.classList.remove("dragging"); dragged = null;
     const order = [...box.children].map(x => x.dataset.id); store.set("order", order);
     [...box.children].forEach((x, i) => { const k = x.querySelector(".kbd-corner kbd"); if (k) k.textContent = String(i + 1); });
-    toast("Order saved: press 1–4 to open", "good");
+    toast("Order saved: press 1–4 to open", "good"); flag("style");
   });
   return box;
 }
+
+// ── achievements: small badges for the things people actually do here (kept on this device) ──
+const BADGES = [
+  { id: "first", emoji: "🚀", name: "Lift-off", how: "Open any app from The4Workspace", test: (d) => d.opened.size >= 1 },
+  { id: "explorer", emoji: "🧭", name: "Explorer", how: "Open all four apps", test: (d) => d.opened.size >= 4 },
+  { id: "quest", emoji: "🏆", name: "Quest complete", how: "Finish a daily quest", test: (d) => d.quests >= 1 },
+  { id: "streak3", emoji: "⚡", name: "On a roll", how: "Finish the quest 3 days in a row", test: (d) => d.qstreak >= 3 },
+  { id: "streak7", emoji: "👑", name: "Unstoppable", how: "Finish the quest 7 days in a row", test: (d) => d.qstreak >= 7 },
+  { id: "focus", emoji: "🎯", name: "Deep focus", how: "Finish a focus session", test: (d) => d.focus >= 1 },
+  { id: "focus5", emoji: "🧘", name: "Zen master", how: "Finish 5 focus sessions", test: (d) => d.focus >= 5 },
+  { id: "command", emoji: "⌨️", name: "Commander", how: "Open the command menu", test: (d) => d.flags.command },
+  { id: "style", emoji: "🎨", name: "Make it yours", how: "Switch theme or reorder your apps", test: (d) => d.flags.style },
+  { id: "owl", emoji: "🦉", name: "Night owl", how: "Visit after 10 pm", test: (d) => d.flags.owl },
+  { id: "bird", emoji: "🐦", name: "Early bird", how: "Visit before 7 am", test: (d) => d.flags.bird },
+  { id: "install", emoji: "📲", name: "At home", how: "Install The4Workspace as an app", test: (d) => d.flags.install },
+];
+const flag = (k) => { const f = store.get("flags", {}); if (!f[k]) { f[k] = true; store.set("flags", f); later(checkBadges, 300); } };
+function badgeData() {
+  return { opened: new Set(store.get("opened", [])), quests: Object.keys(store.get("quests", {})).length, qstreak: questStreak(), focus: store.get("focusDone", 0), flags: store.get("flags", {}) };
+}
+function checkBadges({ quiet = false } = {}) {
+  const have = new Set(store.get("badges", [])), d = badgeData(), fresh = BADGES.filter(b => !have.has(b.id) && b.test(d));
+  if (!fresh.length) return;
+  store.set("badges", [...have, ...fresh.map(b => b.id)]);
+  if (!quiet) fresh.forEach((b, i) => setTimeout(() => unlocked(b), 700 + i * 2600));
+  document.querySelectorAll(".badges").forEach(el => el.replaceWith(badgeShelf()));
+}
+// a badge arrives: it flips in, shines, and a little burst goes off
+function unlocked(b) {
+  const el = h("div", { class: "unlock", role: "status" },
+    h("div", { class: "unlock-medal" }, h("span", {}, b.emoji), h("i", { class: "shine" })),
+    h("div", {}, h("span", { class: "eyebrow" }, "Achievement unlocked"), h("b", {}, b.name), h("span", { class: "faint tiny" }, b.how)));
+  document.body.append(el);
+  const r = el.getBoundingClientRect(); confetti(r.left + 40, r.top + 30);
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 500); }, 3600);
+}
+function badgeShelf() {
+  const have = new Set(store.get("badges", []));
+  return h("div", { class: "badges card reveal in" },
+    h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, have.size === BADGES.length ? "All collected!" : "Collect them all"), h("span", { class: "faint tiny" }, `${have.size} of ${BADGES.length}`)),
+    h("div", { class: "b-bar" }, h("i", { style: { width: (have.size / BADGES.length * 100) + "%" } })),
+    h("div", { class: "b-grid" }, BADGES.map((b, i) => h("div", { class: "badge-m" + (have.has(b.id) ? " got" : ""), style: { "--i": i }, tabindex: "0", title: `${b.name}: ${b.how}` },
+      h("span", { class: "b-medal" }, have.has(b.id) ? b.emoji : "🔒"), h("b", {}, b.name), h("span", {}, b.how)))));
+}
+
+// ── a short tour, the first time the dashboard opens ──
+function tour() {
+  if (store.get("toured", false) || reduce) return;
+  store.set("toured", true);
+  const steps = [
+    { sel: ".sky", title: "Welcome to your workspace 👋", text: "This is your home for LearnKyrgyz, Quoldek, Kadam and CompactCoding. The sky follows the real time of day." },
+    { sel: "#quest", title: "Today's quest", text: "One small thing in each app. Open an app from here and its task ticks itself off. Finish all four for confetti." },
+    { sel: ".launch", title: "Your apps, your order", text: "Drag the cards into the order you like, then press 1–4 to open them from anywhere on this page." },
+    { sel: ".search-pill", title: "Jump anywhere", text: `Press ${isMac ? "⌘" : "Ctrl"}+K to find any app, action or Kyrgyz topic. Inside the apps, Alt+W opens the app switcher.` },
+  ];
+  let i = 0;
+  const hole = h("div", { class: "tour-hole" }), card = h("div", { class: "tour-card", role: "dialog" });
+  const layer = h("div", { class: "tour" }, hole, card);
+  const end = () => { layer.classList.add("out"); setTimeout(() => layer.remove(), 300); };
+  const show = () => {
+    const s = steps[i], t = document.querySelector(s.sel);
+    if (!t) { if (++i < steps.length) return show(); return end(); }
+    t.scrollIntoView({ block: "center", behavior: "smooth" });
+    setTimeout(() => {
+      const r = t.getBoundingClientRect(), pad = 10;
+      Object.assign(hole.style, { left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + pad * 2 + "px", height: r.height + pad * 2 + "px" });
+      const below = r.bottom + 220 < innerHeight;
+      card.style.left = Math.max(16, Math.min(innerWidth - 356, r.left)) + "px";
+      card.style.top = (below ? r.bottom + 18 : Math.max(16, r.top - 200)) + "px";
+      card.replaceChildren(h("span", { class: "eyebrow" }, `Step ${i + 1} of ${steps.length}`), h("b", {}, s.title), h("p", {}, s.text),
+        h("div", { class: "tour-dots" }, steps.map((_, k) => h("i", { class: k === i ? "on" : "" }))),
+        h("div", { class: "tour-actions" }, h("button", { class: "btn ghost sm", onClick: end }, "Skip"),
+          h("button", { class: "btn brand sm", onClick: () => { if (++i < steps.length) show(); else { end(); toast("You're all set. Have a great day! ✨", "good"); } } }, i === steps.length - 1 ? "Let's go" : "Next", arrow())));
+      card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+    }, 420);
+  };
+  document.body.append(layer); later(show, 50);
+}
+
+// ── install as an app ──
+let installEvt = null;
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; drawNav(); });
+addEventListener("appinstalled", () => { installEvt = null; flag("install"); toast("The4Workspace is installed 🎉", "good"); drawNav(); });
+async function install() {
+  if (!installEvt) return toast(isMac ? "In Safari: Share → Add to Dock / Home Screen" : "Use your browser's menu → Install The4Workspace");
+  installEvt.prompt(); const { outcome } = await installEvt.userChoice; if (outcome === "accepted") { installEvt = null; drawNav(); }
+}
+const DOWNLOAD = svg('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>');
 
 // ── router ──
 function route() {
@@ -1043,6 +1146,7 @@ function intro() {
   }
   // Arriving from a LearnKyrgyz app's The4Workspace button, already signed in there.
   try { await acceptHandoff(client); } catch {}
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
   starfield(); pointerFx(); headerFx();
   const shown = intro();
   try { await loadMe(); } catch (e) { console.warn(e); }
