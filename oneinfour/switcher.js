@@ -20,6 +20,8 @@
   const hideSel = (document.currentScript && document.currentScript.dataset.hide) || '';
   // a bar fixed along the bottom of the page (a phone's tab bar) that the button should sit above
   const aboveSel = (document.currentScript && document.currentScript.dataset.above) || '';
+  // data-side="right" puts it in the bottom-right corner, for apps whose left corner is taken
+  const right = (document.currentScript && document.currentScript.dataset.side) === 'right';
   const host = location.hostname;
   const teacherLK = host === 'teachlrnkyrgyz.web.app';
   const APPS = [
@@ -71,6 +73,9 @@
   .home img { width: 28px; height: 28px; border-radius: 8px; } .home b { font-size: 13px; display: block; } .home span { font-size: 11.5px; color: #c4c4d4; } .home i { margin-left: auto; font-style: normal; }
   .foot { margin-top: 10px; text-align: center; font-size: 11px; color: #74748a; } kbd { font: 600 10.5px Inter, system-ui, sans-serif; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(255,255,255,.18); }
   .bubble { position: fixed; z-index: 2147483001; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; pointer-events: none; transform: scale(0); transition: transform .7s cubic-bezier(.7,0,.25,1); }
+  .right { left: auto; right: max(16px, env(safe-area-inset-right)); }
+  .right .panel { left: auto; right: 0; transform-origin: calc(100% - 24px) 100%; }
+  .right .tip { left: auto; right: 58px; transform: translateX(6px); }
   @media (max-width: 480px) { .panel { width: min(300px, calc(100vw - 32px)); } .tip { display: none; } }
   @media (prefers-reduced-motion: reduce) { .panel, .app, .home, .fab, .fab img { transition: none !important; } }
   `;
@@ -81,7 +86,7 @@
     holder.id = 'the4workspace-switcher';
     const root = holder.attachShadow({ mode: 'open' });
     const style = document.createElement('style'); style.textContent = css;
-    const wrap = document.createElement('div'); wrap.className = 'wrap';
+    const wrap = document.createElement('div'); wrap.className = 'wrap' + (right ? ' right' : '');
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     wrap.innerHTML = `
       <div class="panel" role="dialog" aria-label="Switch app">
