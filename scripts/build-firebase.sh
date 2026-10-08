@@ -25,4 +25,6 @@ for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > 
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
 printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://the4workspace.web.app/">\n' > dist/oldhub/index.html
-echo "Built dist/{home,student,teacher,hub,oldhub}"
+# banda-worldislands.web.app — Banda World Islands (signs in through The4Workspace)
+cp -R banda dist/banda
+echo "Built dist/{home,student,teacher,hub,oldhub,banda}"
