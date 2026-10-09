@@ -6,6 +6,14 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 9, 2026", title: "World Islands: basketball, restaurant, jobs and admin shows", items: [
+    "🏀 Basketball: 3 vs 3 with bots on the court by the stadium. Bots also play there on their own, so you can watch or join.",
+    "🍽️ Island Restaurant: sit at a table, order plov, lagman, manty and more, and a waiter brings it.",
+    "💼 Jobs now work from the Jobs app on your phone: cashier, cleaner, helper (show visitors the way, help players) and waiter.",
+    "🤖 Smarter bots: they ride the lifts properly, walk around the fountain, go to the bank, café and restaurant, and can take you anywhere (walk up and press 💬).",
+    "🙂 Face mood works without a call: open Mood on your phone and turn on the camera, or pick a face.",
+    "🔐 Admin app (password needed): disco, crab party, concert, a big 16-player football match, and how many bots walk around.",
+    "📱 Faster on phones: no shadows, less grass, and the picture gets lighter by itself if the game slows down."] },
   { date: "Oct 9, 2026", title: "World Islands: football fixed", items: [
     "Teams wear red or blue shirts, and each goal has its team's colour.",
     "Signs show YOUR GOAL and SCORE HERE, and the match starts by telling you which goal to attack.",
