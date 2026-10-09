@@ -82,8 +82,8 @@ section[id], .sec-h[id] { scroll-margin-top: 84px; }
 .muted { color: var(--ink-2); } .faint { color: var(--ink-3); } .small { font-size: 14px; } .tiny { font-size: 12.5px; }
 .center { text-align: center; } .center .lead { margin: 0 auto; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); }
-.grad { background: linear-gradient(90deg, #a78bfa, #22d3ee 55%, #34d399); -webkit-background-clip: text; background-clip: text; color: transparent; }
-[data-theme="light"] .grad { background: linear-gradient(90deg, #6d4aff, #0891b2 55%, #059669); -webkit-background-clip: text; background-clip: text; }
+.grad { background: linear-gradient(90deg, #c7e26a, #8fbf3a 50%, #4f8f2a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-theme="light"] .grad { background: linear-gradient(90deg, #6f9b1f, #3f7a1e 55%, #2a5a16); -webkit-background-clip: text; background-clip: text; }
 
 /* motion */
 .reveal { opacity: 0; transform: perspective(1000px) translateY(28px) rotateX(12deg); filter: blur(5px); transform-origin: 50% 0; transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1), filter .9s; transition-delay: calc(var(--d, 0) * 90ms); }
@@ -326,7 +326,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 @keyframes glow { 50% { opacity: .5; transform: scale(1.15); } }
 .hello-bubble { position: absolute; left: calc(50% + 50px); top: calc(50% - 118px); padding: 8px 14px; border-radius: 16px 16px 16px 4px; background: #fff; color: #111; font-weight: 700; font-size: 14px; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); transform: translateZ(120px); animation: say 1s cubic-bezier(.2,1.6,.4,1); white-space: nowrap; }
 @keyframes say { from { transform: translateZ(120px) scale(0) rotate(-12deg); } }
-.floor { position: absolute; left: -20%; right: -20%; bottom: -8%; height: 55%; background-image: linear-gradient(rgba(124,92,255,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(124,92,255,.35) 1px, transparent 1px); background-size: 48px 48px; transform: rotateX(78deg); transform-origin: 50% 100%; mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 20%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 20%, transparent 70%); animation: floor 3s linear infinite; opacity: .6; }
+.floor { position: absolute; left: -20%; right: -20%; bottom: -8%; height: 55%; background-image: linear-gradient(rgba(143,191,58,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(143,191,58,.35) 1px, transparent 1px); background-size: 48px 48px; transform: rotateX(78deg); transform-origin: 50% 100%; mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 20%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 20%, transparent 70%); animation: floor 3s linear infinite; opacity: .6; }
 @keyframes floor { to { background-position: 0 48px; } }
 
 /* cards lean toward the pointer, with a soft light where it is */
@@ -367,7 +367,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 .intro .one { display: grid; justify-items: center; gap: 16px; opacity: 0; transform: scale(.4); animation: one-in .7s cubic-bezier(.2,1.5,.4,1) 1.35s forwards; }
 .intro .one img { width: 120px; height: 120px; border-radius: 32px; box-shadow: 0 30px 90px -10px rgba(124,92,255,.9); }
 .intro .one b { color: #fff; font-size: 30px; letter-spacing: -.03em; }
-.intro .one b span { background: linear-gradient(90deg, #a78bfa, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.intro .one b span { background: linear-gradient(90deg, #c7e26a, #6f9b1f); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes one-in { to { opacity: 1; transform: none; } }
 .intro .burst { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; border: 2px solid rgba(167,139,250,.9); opacity: 0; animation: burst 1s cubic-bezier(.2,.6,.3,1) 1.3s forwards; }
 .intro .burst.b2 { border-color: rgba(34,211,238,.8); animation-delay: 1.45s; }

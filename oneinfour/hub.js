@@ -286,7 +286,7 @@ function landing() {
   app.replaceChildren(
     h("section", { class: "hero" },
       h("div", {},
-        h("span", { class: "pill rise" }, h("b", {}, "New"), "Every app now signs you in automatically"),
+        h("span", { class: "pill rise" }, h("b", {}, "New"), "The4Workspace is now TeamOlive"),
         h("h1", { "aria-label": "One account for all five apps." }, words("One account for"), words("all five apps.", 3, "grad")),
         h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
