@@ -152,6 +152,43 @@
           ]
         }
       ]
+    },
+    {
+      "target": "recoon",
+      "public": "dist/hub",
+      "cleanUrls": true,
+      "headers": [
+        {
+          "source": "**/*.@(js|css|html)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "world",
+      "public": "dist/banda",
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(js|css|html)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
