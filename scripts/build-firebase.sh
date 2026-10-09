@@ -27,4 +27,16 @@ sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
 printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://the4workspace.web.app/">\n' > dist/oldhub/index.html
 # banda-worldislands.web.app — Banda World Islands (signs in through The4Workspace)
 cp -R banda dist/banda
+# robots.txt + sitemap.xml so Google can find and list each site
+seo() { # dir host [noindex]
+  if [ "${3:-}" = noindex ]; then printf 'User-agent: *\nDisallow: /\n' > "$1/robots.txt"; return; fi
+  printf 'User-agent: *\nAllow: /\n\nSitemap: https://%s/sitemap.xml\n' "$2" > "$1/robots.txt"
+  printf '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://%s/</loc><lastmod>%s</lastmod></url>\n</urlset>\n' "$2" "$(date -u +%Y-%m-%d)" > "$1/sitemap.xml"
+}
+seo dist/home learnkyrgyz.web.app
+seo dist/student studentlrnkyrgyz.web.app
+seo dist/teacher teachlrnkyrgyz.web.app
+seo dist/hub the4workspace.web.app
+seo dist/oldhub oneintwo.web.app noindex
+seo dist/banda banda-worldislands.web.app
 echo "Built dist/{home,student,teacher,hub,oldhub,banda}"
