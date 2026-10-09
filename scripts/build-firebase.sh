@@ -19,13 +19,13 @@ for app in student teacher; do
   sed 's#\.\./assets/#assets/#g' "$app/index.html" > "dist/$app/index.html"
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
-# teamolive.web.app — the one-account hub (the4workspace, oneintwo and oneinfour forward to it)
-cp oneinfour/teamolive-logo.svg dist/hub/icon.svg && cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/teamolive-logo.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/teamolive-192.png oneinfour/teamolive-512.png oneinfour/teamolive-maskable-512.png oneinfour/teamolive-touch.png oneinfour/share.png oneinfour/google*.html "dist/hub/"
+# flexihub.web.app — the one-account hub (the4workspace, oneintwo and oneinfour forward to it)
+cp oneinfour/flexihub-logo.svg dist/hub/icon.svg && cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/flexihub-logo.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/flexihub-192.png oneinfour/flexihub-512.png oneinfour/flexihub-maskable-512.png oneinfour/flexihub-touch.png oneinfour/share.png oneinfour/google*.html "dist/hub/"
 for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
-printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://teamolive.web.app/">\n' > dist/oldhub/index.html
-# world-islands.web.app — World Islands (signs in through TeamOlive; banda-worldislands and bandaworld forward to it)
+printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://flexihub.web.app/">\n' > dist/oldhub/index.html
+# world-islands.web.app — World Islands (signs in through FlexiHub; banda-worldislands and bandaworld forward to it)
 cp -R banda dist/banda
 # robots.txt + sitemap.xml so Google can find and list each site
 seo() { # dir host [noindex]
@@ -36,7 +36,7 @@ seo() { # dir host [noindex]
 seo dist/home learnkyrgyz.web.app
 seo dist/student studentlrnkyrgyz.web.app
 seo dist/teacher teachlrnkyrgyz.web.app
-seo dist/hub teamolive.web.app
+seo dist/hub flexihub.web.app
 seo dist/oldhub oneintwo.web.app noindex
 seo dist/banda world-islands.web.app
 echo "Built dist/{home,student,teacher,hub,oldhub,banda}"

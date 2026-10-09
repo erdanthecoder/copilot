@@ -79,7 +79,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://teamolive.web.app/:path*",
+          "destination": "https://flexihub.web.app/:path*",
           "type": 301
         }
       ]
@@ -90,7 +90,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://teamolive.web.app/:path*",
+          "destination": "https://flexihub.web.app/:path*",
           "type": 301
         }
       ]
@@ -101,7 +101,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://teamolive.web.app/:path*",
+          "destination": "https://flexihub.web.app/:path*",
           "type": 301
         }
       ]
@@ -134,7 +134,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://teamolive.web.app/:path*",
+          "destination": "https://flexihub.web.app/:path*",
           "type": 301
         }
       ]
@@ -162,16 +162,12 @@
     },
     {
       "target": "olive",
-      "public": "dist/hub",
-      "headers": [
+      "public": "dist/oldhub",
+      "redirects": [
         {
-          "source": "**/*.@(js|css|html)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            }
-          ]
+          "source": "/:path*",
+          "destination": "https://flexihub.web.app/:path*",
+          "type": 301
         }
       ]
     },

@@ -1,10 +1,10 @@
-// TeamOlive (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
+// FlexiHub (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
 //
-// The account is the LearnKyrgyz (Supabase) account. teamolive.web.app signs people in;
+// The account is the LearnKyrgyz (Supabase) account. flexihub.web.app signs people in;
 // opening another app hands the session over in the URL fragment (#oit=…), which never
 // reaches a server. The receiving app stores it and removes it from the address bar.
 // Hand-offs only ever go to the addresses in TRUSTED below.
-export const HUB = "https://teamolive.web.app";
+export const HUB = "https://flexihub.web.app";
 export const QUOLDEK = "https://quoldek.web.app";
 
 export const APPS = [
@@ -14,7 +14,7 @@ export const APPS = [
   { id: "akylduukodo", name: "CompactCoding", url: "https://compactcoding.web.app/", color: "#1cb0f6", sso: true },
   { id: "worldislands", name: "World Islands", url: "https://world-islands.web.app/", color: "#3aa0d8", sso: true },
 ];
-const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace|recoon|teamolive|banda-worldislands|bandaworld|world-islands)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
+const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace|recoon|teamolive|flexihub|banda-worldislands|bandaworld|world-islands)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };
 
 const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

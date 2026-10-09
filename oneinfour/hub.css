@@ -1,4 +1,4 @@
-/* TeamOlive — account hub. Calm, product-grade look; dark by default, light supported. */
+/* FlexiHub — account hub. Calm, product-grade look; dark by default, light supported. */
 :root {
   --bg: #09090f; --bg-2: #0f0f18; --surface: #12121c; --surface-2: #181826; --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
   --ink: #ededf3; --ink-2: #a8a8bb; --ink-3: #74748a;
@@ -406,7 +406,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 
 
 
-/* ───────────── TeamOlive 2.2: tools, command menu, Today ───────────── */
+/* ───────────── FlexiHub 2.2: tools, command menu, Today ───────────── */
 .icon-btn { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 10px; border: 1px solid transparent; background: none; color: var(--ink-2); cursor: pointer; position: relative; transition: background .15s, color .15s, transform .15s; }
 .icon-btn:hover { background: var(--surface-2); color: var(--ink); } .icon-btn:active { transform: scale(.94); }
 .icon-btn svg { width: 18px; height: 18px; }
@@ -669,7 +669,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .tour-actions { display: flex; justify-content: space-between; margin-top: 4px; }
 .install-btn { color: var(--brand-2); } .install-btn svg { animation: nudge 2s ease-in-out 3; } @keyframes nudge { 50% { transform: translateY(3px); } }
 @media (prefers-reduced-motion: reduce) { .badge-m { opacity: 1; transform: none; animation: none; } .badge-m.got .b-medal::after, .unlock-medal { animation: none; } }
-/* TeamOlive 3.1: only the Pomodoro timer and app status */
+/* FlexiHub 3.1: only the Pomodoro timer and app status */
 .bento.two-up, .landing-bento.two-up { grid-template-columns: 1fr 1fr; max-width: 920px; margin-left: auto; margin-right: auto; }
 @media (max-width: 720px) { .bento.two-up, .landing-bento.two-up { grid-template-columns: 1fr; } }
 .one { display: grid; grid-template-columns: minmax(0, 560px); gap: 14px; }
