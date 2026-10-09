@@ -1,8 +1,8 @@
-/* Recoon — account hub. Calm, product-grade look; dark by default, light supported. */
+/* TeamOlive — account hub. Calm, product-grade look; dark by default, light supported. */
 :root {
   --bg: #09090f; --bg-2: #0f0f18; --surface: #12121c; --surface-2: #181826; --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
   --ink: #ededf3; --ink-2: #a8a8bb; --ink-3: #74748a;
-  --brand: #7c5cff; --brand-2: #22d3ee; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  --brand: #8fbf3a; --brand-2: #d9e86a; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
   --lk: #58cc02; --q: #7c5cff; --k: #14b8a6; --a: #1cb0f6;
   --r: 14px; --r-lg: 20px; --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 20px 50px -20px rgba(0,0,0,.7);
   --btn: #ffffff; --btn-ink: #09090f;
@@ -21,13 +21,13 @@ button { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; letter-spacing: -.025em; line-height: 1.1; font-weight: 700; }
 p { margin: 0; }
 .hidden { display: none !important; }
-::selection { background: rgba(124,92,255,.35); }
+::selection { background: rgba(143,191,58,.35); }
 
 /* background: two soft glows and a faint grid, masked toward the top */
 .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .glow { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .45; }
-.g1 { width: 720px; height: 520px; left: 50%; top: -260px; transform: translateX(-60%); background: radial-gradient(closest-side, #7c5cff, transparent); animation: breathe 14s ease-in-out infinite; }
-.g2 { width: 520px; height: 420px; left: 58%; top: -180px; background: radial-gradient(closest-side, #22d3ee, transparent); opacity: .28; animation: breathe 18s ease-in-out infinite reverse; }
+.g1 { width: 720px; height: 520px; left: 50%; top: -260px; transform: translateX(-60%); background: radial-gradient(closest-side, #5f8f2a, transparent); animation: breathe 14s ease-in-out infinite; }
+.g2 { width: 520px; height: 420px; left: 58%; top: -180px; background: radial-gradient(closest-side, #c7dc5a, transparent); opacity: .28; animation: breathe 18s ease-in-out infinite reverse; }
 @keyframes breathe { 50% { transform: translateX(-52%) scale(1.08); opacity: .55; } }
 .gridlines { position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse 70% 45% at 50% 0%, #000 30%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse 70% 45% at 50% 0%, #000 30%, transparent 75%); }
 [data-theme="light"] .glow { opacity: .22; } [data-theme="light"] .g2 { opacity: .16; }
@@ -406,7 +406,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 
 
 
-/* ───────────── Recoon 2.2: tools, command menu, Today ───────────── */
+/* ───────────── TeamOlive 2.2: tools, command menu, Today ───────────── */
 .icon-btn { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 10px; border: 1px solid transparent; background: none; color: var(--ink-2); cursor: pointer; position: relative; transition: background .15s, color .15s, transform .15s; }
 .icon-btn:hover { background: var(--surface-2); color: var(--ink); } .icon-btn:active { transform: scale(.94); }
 .icon-btn svg { width: 18px; height: 18px; }

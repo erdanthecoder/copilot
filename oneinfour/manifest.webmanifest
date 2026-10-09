@@ -1,12 +1,12 @@
 {
-  "name": "Recoon",
-  "short_name": "Recoon",
+  "name": "TeamOlive",
+  "short_name": "TeamOlive",
   "description": "One account for LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands.",
   "start_url": "/?source=app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#09090f",
-  "theme_color": "#09090f",
+  "background_color": "#0c1f0d",
+  "theme_color": "#0c1f0d",
   "icons": [
     {
       "src": "icon-192.png",

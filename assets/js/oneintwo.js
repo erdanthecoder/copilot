@@ -3,12 +3,12 @@ import { h, icon, mascot } from "./ui.js";
 export * from "./oneintwo-core.js";
 import { HUB, handoffUrl } from "./oneintwo-core.js";
 
-const WS_ICON = new URL("../img/recoon.svg", import.meta.url).href;
+const WS_ICON = new URL("../img/teamolive.svg", import.meta.url).href;
 export const wsMark = (size = 24) => h("img", { class: "ws-mark", src: WS_ICON, alt: "", width: size, height: size });
 
-// A button that takes you to Recoon (the one-account hub), signed in.
-export function workspaceButton(client, { cls = "nav-btn ws-btn", label = "Recoon" } = {}) {
-  return h("a", { class: cls, href: HUB + "/", title: "Recoon: all your apps, one account", onClick: async (e) => {
+// A button that takes you to TeamOlive (the one-account hub), signed in.
+export function workspaceButton(client, { cls = "nav-btn ws-btn", label = "TeamOlive" } = {}) {
+  return h("a", { class: cls, href: HUB + "/", title: "TeamOlive: all your apps, one account", onClick: async (e) => {
     e.preventDefault();
     let session = null; try { session = (await client.auth.getSession()).data.session; } catch {}
     location.href = handoffUrl(HUB + "/", session);
@@ -40,7 +40,7 @@ export function flyTo(url, { from = "LearnKyrgyz", to = "Quoldek", label = "", c
 export function hubNote(ru) {
   return h("a", { class: "card click oit-note", href: HUB, target: "_blank", rel: "noopener" },
     wsMark(34),
-    h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — Recoon" : "One account — Recoon"),
+    h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — TeamOlive" : "One account — TeamOlive"),
       h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и CompactCoding." : "The same account opens Quoldek, Kadam and CompactCoding.")),
     icon("right"));
 }

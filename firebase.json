@@ -79,7 +79,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://recoon.web.app/:path*",
+          "destination": "https://teamolive.web.app/:path*",
           "type": 301
         }
       ]
@@ -90,7 +90,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://recoon.web.app/:path*",
+          "destination": "https://teamolive.web.app/:path*",
           "type": 301
         }
       ]
@@ -101,7 +101,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://recoon.web.app/:path*",
+          "destination": "https://teamolive.web.app/:path*",
           "type": 301
         }
       ]
@@ -130,17 +130,12 @@
     },
     {
       "target": "recoon",
-      "public": "dist/hub",
-      "cleanUrls": true,
-      "headers": [
+      "public": "dist/oldhub",
+      "redirects": [
         {
-          "source": "**/*.@(js|css|html)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            }
-          ]
+          "source": "/:path*",
+          "destination": "https://teamolive.web.app/:path*",
+          "type": 301
         }
       ]
     },

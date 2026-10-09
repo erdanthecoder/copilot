@@ -1,8 +1,8 @@
-/* Recoon app switcher — one launcher shared by LearnKyrgyz, Quoldek, Kadam and
- * CompactCoding. Each app loads this one file from https://recoon.web.app/switcher.js,
+/* TeamOlive app switcher — one launcher shared by LearnKyrgyz, Quoldek, Kadam and
+ * CompactCoding. Each app loads this one file from https://teamolive.web.app/switcher.js,
  * so a change here reaches all four at once.
  *
- * Switching goes through Recoon (?return=…&silent=1): if you are signed in there, the
+ * Switching goes through TeamOlive (?return=…&silent=1): if you are signed in there, the
  * next app opens signed in as the same account; if not, it opens as usual. Nothing is stored
  * here and nothing is sent anywhere else.
  *
@@ -16,7 +16,7 @@
   if (window.__the4workspaceSwitcher) return;
   window.__the4workspaceSwitcher = true;
 
-  const HUB = 'https://recoon.web.app';
+  const HUB = 'https://teamolive.web.app';
   const hideSel = (document.currentScript && document.currentScript.dataset.hide) || '';
   // a bar fixed along the bottom of the page (a phone's tab bar) that the button should sit above
   const aboveSel = (document.currentScript && document.currentScript.dataset.above) || '';
@@ -91,15 +91,15 @@
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     wrap.innerHTML = `
       <div class="panel" role="dialog" aria-label="Switch app">
-        <div class="head"><b>Recoon</b><span>one account · all your apps</span></div>
+        <div class="head"><b>TeamOlive</b><span>one account · all your apps</span></div>
         <div class="grid">${APPS.map((a, i) => `
           <a class="app${here && here.id === a.id ? ' here' : ''}" href="${esc(go(a))}" data-id="${a.id}" style="--c:${a.c};--i:${i}">
             <img src="${esc(a.icon)}" alt="" loading="lazy"><b>${esc(a.name)}</b><small>${esc(a.tag)}</small></a>`).join('')}
         </div>
-        <a class="home" href="${HUB}/"><img src="${HUB}/icon.svg" alt=""><div><b>Open Recoon</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
+        <a class="home" href="${HUB}/"><img src="${HUB}/icon.svg" alt=""><div><b>Open TeamOlive</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
         <div class="foot"><kbd>Alt</kbd> + <kbd>W</kbd> opens this anywhere</div>
       </div>
-      <button class="fab" aria-label="Switch app (Recoon)" aria-expanded="false"><img src="${HUB}/icon.svg" alt=""></button>
+      <button class="fab" aria-label="Switch app (TeamOlive)" aria-expanded="false"><img src="${HUB}/icon.svg" alt=""></button>
       <span class="tip">Switch app</span>`;
     root.append(style, wrap);
     document.body.append(holder);
