@@ -29,6 +29,7 @@
     { id: 'quoldek', name: 'Quoldek', tag: 'Quiz games', url: 'https://quoldek.web.app/signin.html', icon: HUB + '/icons/quoldek.svg', c: '#7c5cff', hosts: /^quoldek\.web\.app$/ },
     { id: 'kadam', name: 'Kadam', tag: 'Workspace', url: 'https://kadam.web.app/', icon: HUB + '/icons/kadam.svg', c: '#14b8a6', hosts: /^kadam\.web\.app$/ },
     { id: 'akylduukodo', name: 'CompactCoding', tag: 'Learn to code', url: 'https://compactcoding.web.app/', icon: HUB + '/icons/akylduukodo.svg', c: '#1cb0f6', hosts: /^(compactcoding|akylduukodo)\.web\.app$/ },
+    { id: 'worldislands', name: 'World Islands', tag: '3D learning world', url: 'https://banda-worldislands.web.app/', icon: HUB + '/icons/worldislands.svg', c: '#3aa0d8', hosts: /^banda-worldislands\.web\.app$/ },
   ];
   // the pages a class is sent to (joining a game, homework) never show it
   if (/^(play|live|hw)quoldek\.web\.app$/.test(host) || /\/(play|take|join|host|show)(\.html)?\/?$/.test(location.pathname)) return;

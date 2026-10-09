@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Banda World Islands">
+  <title>Banda World Islands</title>
+  <rect width="64" height="64" rx="14" fill="#0e3b5c"/>
+  <circle cx="40" cy="20" r="8" fill="#ffc94d"/>
+  <path d="M10 42c4-10 10-15 17-15s12 5 16 15z" fill="#4f8a35"/>
+  <path d="M30 42c3-6 7-9 12-9s9 3 12 9z" fill="#3b6e28"/>
+  <path d="M6 44c6-4 12-4 18 0s12 4 18 0 12-4 16 0v12H6z" fill="#3aa0d8"/>
+  <path d="M6 50c6-3 12-3 18 0s12 3 18 0 12-3 16 0" stroke="#bfe6ff" stroke-width="2" fill="none"/>
+</svg>

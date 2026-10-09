@@ -86,8 +86,16 @@ const INFO = {
       "A weekly goal keeps you going, and progress saves to your account.",
       "Opened from The4Workspace, CompactCoding signs you in with this same account."],
   },
+  worldislands: {
+    name: "World Islands", mark: "WI", icon: "icons/worldislands.svg", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://banda-worldislands.web.app/", teacherUrl: "https://banda-worldislands.web.app/teachers",
+    points: ["A 3D world in English and Russian, with your own avatar", "Math and language games that earn stars and house points", "Minigames with the class: football, Impostor, Quiz Battle"],
+    how: ["Students explore six islands, ride the metro between them and walk into buildings to play learning games.",
+      "Math, English and Russian games have four levels. Stars add up to house points on a class leaderboard.",
+      "Stand on a pad to start a minigame: football, dodgeball, hide and seek, Impostor or Quiz Battle. Bots join when few people are online.",
+      "Teachers get tools for announcements, star giveaways, music and starting minigames. Opened from The4Workspace, it signs you in with this same account."],
+  },
 };
-const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo"];
+const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo", "worldislands"];
 const tile = (id, size = "") => { const a = INFO[id]; return h("span", { class: "tile ico " + size, style: { "--c1": a.c1, "--c2": a.c2 }, "aria-hidden": "true" }, h("img", { src: a.icon, alt: "", draggable: "false", decoding: "async" })); };
 const urlFor = (id) => profile?.role === "teacher" && INFO[id].teacherUrl ? INFO[id].teacherUrl : INFO[id].url;
 const appFor = (url) => ORDER.find(id => { try { const u = new URL(url); return [INFO[id].url, INFO[id].teacherUrl].filter(Boolean).some(x => new URL(x).host === u.host) || (id === "quoldek" && /quoldek\.web\.app$/.test(u.host)); } catch { return false; } });
@@ -220,16 +228,16 @@ function consoleCard({ animate = true, name = "Aigerim Asanova", email = "aigeri
     const st = h("span", { class: "status" }, h("i", { class: "spin" }), h("span", { html: CHECK, style: { display: "contents" } }), h("span", { class: "txt" }, "Connecting…"));
     return { st, el: h("div", { class: "app-row" }, tile(id, "sm"), h("div", {}, h("b", {}, INFO[id].name), h("div", { class: "sub" }, INFO[id].tag)), st) };
   });
-  const bar = h("i"), count = h("span", {}, "0 of 4 signed in");
+  const N = ORDER.length, bar = h("i"), count = h("span", {}, `0 of ${N} signed in`);
   const el = h("div", { class: "console", "aria-hidden": "true" },
     h("div", { class: "chrome" }, h("i"), h("i"), h("i"), h("span", {}, "the4workspace.web.app")),
     h("div", { class: "console-body" },
       h("div", { class: "acct" }, h("span", { class: "avatar" }, initials(name)), h("div", {}, h("b", {}, name), h("span", {}, email)), h("span", { class: "badge" }, "One account")),
       h("div", { class: "apps-list" }, rows.map(r => r.el)),
       h("div", { class: "console-foot" }, h("span", { class: "meter" }, bar), count)));
-  const set = (n) => { rows.forEach((r, i) => { r.st.classList.toggle("ok", i < n); r.st.querySelector(".txt").textContent = i < n ? "Signed in" : "Connecting…"; }); bar.style.width = n * 25 + "%"; count.textContent = `${n} of 4 signed in`; };
-  if (!animate || reduce) { set(4); return el; }
-  const cycle = () => { set(0); [1, 2, 3, 4].forEach(n => later(() => set(n), 700 + n * 650)); later(cycle, 7200); };
+  const set = (n) => { rows.forEach((r, i) => { r.st.classList.toggle("ok", i < n); r.st.querySelector(".txt").textContent = i < n ? "Signed in" : "Connecting…"; }); bar.style.width = n * 100 / N + "%"; count.textContent = `${n} of ${N} signed in`; };
+  if (!animate || reduce) { set(N); return el; }
+  const cycle = () => { set(0); ORDER.map((_, i) => i + 1).forEach(n => later(() => set(n), 700 + n * 650)); later(cycle, 7200); };
   later(cycle, 300);
   return el;
 }
@@ -245,8 +253,8 @@ function stage() {
   const scene = h("div", { class: "scene" },
     h("i", { class: "floor" }), h("i", { class: "orbit-ring" }), h("i", { class: "orbit-ring r2" }),
     [0, 1, 2].map(i => h("i", { class: "wave", style: { "--i": i } })),
-    h("div", { class: "orbit" }, ORDER.map((id, k) => h("div", { class: "sat", style: { "--a": k * 90 + "deg" } },
-      h("div", { class: "face", style: { "--a": k * 90 + "deg", "--k": k, "--c1": INFO[id].c1 } }, tile(id), h("b", {}, INFO[id].name), h("i", { class: "ok" }, "✓"))))),
+    h("div", { class: "orbit" }, ORDER.map((id, k) => h("div", { class: "sat", style: { "--a": k * 360 / ORDER.length + "deg" } },
+      h("div", { class: "face", style: { "--a": k * 360 / ORDER.length + "deg", "--k": k, "--c1": INFO[id].c1 } }, tile(id), h("b", {}, INFO[id].name), h("i", { class: "ok" }, "✓"))))),
     h("div", { class: "core" }, h("img", { src: "icon.svg", alt: "" })),
     bubble);
   const el = h("div", { class: "stage rise", style: { "--d": 2 }, "aria-hidden": "true" }, scene);
@@ -279,23 +287,23 @@ function landing() {
     h("section", { class: "hero" },
       h("div", {},
         h("span", { class: "pill rise" }, h("b", {}, "New"), "Every app now signs you in automatically"),
-        h("h1", { "aria-label": "One account for all four apps." }, words("One account for"), words("all four apps.", 3, "grad")),
+        h("h1", { "aria-label": "One account for all five apps." }, words("One account for"), words("all five apps.", 3, "grad")),
         h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and CompactCoding open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
         h("button", { class: "k-hint rise", style: { "--d": 4 }, onClick: palette }, "Try it: press ", kbd(isMac ? "⌘" : "Ctrl", "K")),
-        h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding"))),
+        h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding · World Islands"))),
       stage()),
 
-    h("div", { class: "strip reveal" }, [["4", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
+    h("div", { class: "strip reveal" }, [["5", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
 
     h("section", { id: "product" },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Single sign-on"), h("h2", { class: "h2 reveal" }, "One sign-in. Every app."),
-        h("p", { class: "lead reveal" }, "Your The4Workspace account is the key. Open any of the four apps from here and it arrives signed in as you.")),
+        h("p", { class: "lead reveal" }, "Your The4Workspace account is the key. Open any of the five apps from here and it arrives signed in as you.")),
       h("div", { class: "doors reveal" },
         h("div", { class: "door-svg", html: '<svg viewBox="0 0 1000 380" preserveAspectRatio="none" aria-hidden="true">' + ORDER.map((id, k) => {
-          const x = 125 + k * 250, d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
+          const x = 100 + k * 800 / (ORDER.length - 1), d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
           return `<path class="dline" style="--c:${INFO[id].c1};--k:${k}" d="${d}"/>` + (reduce ? "" : `<circle class="dpulse" style="--c:${INFO[id].c1}" r="4"><animateMotion dur="2.6s" begin="${k * .4}s" repeatCount="indefinite" path="${d}"/></circle>`);
         }).join("") + "</svg>" }),
         h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your The4Workspace account"), h("span", {}, "Google or email"))),
@@ -303,7 +311,7 @@ function landing() {
 
     h("section", { id: "inside", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Inside your workspace"), h("h2", { class: "h2 reveal" }, "More than a sign-in page"),
-        h("p", { class: "lead reveal" }, "A daily quest across your four apps, a focus timer, live app status and a command menu. These are real: try them.")),
+        h("p", { class: "lead reveal" }, "A daily quest across your five apps, a focus timer, live app status and a command menu. These are real: try them.")),
       h("div", { class: "bento landing-bento" }, questCard(), focusCard(), statusCard(),
         h("button", { class: "widget cmd-teaser card reveal", style: { "--d": 5 }, onClick: palette },
           h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Command menu"), kbd(isMac ? "⌘" : "Ctrl", "K")),
@@ -312,9 +320,9 @@ function landing() {
 
     h("section", { id: "features", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "Why The4Workspace"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
-      h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the four apps, behind one account."),
+      h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the five apps, behind one account."),
       h("div", { class: "features" },
-        feature("key", "One account", "One email and password, or one Google account, for all four apps.", 0),
+        feature("key", "One account", "One email and password, or one Google account, for all five apps.", 0),
         feature("bolt", "Opens signed in", "Press an app and you're in. There's no second sign-in screen.", 1),
         feature("swap", "Topics become games", "Pick LearnKyrgyz topics and they become a Quoldek quiz in one tap.", 2),
         feature("sync", "Saved to your account", "Progress and quizzes follow you, not the device you used.", 3),
@@ -322,14 +330,14 @@ function landing() {
         feature("globe", "Three languages", "English, Русский and Кыргызча across the apps.", 5))),
 
     h("section", { id: "apps", style: { "padding-top": 0 } },
-      h("span", { class: "eyebrow reveal" }, "The apps"), h("h2", { class: "h2 reveal" }, "Four apps, one place"),
+      h("span", { class: "eyebrow reveal" }, "The apps"), h("h2", { class: "h2 reveal" }, "Five apps, one place"),
       h("div", { class: "apps" }, ORDER.map((id, k) => appCard(id, k)))),
 
     h("section", { id: "how", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "How it works"), h("h2", { class: "h2 reveal" }, "Three steps, then you never sign in twice"),
       h("div", { class: "steps" }, [
         ["Create your account", "Use Google or an email address, as a student or a teacher. Already on LearnKyrgyz? That's your account: just sign in."],
-        ["Open any app", "Your dashboard lists all four. Press one and it opens signed in as you."],
+        ["Open any app", "Your dashboard lists all five. Press one and it opens signed in as you."],
         ["Keep going anywhere", "Your progress and quizzes are saved to your account, so they're there on every device."],
       ].map(([t, d], k) => h("div", { class: "step card reveal", style: { "--d": k } }, h("div", { class: "n" }, k + 1), h("h3", {}, t), h("p", {}, d))))),
 
@@ -339,7 +347,7 @@ function landing() {
       h("div", { class: "checks card reveal" },
         checkItem("lock", "Your password stays here", "Apps receive a sign-in token, never your password."),
         checkItem("eye", "Never sent in the open", "The hand-off travels in the part of the link that browsers don't send to servers, and each app removes it at once."),
-        checkItem("link", "Only our four apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam and CompactCoding."),
+        checkItem("link", "Only our five apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands."),
         checkItem("shield", "Your data is yours", "Each account can read and change only its own data."))),
 
     h("section", { id: "bridge", style: { "padding-top": 0 } },
@@ -357,7 +365,7 @@ function landing() {
     h("section", { id: "faq", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "FAQ"), h("h2", { class: "h2 reveal" }, "Questions, answered")),
       h("div", { class: "faq reveal" },
-        q("Is it free?", "Yes. Creating an account and using all four apps is free."),
+        q("Is it free?", "Yes. Creating an account and using all five apps is free."),
         q("I already have a LearnKyrgyz account.", "Then you already have a The4Workspace account. Sign in with the same email or Google account."),
         q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from The4Workspace and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
@@ -444,7 +452,7 @@ function authView(mode) {
     h("div", { class: "auth card rise" },
       target ? h("div", { class: "return-banner" }, tile(target, "sm"), h("span", {}, `Sign in to continue to ${INFO[target].name}`)) : null,
       h("h2", {}, signup ? "Create your account" : "Sign in to The4Workspace"),
-      h("p", { class: "sub" }, signup ? "Free, and it works in all four apps." : "Use the account you use in any of the four apps."),
+      h("p", { class: "sub" }, signup ? "Free, and it works in all five apps." : "Use the account you use in any of the five apps."),
       h("div", { class: "seg" },
         h("button", { type: "button", class: signup ? "" : "on", onClick: () => { location.hash = "signin"; } }, "Sign in"),
         h("button", { type: "button", class: signup ? "on" : "", onClick: () => { location.hash = "signup"; } }, "Create account")),
@@ -502,7 +510,7 @@ function dashboard() {
           h("div", {}, h("span", {}, "Email"), h("b", {}, session.user.email)),
           h("div", {}, h("span", {}, "Role"), h("b", {}, teacher ? "Teacher" : "Student")),
           h("div", {}, h("span", {}, "Signs in with"), h("b", {}, provider)),
-          h("div", {}, h("span", {}, "Apps"), h("b", {}, "All four connected"))),
+          h("div", {}, h("span", {}, "Apps"), h("b", {}, "All five connected"))),
         h("button", { class: "btn ghost block", onClick: signOut }, "Sign out"))),
 
     h("div", { class: "sec-h", id: "guides" }, h("h2", {}, "How the apps work"), h("p", {}, "Short guides")),
@@ -659,6 +667,7 @@ function sheet(title, body) {
   return close;
 }
 const NEWS = [
+  { v: "2.5", date: "9 Oct 2026", title: "World Islands", items: ["Banda World Islands is the fifth app: a 3D island world with learning games, minigames and teacher tools", "It opens signed in from the dashboard, the launcher and the app switcher"] },
   { v: "2.4", date: "28 Sep 2026", title: "One workspace, everywhere", items: ["A switcher in every app: press the The4Workspace button (or Alt+W) in LearnKyrgyz, Quoldek, Kadam or CompactCoding to jump to another app, signed in", "Install The4Workspace as an app on your phone or computer", "Achievements: 12 badges to collect, with a shiny unlock", "A short tour for your first visit"] },
   { v: "2.3", date: "27 Sep 2026", title: "A friendlier dashboard", items: ["A live sky over your dashboard: the sun or moon where it really is, stars at night, clouds and the Ala-Too", "Today's quest: one small thing in each app, ticked off as you open them, with a daily quest streak", "Numbers roll into place, cards glow where your cursor is, app icons wiggle hello"] },
   { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
@@ -687,7 +696,7 @@ addEventListener("keydown", (e) => {
   else if (e.key === "?") shortcuts();
   else if (e.key.toLowerCase() === "t") toggleTheme();
   else if (e.key.toLowerCase() === "f" && session) focus.toggle();
-  else if (session && /^[1-4]$/.test(e.key)) openApp(myOrder()[+e.key - 1]);
+  else if (session && /^[1-9]$/.test(e.key) && +e.key <= ORDER.length) openApp(myOrder()[+e.key - 1]);
 });
 
 // ── Today: greeting, quest, streak ring, focus timer ──
@@ -710,6 +719,7 @@ const QUEST = {
   quoldek: { teacher: "Run a quiz game", student: "Play a quiz game", emoji: "🎮" },
   kadam: { teacher: "Plan your week", student: "Plan one university task", emoji: "🗂️" },
   akylduukodo: { teacher: "Try a coding lesson", student: "Write a little code", emoji: "💻" },
+  worldislands: { teacher: "Start a Quiz Battle", student: "Earn a star on the islands", emoji: "🏝️" },
 };
 const todayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const questDone = () => { const at = new Date(); at.setHours(0, 0, 0, 0); return new Set(recent().filter(r => r.at >= at.getTime()).map(r => r.id)); };
@@ -729,7 +739,7 @@ function questCard() {
   return glow(h("div", { class: "widget quest card reveal" + (all ? " complete" : ""), id: "quest", style: { "--d": 1 } },
     h("div", { class: "q-glow", "aria-hidden": "true" }),
     h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Today's quest"), h("span", { class: "q-streak", title: "Days in a row you finished the quest" }, "⚡ ", streak, streak === 1 ? " day" : " days")),
-    h("div", { class: "q-title" }, all ? h("span", {}, "All four done. ", h("span", { class: "grad" }, "Legend!")) : h("span", {}, h("b", { class: "q-count" }, n), " of 4 done")),
+    h("div", { class: "q-title" }, all ? h("span", {}, "All done. ", h("span", { class: "grad" }, "Legend!")) : h("span", {}, h("b", { class: "q-count" }, n), ` of ${ORDER.length} done`)),
     segs,
     h("div", { class: "q-list" }, myOrder().map((id, i) => {
       const ok = done.has(id);
@@ -945,7 +955,7 @@ function launcher(items) {
 // ── achievements: small badges for the things people actually do here (kept on this device) ──
 const BADGES = [
   { id: "first", emoji: "🚀", name: "Lift-off", how: "Open any app from The4Workspace", test: (d) => d.opened.size >= 1 },
-  { id: "explorer", emoji: "🧭", name: "Explorer", how: "Open all four apps", test: (d) => d.opened.size >= 4 },
+  { id: "explorer", emoji: "🧭", name: "Explorer", how: "Open every app", test: (d) => d.opened.size >= ORDER.length },
   { id: "quest", emoji: "🏆", name: "Quest complete", how: "Finish a daily quest", test: (d) => d.quests >= 1 },
   { id: "streak3", emoji: "⚡", name: "On a roll", how: "Finish the quest 3 days in a row", test: (d) => d.qstreak >= 3 },
   { id: "streak7", emoji: "👑", name: "Unstoppable", how: "Finish the quest 7 days in a row", test: (d) => d.qstreak >= 7 },
@@ -992,7 +1002,7 @@ function tour() {
   store.set("toured", true);
   const steps = [
     { sel: ".sky", title: "Welcome to your workspace 👋", text: "This is your home for LearnKyrgyz, Quoldek, Kadam and CompactCoding. The sky follows the real time of day." },
-    { sel: "#quest", title: "Today's quest", text: "One small thing in each app. Open an app from here and its task ticks itself off. Finish all four for confetti." },
+    { sel: "#quest", title: "Today's quest", text: "One small thing in each app. Open an app from here and its task ticks itself off. Finish them all for confetti." },
     { sel: ".launch", title: "Your apps, your order", text: "Drag the cards into the order you like, then press 1–4 to open them from anywhere on this page." },
     { sel: ".search-pill", title: "Jump anywhere", text: `Press ${isMac ? "⌘" : "Ctrl"}+K to find any app, action or Kyrgyz topic. Inside the apps, Alt+W opens the app switcher.` },
   ];
@@ -1122,7 +1132,7 @@ function headerFx() {
 function intro() {
   let seen = false; try { seen = sessionStorage.getItem("oi4.intro") === "1"; sessionStorage.setItem("oi4.intro", "1"); } catch {}
   if (seen || reduce || returnTo) return Promise.resolve();
-  const from = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  const from = [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1.2]];
   let done;
   const finish = () => { if (layer.classList.contains("out")) return; layer.classList.add("out"); setTimeout(() => layer.remove(), 750); done(); };
   const layer = h("div", { class: "intro", onClick: () => finish() },
