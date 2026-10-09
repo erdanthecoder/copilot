@@ -1,8 +1,8 @@
-/* The4Workspace app switcher — one launcher shared by LearnKyrgyz, Quoldek, Kadam and
- * CompactCoding. Each app loads this one file from https://the4workspace.web.app/switcher.js,
+/* Recoon app switcher — one launcher shared by LearnKyrgyz, Quoldek, Kadam and
+ * CompactCoding. Each app loads this one file from https://recoon.web.app/switcher.js,
  * so a change here reaches all four at once.
  *
- * Switching goes through The4Workspace (?return=…&silent=1): if you are signed in there, the
+ * Switching goes through Recoon (?return=…&silent=1): if you are signed in there, the
  * next app opens signed in as the same account; if not, it opens as usual. Nothing is stored
  * here and nothing is sent anywhere else.
  *
@@ -16,7 +16,7 @@
   if (window.__the4workspaceSwitcher) return;
   window.__the4workspaceSwitcher = true;
 
-  const HUB = 'https://the4workspace.web.app';
+  const HUB = 'https://recoon.web.app';
   const hideSel = (document.currentScript && document.currentScript.dataset.hide) || '';
   // a bar fixed along the bottom of the page (a phone's tab bar) that the button should sit above
   const aboveSel = (document.currentScript && document.currentScript.dataset.above) || '';
@@ -29,7 +29,7 @@
     { id: 'quoldek', name: 'Quoldek', tag: 'Quiz games', url: 'https://quoldek.web.app/signin.html', icon: HUB + '/icons/quoldek.svg', c: '#7c5cff', hosts: /^quoldek\.web\.app$/ },
     { id: 'kadam', name: 'Kadam', tag: 'Workspace', url: 'https://kadam.web.app/', icon: HUB + '/icons/kadam.svg', c: '#14b8a6', hosts: /^kadam\.web\.app$/ },
     { id: 'akylduukodo', name: 'CompactCoding', tag: 'Learn to code', url: 'https://compactcoding.web.app/', icon: HUB + '/icons/akylduukodo.svg', c: '#1cb0f6', hosts: /^(compactcoding|akylduukodo)\.web\.app$/ },
-    { id: 'worldislands', name: 'World Islands', tag: '3D learning world', url: 'https://banda-worldislands.web.app/', icon: HUB + '/icons/worldislands.svg', c: '#3aa0d8', hosts: /^(banda-worldislands|bandaworld)\.web\.app$/ },
+    { id: 'worldislands', name: 'World Islands', tag: '3D learning world', url: 'https://world-islands.web.app/', icon: HUB + '/icons/worldislands.png', c: '#3aa0d8', hosts: /^(world-islands|banda-worldislands|bandaworld)\.web\.app$/ },
   ];
   // the pages a class is sent to (joining a game, homework) never show it
   if (/^(play|live|hw)quoldek\.web\.app$/.test(host) || /\/(play|take|join|host|show)(\.html)?\/?$/.test(location.pathname)) return;
@@ -91,15 +91,15 @@
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     wrap.innerHTML = `
       <div class="panel" role="dialog" aria-label="Switch app">
-        <div class="head"><b>The4Workspace</b><span>one account · four apps</span></div>
+        <div class="head"><b>Recoon</b><span>one account · all your apps</span></div>
         <div class="grid">${APPS.map((a, i) => `
           <a class="app${here && here.id === a.id ? ' here' : ''}" href="${esc(go(a))}" data-id="${a.id}" style="--c:${a.c};--i:${i}">
             <img src="${esc(a.icon)}" alt="" loading="lazy"><b>${esc(a.name)}</b><small>${esc(a.tag)}</small></a>`).join('')}
         </div>
-        <a class="home" href="${HUB}/"><img src="${HUB}/icon.svg" alt=""><div><b>Open The4Workspace</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
+        <a class="home" href="${HUB}/"><img src="${HUB}/icon.svg" alt=""><div><b>Open Recoon</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
         <div class="foot"><kbd>Alt</kbd> + <kbd>W</kbd> opens this anywhere</div>
       </div>
-      <button class="fab" aria-label="Switch app (The4Workspace)" aria-expanded="false"><img src="${HUB}/icon.svg" alt=""></button>
+      <button class="fab" aria-label="Switch app (Recoon)" aria-expanded="false"><img src="${HUB}/icon.svg" alt=""></button>
       <span class="tip">Switch app</span>`;
     root.append(style, wrap);
     document.body.append(holder);

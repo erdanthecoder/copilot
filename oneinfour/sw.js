@@ -1,4 +1,4 @@
-/* The4Workspace offline shell. Pages and files come from the network first (so an update
+/* Recoon offline shell. Pages and files come from the network first (so an update
  * shows up at once) and are kept, so the workspace still opens with no connection. Only this
  * site's own files are handled: sign-in and data requests to other servers pass straight by. */
 const CACHE = "t4w-v1";

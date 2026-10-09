@@ -1,10 +1,10 @@
-// The4Workspace (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
+// Recoon (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
 //
-// The account is the LearnKyrgyz (Supabase) account. the4workspace.web.app signs people in;
+// The account is the LearnKyrgyz (Supabase) account. recoon.web.app signs people in;
 // opening another app hands the session over in the URL fragment (#oit=…), which never
 // reaches a server. The receiving app stores it and removes it from the address bar.
 // Hand-offs only ever go to the addresses in TRUSTED below.
-export const HUB = "https://the4workspace.web.app";
+export const HUB = "https://recoon.web.app";
 export const QUOLDEK = "https://quoldek.web.app";
 
 export const APPS = [
@@ -12,9 +12,9 @@ export const APPS = [
   { id: "quoldek", name: "Quoldek", url: "https://quoldek.web.app/", color: "#7c5cff", sso: true },
   { id: "kadam", name: "Kadam", url: "https://kadam.web.app/", color: "#0f9d58", sso: true },
   { id: "akylduukodo", name: "CompactCoding", url: "https://compactcoding.web.app/", color: "#1cb0f6", sso: true },
-  { id: "worldislands", name: "World Islands", url: "https://banda-worldislands.web.app/", color: "#3aa0d8", sso: true },
+  { id: "worldislands", name: "World Islands", url: "https://world-islands.web.app/", color: "#3aa0d8", sso: true },
 ];
-const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace|banda-worldislands|bandaworld)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
+const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace|recoon|banda-worldislands|bandaworld|world-islands)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };
 
 const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

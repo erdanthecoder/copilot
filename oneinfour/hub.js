@@ -1,4 +1,4 @@
-// The4Workspace hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and CompactCoding all open signed in.
+// Recoon hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and CompactCoding all open signed in.
 import { sb } from "../assets/js/config.js";
 import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } from "../assets/js/google.js";
 import { handoffUrl, isTrusted, acceptHandoff } from "../assets/js/oneintwo-core.js";
@@ -76,7 +76,7 @@ const INFO = {
     how: ["Eight tools for getting into university, all behind the nine-dot launcher: Notes, Sheets, Slides, Canvas, Tasks, UniSave, AI and Languages.",
       "Templates for university comparison tables, essay outlines, scholarship and deadline trackers.",
       "Everything syncs privately to your account, and you choose who can open it.",
-      "Opened from The4Workspace, Kadam signs you in with this same account."],
+      "Opened from Recoon, Kadam signs you in with this same account."],
   },
   akylduukodo: {
     name: "CompactCoding", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://compactcoding.web.app/",
@@ -84,15 +84,15 @@ const INFO = {
     how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
       "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",
       "A weekly goal keeps you going, and progress saves to your account.",
-      "Opened from The4Workspace, CompactCoding signs you in with this same account."],
+      "Opened from Recoon, CompactCoding signs you in with this same account."],
   },
   worldislands: {
-    name: "World Islands", mark: "WI", icon: "icons/worldislands.svg", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://banda-worldislands.web.app/", teacherUrl: "https://banda-worldislands.web.app/teachers",
+    name: "World Islands", mark: "WI", icon: "icons/worldislands.png", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://world-islands.web.app/", teacherUrl: "https://world-islands.web.app/teachers",
     points: ["A 3D world in English and Russian, with your own avatar", "Math and language games that earn stars and house points", "Minigames with the class: football, Impostor, Quiz Battle"],
     how: ["Students explore six islands, ride the metro between them and walk into buildings to play learning games.",
       "Math, English and Russian games have four levels. Stars add up to house points on a class leaderboard.",
       "Stand on a pad to start a minigame: football, dodgeball, hide and seek, Impostor or Quiz Battle. Bots join when few people are online.",
-      "Teachers get tools for announcements, star giveaways, music and starting minigames. Opened from The4Workspace, it signs you in with this same account."],
+      "Teachers get tools for announcements, star giveaways, music and starting minigames. Opened from Recoon, it signs you in with this same account."],
   },
 };
 const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo", "worldislands"];
@@ -191,7 +191,7 @@ function drawNav() {
     h("button", { class: "search-pill", onClick: palette, "aria-label": "Search (" + (isMac ? "⌘" : "Ctrl") + " K)" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "sp-t" }, "Search"), kbd(isMac ? "⌘" : "Ctrl", "K")),
     h("button", { class: "icon-btn", onClick: toggleTheme, title: themeNow() === "dark" ? "Light mode (T)" : "Dark mode (T)", "aria-label": "Switch theme", html: themeNow() === "dark" ? SUN : MOON }),
     h("button", { class: "icon-btn bell" + (newsSeen() ? "" : " unread"), onClick: whatsNew, title: "What's new", "aria-label": "What's new", html: BELL }),
-    installEvt ? h("button", { class: "icon-btn install-btn", onClick: install, title: "Install The4Workspace as an app", "aria-label": "Install app", html: DOWNLOAD }) : null,
+    installEvt ? h("button", { class: "icon-btn install-btn", onClick: install, title: "Install Recoon as an app", "aria-label": "Install app", html: DOWNLOAD }) : null,
   ];
   if (session) {
     const name = profile?.full_name || session.user.email;
@@ -213,13 +213,13 @@ function goLanding(e) {
 function drawFoot() {
   foot.replaceChildren(
     h("div", { class: "foot-in" },
-      h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "The4Workspace")),
+      h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "Recoon")),
         h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding. Sign in once, then every app opens signed in.")),
       h("div", {}, h("h4", {}, "Apps"), ORDER.map(id => h("a", { href: INFO[id].url, target: "_blank", rel: "noopener" }, INFO[id].name))),
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
         : [h("a", { href: "#signin" }, "Sign in"), h("a", { href: "#signup" }, "Create account")])),
-    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} The4Workspace`), h("span", {}, "Made for learners and teachers in Kyrgyzstan")));
+    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} Recoon`), h("span", {}, "Made for learners and teachers in Kyrgyzstan")));
 }
 
 // ── the console preview: one account, four apps connecting one after another ──
@@ -230,7 +230,7 @@ function consoleCard({ animate = true, name = "Aigerim Asanova", email = "aigeri
   });
   const N = ORDER.length, bar = h("i"), count = h("span", {}, `0 of ${N} signed in`);
   const el = h("div", { class: "console", "aria-hidden": "true" },
-    h("div", { class: "chrome" }, h("i"), h("i"), h("i"), h("span", {}, "the4workspace.web.app")),
+    h("div", { class: "chrome" }, h("i"), h("i"), h("i"), h("span", {}, "recoon.web.app")),
     h("div", { class: "console-body" },
       h("div", { class: "acct" }, h("span", { class: "avatar" }, initials(name)), h("div", {}, h("b", {}, name), h("span", {}, email)), h("span", { class: "badge" }, "One account")),
       h("div", { class: "apps-list" }, rows.map(r => r.el)),
@@ -288,7 +288,7 @@ function landing() {
       h("div", {},
         h("span", { class: "pill rise" }, h("b", {}, "New"), "Every app now signs you in automatically"),
         h("h1", { "aria-label": "One account for all five apps." }, words("One account for"), words("all five apps.", 3, "grad")),
-        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and CompactCoding open already signed in: no second password, no downloads."),
+        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
@@ -300,13 +300,13 @@ function landing() {
 
     h("section", { id: "product" },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Single sign-on"), h("h2", { class: "h2 reveal" }, "One sign-in. Every app."),
-        h("p", { class: "lead reveal" }, "Your The4Workspace account is the key. Open any of the five apps from here and it arrives signed in as you.")),
+        h("p", { class: "lead reveal" }, "Your Recoon account is the key. Open any of the five apps from here and it arrives signed in as you.")),
       h("div", { class: "doors reveal" },
         h("div", { class: "door-svg", html: '<svg viewBox="0 0 1000 380" preserveAspectRatio="none" aria-hidden="true">' + ORDER.map((id, k) => {
           const x = 100 + k * 800 / (ORDER.length - 1), d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
           return `<path class="dline" style="--c:${INFO[id].c1};--k:${k}" d="${d}"/>` + (reduce ? "" : `<circle class="dpulse" style="--c:${INFO[id].c1}" r="4"><animateMotion dur="2.6s" begin="${k * .4}s" repeatCount="indefinite" path="${d}"/></circle>`);
         }).join("") + "</svg>" }),
-        h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your The4Workspace account"), h("span", {}, "Google or email"))),
+        h("div", { class: "key card" }, mark(34), h("div", {}, h("b", {}, "Your Recoon account"), h("span", {}, "Google or email"))),
         h("div", { class: "door-row" }, ORDER.map((id, k) => h("div", { class: "door card", style: { "--k": k, "--c1": INFO[id].c1 } }, tile(id, "lg"), h("b", {}, INFO[id].name), h("span", { class: "badge" }, "Opens signed in")))))),
 
     h("section", { id: "inside", style: { "padding-top": 0 } },
@@ -319,7 +319,7 @@ function landing() {
           h("p", { class: "faint tiny", style: { margin: 0 } }, "Every app, every Kyrgyz topic and every action, from the keyboard.")))),
 
     h("section", { id: "features", style: { "padding-top": 0 } },
-      h("span", { class: "eyebrow reveal" }, "Why The4Workspace"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
+      h("span", { class: "eyebrow reveal" }, "Why Recoon"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
       h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the five apps, behind one account."),
       h("div", { class: "features" },
         feature("key", "One account", "One email and password, or one Google account, for all five apps.", 0),
@@ -366,8 +366,8 @@ function landing() {
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "FAQ"), h("h2", { class: "h2 reveal" }, "Questions, answered")),
       h("div", { class: "faq reveal" },
         q("Is it free?", "Yes. Creating an account and using all five apps is free."),
-        q("I already have a LearnKyrgyz account.", "Then you already have a The4Workspace account. Sign in with the same email or Google account."),
-        q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from The4Workspace and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
+        q("I already have a LearnKyrgyz account.", "Then you already have a Recoon account. Sign in with the same email or Google account."),
+        q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from Recoon and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
         q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."))),
 
@@ -445,13 +445,13 @@ function authView(mode) {
   const target = returnTo && appFor(returnTo);
   app.replaceChildren(h("div", { class: "auth-wrap" },
     h("div", { class: "auth-art" },
-      h("span", { class: "eyebrow rise" }, mark(), "The4Workspace account"),
+      h("span", { class: "eyebrow rise" }, mark(), "Recoon account"),
       h("h1", { class: "rise", style: { "--d": 1 } }, signup ? "One account for every app." : "Welcome back."),
       h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and CompactCoding open with it already signed in."),
       h("div", { class: "rise", style: { "--d": 3 } }, consoleCard({ animate: true }))),
     h("div", { class: "auth card rise" },
       target ? h("div", { class: "return-banner" }, tile(target, "sm"), h("span", {}, `Sign in to continue to ${INFO[target].name}`)) : null,
-      h("h2", {}, signup ? "Create your account" : "Sign in to The4Workspace"),
+      h("h2", {}, signup ? "Create your account" : "Sign in to Recoon"),
       h("p", { class: "sub" }, signup ? "Free, and it works in all five apps." : "Use the account you use in any of the five apps."),
       h("div", { class: "seg" },
         h("button", { type: "button", class: signup ? "" : "on", onClick: () => { location.hash = "signin"; } }, "Sign in"),
@@ -517,7 +517,7 @@ function dashboard() {
     h("div", { class: "guides" }, [...ORDER.map(id => h("details", { class: "card", open: id === "learnkyrgyz" ? true : null },
       h("summary", {}, tile(id, "sm"), INFO[id].name), h("ol", {}, INFO[id].how.map(x => h("li", {}, x))))),
       h("details", { class: "card" }, h("summary", {}, mark(), "How one account works"),
-        h("ol", {}, h("li", {}, "Your The4Workspace account is your LearnKyrgyz account: the same email, password or Google."),
+        h("ol", {}, h("li", {}, "Your Recoon account is your LearnKyrgyz account: the same email, password or Google."),
           h("li", {}, "When you open an app from here, your sign-in goes with you in the part of the link that browsers don't send to servers, and the app removes it straight away."),
           h("li", {}, "Kadam and CompactCoding swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
@@ -603,7 +603,7 @@ function commands() {
   }
   add("Actions", themeNow() === "dark" ? "Switch to light mode" : "Switch to dark mode", toggleTheme, { icon: h("span", { class: "cmd-ic", html: themeNow() === "dark" ? SUN : MOON }), keys: ["T"] });
   add("Actions", "What's new", () => whatsNew(), { icon: h("span", { class: "cmd-ic", html: BELL }) });
-  add("Actions", "Install The4Workspace as an app", () => install(), { icon: h("span", { class: "cmd-ic", html: DOWNLOAD }) });
+  add("Actions", "Install Recoon as an app", () => install(), { icon: h("span", { class: "cmd-ic", html: DOWNLOAD }) });
   if (session) {
     add("Actions", "Take the tour again", () => { store.set("toured", false); scrollTo({ top: 0 }); tour(); }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>') }) });
     add("Go to", "Achievements", go("badges"), { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/>') }) });
@@ -667,11 +667,12 @@ function sheet(title, body) {
   return close;
 }
 const NEWS = [
-  { v: "2.5", date: "9 Oct 2026", title: "World Islands", items: ["Banda World Islands is the fifth app: a 3D island world with learning games, minigames and teacher tools", "It opens signed in from the dashboard, the launcher and the app switcher"] },
-  { v: "2.4", date: "28 Sep 2026", title: "One workspace, everywhere", items: ["A switcher in every app: press the The4Workspace button (or Alt+W) in LearnKyrgyz, Quoldek, Kadam or CompactCoding to jump to another app, signed in", "Install The4Workspace as an app on your phone or computer", "Achievements: 12 badges to collect, with a shiny unlock", "A short tour for your first visit"] },
+  { v: "3.0", date: "9 Oct 2026", title: "Recoon", items: ["The4Workspace is now Recoon, at recoon.web.app. Your account, apps and progress are the same; the old address forwards here", "A new logo", "Banda World Islands is now World Islands, at world-islands.web.app"] },
+  { v: "2.5", date: "9 Oct 2026", title: "World Islands", items: ["World Islands is the fifth app: a 3D island world with learning games, minigames and teacher tools", "It opens signed in from the dashboard, the launcher and the app switcher"] },
+  { v: "2.4", date: "28 Sep 2026", title: "One workspace, everywhere", items: ["A switcher in every app: press the Recoon button (or Alt+W) in LearnKyrgyz, Quoldek, Kadam or CompactCoding to jump to another app, signed in", "Install Recoon as an app on your phone or computer", "Achievements: 12 badges to collect, with a shiny unlock", "A short tour for your first visit"] },
   { v: "2.3", date: "27 Sep 2026", title: "A friendlier dashboard", items: ["A live sky over your dashboard: the sun or moon where it really is, stars at night, clouds and the Ala-Too", "Today's quest: one small thing in each app, ticked off as you open them, with a daily quest streak", "Numbers roll into place, cards glow where your cursor is, app icons wiggle hello"] },
   { v: "2.2", date: "27 Sep 2026", title: "A workspace, not just a door", items: ["⌘K / Ctrl+K opens a command menu: every app, every Kyrgyz topic, every action", "Your dashboard has a Today row: your streak ring and a focus timer", "Live app status, recently opened apps, and a launcher you can reorder by dragging", "Light and dark mode, keyboard shortcuts, and a new floating header"] },
-  { v: "2.1", date: "26 Sep 2026", title: "The4Workspace", items: ["OneInFour is now The4Workspace at the4workspace.web.app", "Quoldek 5.0 signs in with The4Workspace, then opens your TeachBoard or StudentBoard", "AkylduuKodo is now CompactCoding at compactcoding.web.app", "Every app has a The4Workspace button"] },
+  { v: "2.1", date: "26 Sep 2026", title: "Recoon", items: ["OneInFour is now Recoon at recoon.web.app", "Quoldek 5.0 signs in with Recoon, then opens your TeachBoard or StudentBoard", "AkylduuKodo is now CompactCoding at compactcoding.web.app", "Every app has a Recoon button"] },
   { v: "2.0", date: "26 Sep 2026", title: "One account, four apps", items: ["Kadam and CompactCoding sign you in automatically", "The four logos orbit your account in 3D; a bubble grows as you open an app"] },
 ];
 const newsSeen = () => store.get("news", "") === NEWS[0].v;
@@ -862,7 +863,7 @@ const focus = {
     this.views.forEach(v => v.isConnected ? v.paint() : this.views.delete(v));
     const on = this.state() && this.state().paused == null;
     const mm = String(Math.floor(this.left() / 60000)).padStart(2, "0"), ss = String(Math.floor(this.left() / 1000) % 60).padStart(2, "0");
-    document.title = on ? `${mm}:${ss} · Focus · The4Workspace` : baseTitle;
+    document.title = on ? `${mm}:${ss} · Focus · Recoon` : baseTitle;
   },
 };
 const baseTitle = document.title;
@@ -954,7 +955,7 @@ function launcher(items) {
 
 // ── achievements: small badges for the things people actually do here (kept on this device) ──
 const BADGES = [
-  { id: "first", emoji: "🚀", name: "Lift-off", how: "Open any app from The4Workspace", test: (d) => d.opened.size >= 1 },
+  { id: "first", emoji: "🚀", name: "Lift-off", how: "Open any app from Recoon", test: (d) => d.opened.size >= 1 },
   { id: "explorer", emoji: "🧭", name: "Explorer", how: "Open every app", test: (d) => d.opened.size >= ORDER.length },
   { id: "quest", emoji: "🏆", name: "Quest complete", how: "Finish a daily quest", test: (d) => d.quests >= 1 },
   { id: "streak3", emoji: "⚡", name: "On a roll", how: "Finish the quest 3 days in a row", test: (d) => d.qstreak >= 3 },
@@ -965,7 +966,7 @@ const BADGES = [
   { id: "style", emoji: "🎨", name: "Make it yours", how: "Switch theme or reorder your apps", test: (d) => d.flags.style },
   { id: "owl", emoji: "🦉", name: "Night owl", how: "Visit after 10 pm", test: (d) => d.flags.owl },
   { id: "bird", emoji: "🐦", name: "Early bird", how: "Visit before 7 am", test: (d) => d.flags.bird },
-  { id: "install", emoji: "📲", name: "At home", how: "Install The4Workspace as an app", test: (d) => d.flags.install },
+  { id: "install", emoji: "📲", name: "At home", how: "Install Recoon as an app", test: (d) => d.flags.install },
 ];
 const flag = (k) => { const f = store.get("flags", {}); if (!f[k]) { f[k] = true; store.set("flags", f); later(checkBadges, 300); } };
 function badgeData() {
@@ -1033,9 +1034,9 @@ function tour() {
 // ── install as an app ──
 let installEvt = null;
 addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; drawNav(); });
-addEventListener("appinstalled", () => { installEvt = null; flag("install"); toast("The4Workspace is installed 🎉", "good"); drawNav(); });
+addEventListener("appinstalled", () => { installEvt = null; flag("install"); toast("Recoon is installed 🎉", "good"); drawNav(); });
 async function install() {
-  if (!installEvt) return toast(isMac ? "In Safari: Share → Add to Dock / Home Screen" : "Use your browser's menu → Install The4Workspace");
+  if (!installEvt) return toast(isMac ? "In Safari: Share → Add to Dock / Home Screen" : "Use your browser's menu → Install Recoon");
   installEvt.prompt(); const { outcome } = await installEvt.userChoice; if (outcome === "accepted") { installEvt = null; drawNav(); }
 }
 const DOWNLOAD = svg('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>');
@@ -1154,7 +1155,7 @@ function intro() {
     u.hash = "oit=none" + (u.hash.length > 1 ? "&" + u.hash.slice(1) : "");
     return location.replace(u.href);
   }
-  // Arriving from a LearnKyrgyz app's The4Workspace button, already signed in there.
+  // Arriving from a LearnKyrgyz app's Recoon button, already signed in there.
   try { await acceptHandoff(client); } catch {}
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
   starfield(); pointerFx(); headerFx();

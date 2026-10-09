@@ -1,22 +1,85 @@
 {
-  "name": "The4Workspace",
-  "short_name": "The4Workspace",
-  "description": "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.",
+  "name": "Recoon",
+  "short_name": "Recoon",
+  "description": "One account for LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands.",
   "start_url": "/?source=app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#09090f",
   "theme_color": "#09090f",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ],
   "shortcuts": [
-    { "name": "LearnKyrgyz", "url": "/?return=https%3A%2F%2Fstudentlrnkyrgyz.web.app%2F&silent=1", "icons": [{ "src": "icons/learnkyrgyz.svg", "sizes": "any" }] },
-    { "name": "Quoldek", "url": "/?return=https%3A%2F%2Fquoldek.web.app%2Fsignin.html&silent=1", "icons": [{ "src": "icons/quoldek.svg", "sizes": "any" }] },
-    { "name": "Kadam", "url": "/?return=https%3A%2F%2Fkadam.web.app%2F&silent=1", "icons": [{ "src": "icons/kadam.svg", "sizes": "any" }] },
-    { "name": "CompactCoding", "url": "/?return=https%3A%2F%2Fcompactcoding.web.app%2F&silent=1", "icons": [{ "src": "icons/akylduukodo.svg", "sizes": "any" }] }
+    {
+      "name": "LearnKyrgyz",
+      "url": "/?return=https%3A%2F%2Fstudentlrnkyrgyz.web.app%2F&silent=1",
+      "icons": [
+        {
+          "src": "icons/learnkyrgyz.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Quoldek",
+      "url": "/?return=https%3A%2F%2Fquoldek.web.app%2Fsignin.html&silent=1",
+      "icons": [
+        {
+          "src": "icons/quoldek.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Kadam",
+      "url": "/?return=https%3A%2F%2Fkadam.web.app%2F&silent=1",
+      "icons": [
+        {
+          "src": "icons/kadam.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "CompactCoding",
+      "url": "/?return=https%3A%2F%2Fcompactcoding.web.app%2F&silent=1",
+      "icons": [
+        {
+          "src": "icons/akylduukodo.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "World Islands",
+      "url": "/?return=https%3A%2F%2Fworld-islands.web.app%2F&silent=1",
+      "icons": [
+        {
+          "src": "icons/worldislands.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

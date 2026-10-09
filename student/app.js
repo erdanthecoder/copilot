@@ -127,7 +127,7 @@ function checkAchievements() {
 async function boot() {
   setLang(getLang());
   applyTheme();
-  await acceptHandoff(client); // arriving from the4workspace.web.app or another app, already signed in
+  await acceptHandoff(client); // arriving from recoon.web.app or another app, already signed in
   const { data } = await client.auth.getSession();
   if (data.session) return signedIn(data.session.user);
   try { if (localStorage.getItem("lk.guestMode") === "1") return startGuest(); } catch {}
@@ -147,7 +147,7 @@ function renderAuth(mode = "welcome", msg = null) {
         googleBlock({ role: "student", learnFrom: getLang, label: getLang() === "ru" ? "Продолжить с Google" : "Continue with Google", orLabel: getLang() === "ru" ? "или" : "or", onSignedIn: async (u) => { await migrateGuest(u); signedIn(u); }, onError: (e) => toast(errMsg(e), "bad") }),
         h("button", { class: "btn primary block", onClick: () => renderAuth("signup") }, t("signUp")),
         h("button", { class: "btn ghost block", onClick: () => renderAuth("signin") }, t("signIn")),
-        h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?return=${encodeURIComponent(location.origin + location.pathname)}` }, wsMark(22), getLang() === "ru" ? "Войти через The4Workspace" : "Sign in with The4Workspace"),
+        h("a", { class: "btn ghost block oit-btn", href: `${HUB}/?return=${encodeURIComponent(location.origin + location.pathname)}` }, wsMark(22), getLang() === "ru" ? "Войти через Recoon" : "Sign in with Recoon"),
         h("button", { class: "link-btn", onClick: startGuest }, t("guest")))];
   } else {
     const signup = mode === "signup";

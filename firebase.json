@@ -75,17 +75,12 @@
     },
     {
       "target": "hub",
-      "public": "dist/hub",
-      "cleanUrls": true,
-      "headers": [
+      "public": "dist/oldhub",
+      "redirects": [
         {
-          "source": "**/*.@(js|css|html)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            }
-          ]
+          "source": "/:path*",
+          "destination": "https://recoon.web.app/:path*",
+          "type": 301
         }
       ]
     },
@@ -95,7 +90,7 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://the4workspace.web.app/:path*",
+          "destination": "https://recoon.web.app/:path*",
           "type": 301
         }
       ]
@@ -106,50 +101,30 @@
       "redirects": [
         {
           "source": "/:path*",
-          "destination": "https://the4workspace.web.app/:path*",
+          "destination": "https://recoon.web.app/:path*",
           "type": 301
         }
       ]
     },
     {
       "target": "banda",
-      "public": "dist/banda",
-      "rewrites": [
+      "public": "dist/oldhub",
+      "redirects": [
         {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "**/*.@(js|css|html)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            }
-          ]
+          "source": "/:path*",
+          "destination": "https://world-islands.web.app/:path*",
+          "type": 301
         }
       ]
     },
     {
       "target": "banda2",
-      "public": "dist/banda",
-      "rewrites": [
+      "public": "dist/oldhub",
+      "redirects": [
         {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "**/*.@(js|css|html)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            }
-          ]
+          "source": "/:path*",
+          "destination": "https://world-islands.web.app/:path*",
+          "type": 301
         }
       ]
     },

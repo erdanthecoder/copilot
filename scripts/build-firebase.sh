@@ -19,13 +19,13 @@ for app in student teacher; do
   sed 's#\.\./assets/#assets/#g' "$app/index.html" > "dist/$app/index.html"
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
-# the4workspace.web.app — the one-account hub (oneintwo and oneinfour forward to it)
-cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/icon-192.png oneinfour/icon-512.png "dist/hub/"
+# recoon.web.app — the one-account hub (the4workspace, oneintwo and oneinfour forward to it)
+cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/icon-192.png oneinfour/icon-512.png oneinfour/icon-maskable-512.png oneinfour/apple-touch-icon.png oneinfour/share.png "dist/hub/"
 for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js
-printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://the4workspace.web.app/">\n' > dist/oldhub/index.html
-# banda-worldislands.web.app — Banda World Islands (signs in through The4Workspace)
+printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://recoon.web.app/">\n' > dist/oldhub/index.html
+# world-islands.web.app — World Islands (signs in through Recoon; banda-worldislands and bandaworld forward to it)
 cp -R banda dist/banda
 # robots.txt + sitemap.xml so Google can find and list each site
 seo() { # dir host [noindex]
@@ -36,7 +36,7 @@ seo() { # dir host [noindex]
 seo dist/home learnkyrgyz.web.app
 seo dist/student studentlrnkyrgyz.web.app
 seo dist/teacher teachlrnkyrgyz.web.app
-seo dist/hub the4workspace.web.app
+seo dist/hub recoon.web.app
 seo dist/oldhub oneintwo.web.app noindex
-seo dist/banda banda-worldislands.web.app
+seo dist/banda world-islands.web.app
 echo "Built dist/{home,student,teacher,hub,oldhub,banda}"
