@@ -6,6 +6,11 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 9, 2026", title: "World Islands: funny cat cartoons and more admin fun", items: [
+    "🎬 New cinema cartoons: \"Барсик\", a silly orange cat, in 6 funny episodes (the cucumber, the red dot, the tiny box, the vacuum cleaner, the mirror, the cup). He speaks Russian in a squeaky cat voice, with a narrator, cartoon sounds and kids laughing.",
+    "🔐 Admin now works on every server at once.",
+    "🎉 New admin fun: launch everyone into the air, dance party, candy rain, fish rain, a GIANT Барсик walking across the island, snow, meteors, confetti, bring everyone to you, and powers (night, low gravity, super speed, giant).",
+    "💰 Admins can give money to themselves, another player (or a phone number), or everyone online."] },
   { date: "Oct 9, 2026", title: "World Islands: basketball, restaurant, jobs and admin shows", items: [
     "🏀 Basketball: 3 vs 3 with bots on the court by the stadium. Bots also play there on their own, so you can watch or join.",
     "🍽️ Island Restaurant: sit at a table, order plov, lagman, manty and more, and a waiter brings it.",
