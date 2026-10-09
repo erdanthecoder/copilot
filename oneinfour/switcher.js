@@ -96,10 +96,10 @@
           <a class="app${here && here.id === a.id ? ' here' : ''}" href="${esc(go(a))}" data-id="${a.id}" style="--c:${a.c};--i:${i}">
             <img src="${esc(a.icon)}" alt="" loading="lazy"><b>${esc(a.name)}</b><small>${esc(a.tag)}</small></a>`).join('')}
         </div>
-        <a class="home" href="${HUB}/"><img src="${HUB}/icon.svg" alt=""><div><b>Open TeamOlive</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
+        <a class="home" href="${HUB}/"><img src="${HUB}/teamolive-logo.svg" alt=""><div><b>Open TeamOlive</b><span>Your dashboard, quest and more</span></div><i>→</i></a>
         <div class="foot"><kbd>Alt</kbd> + <kbd>W</kbd> opens this anywhere</div>
       </div>
-      <button class="fab" aria-label="Switch app (TeamOlive)" aria-expanded="false"><img src="${HUB}/icon.svg" alt=""></button>
+      <button class="fab" aria-label="Switch app (TeamOlive)" aria-expanded="false"><img src="${HUB}/teamolive-logo.svg" alt=""></button>
       <span class="tip">Switch app</span>`;
     root.append(style, wrap);
     document.body.append(holder);

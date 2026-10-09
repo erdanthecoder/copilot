@@ -32,7 +32,7 @@ function h(tag, attrs = {}, ...kids) {
   for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
   return el;
 }
-const mark = (size = 22) => h("img", { src: "icon.svg", alt: "", width: size, height: size, style: { "border-radius": Math.round(size * .28) + "px", display: "block", flex: "none" } });
+const mark = (size = 22) => h("img", { src: "teamolive-logo.svg", alt: "", width: size, height: size, style: { "border-radius": Math.round(size * .28) + "px", display: "block", flex: "none" } });
 const svg = (path) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 const IC = {
   key: svg('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 9.2-9.2M17 6l3 3M14 9l2 2"/>'),
@@ -252,7 +252,7 @@ function stage() {
     [0, 1, 2].map(i => h("i", { class: "wave", style: { "--i": i } })),
     h("div", { class: "orbit" }, ORDER.map((id, k) => h("div", { class: "sat", style: { "--a": k * 360 / ORDER.length + "deg" } },
       h("div", { class: "face", style: { "--a": k * 360 / ORDER.length + "deg", "--k": k, "--c1": INFO[id].c1 } }, tile(id), h("b", {}, INFO[id].name), h("i", { class: "ok" }, "✓"))))),
-    h("div", { class: "core" }, h("img", { src: "icon.svg", alt: "" })),
+    h("div", { class: "core" }, h("img", { src: "teamolive-logo.svg", alt: "" })),
     bubble);
   const el = h("div", { class: "stage rise", style: { "--d": 2 }, "aria-hidden": "true" }, scene);
   if (reduce) return el;
@@ -834,7 +834,7 @@ const focus = {
   left() { const s = this.state(); if (!s) return 0; return s.paused != null ? s.paused : Math.max(0, s.end - Date.now()); },
   chime() {
     try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [0, .18, .36].forEach((t, i) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = [660, 880, 990][i]; g.gain.setValueAtTime(.0001, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(.25, ac.currentTime + t + .02); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + t + .5); o.connect(g).connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + .55); }); } catch {}
-    try { if (Notification.permission === "granted") new Notification("Focus session done", { body: "Take a five-minute break.", icon: "icon.svg" }); } catch {}
+    try { if (Notification.permission === "granted") new Notification("Focus session done", { body: "Take a five-minute break.", icon: "teamolive-logo.svg" }); } catch {}
   },
   views: new Set(),
   tick() {
@@ -1115,7 +1115,7 @@ function intro() {
   const layer = h("div", { class: "intro", onClick: () => finish() },
     ORDER.map((id, k) => h("span", { class: "fly", style: { "--k": k, "--c1": INFO[id].c1, "--fx": from[k][0] * innerWidth * .6 + "px", "--fy": from[k][1] * innerHeight * .6 + "px", "--fr": (k % 2 ? 1 : -1) * 120 + "deg", "--tx": from[k][0] * 46 + "px", "--ty": from[k][1] * 46 + "px" } }, h("img", { src: INFO[id].icon, alt: "" }))),
     h("i", { class: "burst" }), h("i", { class: "burst b2" }),
-    h("div", { class: "one" }, h("img", { src: "icon.svg", alt: "" }), h("b", {}, "The", h("span", {}, "4"), "Workspace")));
+    h("div", { class: "one" }, h("img", { src: "teamolive-logo.svg", alt: "" }), h("b", {}, "Team", h("span", {}, "Olive"))));
   document.body.append(layer);
   return new Promise((res) => { done = res; setTimeout(finish, 2300); });
 }

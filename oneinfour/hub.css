@@ -357,7 +357,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 @media (max-width: 760px) { .key { animation: none; } }
 
 /* first visit: four apps fly in and become one */
-.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #1a1240, #07070f 70%); perspective: 900px; cursor: pointer; }
+.intro { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #1d3a14, #070d07 70%); perspective: 900px; cursor: pointer; }
 .intro.out { animation: intro-out .7s cubic-bezier(.7,0,.3,1) forwards; }
 @keyframes intro-out { to { opacity: 0; transform: scale(1.15); filter: blur(6px); visibility: hidden; } }
 .intro .fly { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px -14px var(--c1); animation: flyin 1s cubic-bezier(.2,.9,.25,1) both, merge .45s cubic-bezier(.6,0,.4,1) 1.15s forwards; animation-delay: calc(var(--k) * 90ms), 1.15s; }
@@ -369,8 +369,8 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 .intro .one b { color: #fff; font-size: 30px; letter-spacing: -.03em; }
 .intro .one b span { background: linear-gradient(90deg, #c7e26a, #6f9b1f); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes one-in { to { opacity: 1; transform: none; } }
-.intro .burst { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; border: 2px solid rgba(167,139,250,.9); opacity: 0; animation: burst 1s cubic-bezier(.2,.6,.3,1) 1.3s forwards; }
-.intro .burst.b2 { border-color: rgba(34,211,238,.8); animation-delay: 1.45s; }
+.intro .burst { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; border: 2px solid rgba(199,226,106,.9); opacity: 0; animation: burst 1s cubic-bezier(.2,.6,.3,1) 1.3s forwards; }
+.intro .burst.b2 { border-color: rgba(143,191,58,.8); animation-delay: 1.45s; }
 @keyframes burst { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(60); } }
 
 /* leaving for an app: a bubble in its colour grows from where you pressed */
