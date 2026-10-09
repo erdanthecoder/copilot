@@ -4,6 +4,21 @@ import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } fr
 import { handoffUrl, isTrusted, acceptHandoff } from "../assets/js/oneintwo-core.js";
 import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
+// Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
+const UPDATES = [
+  { date: "Oct 9, 2026", title: "World Islands: football fixed", items: [
+    "Teams wear red or blue shirts, and each goal has its team's colour.",
+    "Signs show YOUR GOAL and SCORE HERE, and the match starts by telling you which goal to attack.",
+    "Own goals count for the other team and say “Own goal!”.",
+    "The ball goes where you're facing. Bots have a keeper, pass, and only shoot when close.",
+    "After every goal, everyone goes back to their half for a kick-off."] },
+  { date: "Oct 9, 2026", title: "FlexiHub is the new name", items: [
+    "The hub is now flexihub.web.app. Old addresses (teamolive, recoon, the4workspace) still work and bring you here.",
+    "The hub is simpler: information, Pomodoro timer, app status and the apps."] },
+  { date: "Oct 2026", title: "World Islands", items: [
+    "The game is now World Islands at world-islands.web.app.",
+    "Round World Tower, mBank with card, phone and hand pay, jobs, phone calls and messages, cinema cartoons in Russian, and a better hotel."] },
+];
 const client = sb();
 const app = document.getElementById("app");
 const nav = document.getElementById("nav");
@@ -361,7 +376,9 @@ function landing() {
         q("I already have a LearnKyrgyz account.", "Then you already have a FlexiHub account. Sign in with the same email or Google account."),
         q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from FlexiHub and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
-        q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."))),
+        q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install.")),
+      h("div", { class: "center", style: { "margin-top": "56px" } }, h("span", { class: "eyebrow reveal" }, "Updates"), h("h2", { class: "h2 reveal" }, "What's new")),
+      h("div", { class: "faq reveal" }, ...UPDATES.map((u, i) => { const d = q(u.date + " · " + u.title, ""); d.querySelector("p").remove(); d.append(h("ul", { class: "upd" }, ...u.items.map(x => h("li", {}, x)))); if (!i) d.open = true; return d; }))),
 
     h("section", { style: { "padding-top": 0, "padding-bottom": 0 } },
       h("div", { class: "cta card reveal" },

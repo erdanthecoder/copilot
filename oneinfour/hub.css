@@ -207,6 +207,7 @@ ol.clean li::before { content: counter(c); flex: none; width: 24px; height: 24px
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { content: ""; margin-left: auto; width: 10px; height: 10px; border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(45deg) translateY(-3px); transition: transform .25s; }
 .faq details[open] summary::after { transform: rotate(-135deg) translateY(-3px); }
+.faq .upd { margin: 0 0 18px; padding-left: 20px; color: var(--ink-2); font-size: 15px; display: grid; gap: 6px; }
 .faq details p { padding: 0 0 18px; color: var(--ink-2); font-size: 15px; }
 
 /* cta band + footer */
