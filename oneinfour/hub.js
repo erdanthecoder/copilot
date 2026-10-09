@@ -311,8 +311,8 @@ function landing() {
 
     h("section", { id: "inside", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Inside your workspace"), h("h2", { class: "h2 reveal" }, "More than a sign-in page"),
-        h("p", { class: "lead reveal" }, "A daily quest across your five apps, a focus timer, live app status and a command menu. These are real: try them.")),
-      h("div", { class: "bento landing-bento" }, questCard(), focusCard(), statusCard(),
+        h("p", { class: "lead reveal" }, "A focus timer, live app status and a command menu. These are real: try them.")),
+      h("div", { class: "bento landing-bento" }, focusCard(), statusCard(),
         h("button", { class: "widget cmd-teaser card reveal", style: { "--d": 5 }, onClick: palette },
           h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Command menu"), kbd(isMac ? "⌘" : "Ctrl", "K")),
           h("div", { class: "teaser-box" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "typed" }, "family")),
@@ -488,7 +488,7 @@ function dashboard() {
       kpi("quoldek", quizzes, "Quoldek quizzes", 3, "🎮")),
 
     h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
-    h("div", { class: "bento" }, questCard(), teacher ? classesCard() : streakCard(), focusCard(), statusCard(), recentCard()),
+    h("div", { class: "bento" }, teacher ? classesCard() : streakCard(), focusCard(), statusCard(), recentCard()),
 
     h("div", { class: "sec-h", id: "badges" }, h("h2", {}, "Achievements"), h("p", {}, "Little wins, kept on this device")),
     badgeShelf(),
@@ -592,7 +592,6 @@ function commands() {
   if (session) {
     [["today", "Today"], ["apps", "Your apps"], ["bridge", "Topics → Quoldek"], ["guides", "Guides"]].forEach(([id, l]) => add("Go to", l, go(id), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M5 12h14M13 6l6 6-6 6"/>') }) }));
     add("Actions", "Start a 25-minute focus session", () => { focus.start(25); document.getElementById("today")?.scrollIntoView({ behavior: "smooth" }); }, { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>') }) });
-    add("Actions", "Today's quest", () => document.getElementById("quest")?.scrollIntoView({ behavior: "smooth", block: "center" }), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M12 2l3 7h7l-5.5 4.5 2 7.5-6.5-4.5-6.5 4.5 2-7.5L2 9h7z"/>') }) });
     add("Actions", "Edit my profile", () => editProfile(), { icon: h("span", { class: "cmd-ic", html: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>') }) });
     add("Actions", "Sign out", () => signOut(), { icon: h("span", { class: "cmd-ic", html: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>') }) });
     Object.entries(TOPICS).forEach(([id, t]) => add("Play a topic in Quoldek", `${t.en} · ${t.ky}`, () => portal(`https://quoldek.web.app/?learnkyrgyz=${id}&lang=en&go=host`, "quoldek"), { icon: tile("quoldek", "xs"), hidden: true }));
@@ -785,8 +784,7 @@ function skyBanner({ first, teacher }) {
       h("h1", {}, words(`${ky}, ${first}!`), h("span", { class: "wave-hand" }, " 👋")),
       h("p", { class: "sky-sub" }, "Everything you need is one click away. Press ", kbd(isMac ? "⌘" : "Ctrl", "K"), " to jump anywhere."),
       h("div", { class: "sky-cta" },
-        h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow()),
-        h("button", { class: "btn ghost lg glassy", onClick: () => document.getElementById("quest")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }) }, "Today's quest"))));
+        h("button", { class: "btn primary lg", onClick: () => portal(urlFor("learnkyrgyz"), "learnkyrgyz") }, teacher ? "Open my classes" : "Continue learning", arrow()))));
   // the far hills move least, the near ones most
   if (!reduce && finePointer) el.addEventListener("pointermove", (e) => {
     const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
@@ -957,9 +955,6 @@ function launcher(items) {
 const BADGES = [
   { id: "first", emoji: "🚀", name: "Lift-off", how: "Open any app from TeamOlive", test: (d) => d.opened.size >= 1 },
   { id: "explorer", emoji: "🧭", name: "Explorer", how: "Open every app", test: (d) => d.opened.size >= ORDER.length },
-  { id: "quest", emoji: "🏆", name: "Quest complete", how: "Finish a daily quest", test: (d) => d.quests >= 1 },
-  { id: "streak3", emoji: "⚡", name: "On a roll", how: "Finish the quest 3 days in a row", test: (d) => d.qstreak >= 3 },
-  { id: "streak7", emoji: "👑", name: "Unstoppable", how: "Finish the quest 7 days in a row", test: (d) => d.qstreak >= 7 },
   { id: "focus", emoji: "🎯", name: "Deep focus", how: "Finish a focus session", test: (d) => d.focus >= 1 },
   { id: "focus5", emoji: "🧘", name: "Zen master", how: "Finish 5 focus sessions", test: (d) => d.focus >= 5 },
   { id: "command", emoji: "⌨️", name: "Commander", how: "Open the command menu", test: (d) => d.flags.command },
@@ -1003,7 +998,6 @@ function tour() {
   store.set("toured", true);
   const steps = [
     { sel: ".sky", title: "Welcome to your workspace 👋", text: "This is your home for LearnKyrgyz, Quoldek, Kadam and CompactCoding. The sky follows the real time of day." },
-    { sel: "#quest", title: "Today's quest", text: "One small thing in each app. Open an app from here and its task ticks itself off. Finish them all for confetti." },
     { sel: ".launch", title: "Your apps, your order", text: "Drag the cards into the order you like, then press 1–4 to open them from anywhere on this page." },
     { sel: ".search-pill", title: "Jump anywhere", text: `Press ${isMac ? "⌘" : "Ctrl"}+K to find any app, action or Kyrgyz topic. Inside the apps, Alt+W opens the app switcher.` },
   ];
