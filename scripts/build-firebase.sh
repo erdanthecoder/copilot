@@ -20,7 +20,7 @@ for app in student teacher; do
   sed -i 's#"\.\./assets/#"./assets/#g' "dist/$app/app.js"
 done
 # teamolive.web.app — the one-account hub (the4workspace, oneintwo and oneinfour forward to it)
-cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/icon-192.png oneinfour/icon-512.png oneinfour/icon-maskable-512.png oneinfour/apple-touch-icon.png oneinfour/share.png "dist/hub/"
+cp -R assets "dist/hub/" && cp -R oneinfour/icons oneinfour/icon.svg oneinfour/switcher.js oneinfour/sw.js oneinfour/manifest.webmanifest oneinfour/icon-192.png oneinfour/icon-512.png oneinfour/icon-maskable-512.png oneinfour/apple-touch-icon.png oneinfour/share.png oneinfour/google*.html "dist/hub/"
 for f in index.html hub.css; do sed 's#\.\./assets/#assets/#g' "oneinfour/$f" > "dist/hub/$f"; done
 # module imports must stay relative ("./assets/…"), or the browser refuses to load them
 sed 's#"\.\./assets/#"./assets/#g' oneinfour/hub.js > dist/hub/hub.js

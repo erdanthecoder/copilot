@@ -163,7 +163,6 @@
     {
       "target": "olive",
       "public": "dist/hub",
-      "cleanUrls": true,
       "headers": [
         {
           "source": "**/*.@(js|css|html)",
