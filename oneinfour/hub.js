@@ -188,14 +188,11 @@ const initials = (name) => (name || "?").trim().split(/[\s@]+/).filter(Boolean).
 function drawNav() {
   nav.replaceChildren();
   const tools = [
-    h("button", { class: "search-pill", onClick: palette, "aria-label": "Search (" + (isMac ? "⌘" : "Ctrl") + " K)" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "sp-t" }, "Search"), kbd(isMac ? "⌘" : "Ctrl", "K")),
     h("button", { class: "icon-btn", onClick: toggleTheme, title: themeNow() === "dark" ? "Light mode (T)" : "Dark mode (T)", "aria-label": "Switch theme", html: themeNow() === "dark" ? SUN : MOON }),
-    h("button", { class: "icon-btn bell" + (newsSeen() ? "" : " unread"), onClick: whatsNew, title: "What's new", "aria-label": "What's new", html: BELL }),
-    installEvt ? h("button", { class: "icon-btn install-btn", onClick: install, title: "Install TeamOlive as an app", "aria-label": "Install app", html: DOWNLOAD }) : null,
   ];
   if (session) {
     const name = profile?.full_name || session.user.email;
-    nav.append(h("a", { class: "link", href: "#today" }, "Today"), h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#bridge" }, "Topics"), ...tools.filter(Boolean),
+    nav.append(h("a", { class: "link", href: "#today" }, "Today"), h("a", { class: "link", href: "#apps" }, "Apps"), h("a", { class: "link", href: "#guides" }, "Guides"), ...tools.filter(Boolean),
       h("span", { class: "me" }, h("button", { class: "avatar", style: avatarStyle(), title: `${session.user.email} · Edit profile`, onClick: editProfile }, initials(name)),
         h("button", { class: "btn ghost sm", onClick: signOut }, "Sign out")));
   } else {
@@ -292,7 +289,6 @@ function landing() {
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
-        h("button", { class: "k-hint rise", style: { "--d": 4 }, onClick: palette }, "Try it: press ", kbd(isMac ? "⌘" : "Ctrl", "K")),
         h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding · World Islands"))),
       stage()),
 
@@ -311,12 +307,8 @@ function landing() {
 
     h("section", { id: "inside", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Inside your workspace"), h("h2", { class: "h2 reveal" }, "More than a sign-in page"),
-        h("p", { class: "lead reveal" }, "A focus timer, live app status and a command menu. These are real: try them.")),
-      h("div", { class: "bento landing-bento" }, focusCard(), statusCard(),
-        h("button", { class: "widget cmd-teaser card reveal", style: { "--d": 5 }, onClick: palette },
-          h("div", { class: "w-h" }, h("span", { class: "eyebrow" }, "Command menu"), kbd(isMac ? "⌘" : "Ctrl", "K")),
-          h("div", { class: "teaser-box" }, h("span", { class: "cmd-ic", html: SEARCH }), h("span", { class: "typed" }, "family")),
-          h("p", { class: "faint tiny", style: { margin: 0 } }, "Every app, every Kyrgyz topic and every action, from the keyboard.")))),
+        h("p", { class: "lead reveal" }, "A Pomodoro focus timer and live app status. These are real: try them.")),
+      h("div", { class: "bento landing-bento two-up" }, focusCard(), statusCard())),
 
     h("section", { id: "features", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "Why TeamOlive"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
@@ -475,7 +467,7 @@ function dashboard() {
 
   app.replaceChildren(h("div", { class: "dash" },
     skyBanner({ first, teacher }),
-    h("div", { class: "kpis" },
+    false && h("div", { class: "kpis" },
       teacher && teaching ? [
         kpi("learnkyrgyz", teaching.classes.length, "Classes", 0, "🏫"),
         kpi("learnkyrgyz", teaching.students, "Students", 1, "🧑‍🎓"),
@@ -488,10 +480,7 @@ function dashboard() {
       kpi("quoldek", quizzes, "Quoldek quizzes", 3, "🎮")),
 
     h("div", { class: "sec-h", id: "today" }, h("h2", {}, "Today"), h("p", {}, kyDate())),
-    h("div", { class: "bento" }, teacher ? classesCard() : streakCard(), focusCard(), statusCard(), recentCard()),
-
-    h("div", { class: "sec-h", id: "badges" }, h("h2", {}, "Achievements"), h("p", {}, "Little wins, kept on this device")),
-    badgeShelf(),
+    h("div", { class: "bento two-up" }, focusCard(), statusCard()),
 
     h("div", { class: "sec-h", id: "apps" }, h("h2", {}, "Your apps"), h("p", {}, "Drag to reorder · press 1–4 to open")),
     launcher(myOrder().map((id, k) => tilt(h("div", { class: "item card reveal", "data-id": id, draggable: "true", style: { "--c1": INFO[id].c1, "--d": k } },
@@ -500,9 +489,8 @@ function dashboard() {
       h("span", { class: "badge", style: { "margin-left": 0, "justify-self": "start" } }, "Opens signed in"),
       h("button", { class: "btn ghost block", onClick: () => portal(urlFor(id), id) }, `Open ${INFO[id].name}`, arrow()))))),
 
-    h("div", { class: "sec-h", id: "bridge" }, h("h2", {}, "LearnKyrgyz topics → Quoldek"), h("p", {}, "A topic becomes a game in one tap")),
-    h("div", { class: "two" },
-      picker(),
+    h("div", { class: "sec-h", id: "account" }, h("h2", {}, "Account"), h("p", {}, "Your details")),
+    h("div", { class: "one" },
       h("div", { class: "panel card reveal" },
         h("div", { class: "row-between" }, h("b", {}, "Account"), h("span", { class: "badge" }, "Active")),
         h("div", { class: "kv" },
@@ -522,10 +510,6 @@ function dashboard() {
           h("li", {}, "Kadam and CompactCoding swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
   reveal(app);
-  const hr = new Date().getHours();
-  if (hr >= 22 || hr < 5) flag("owl"); else if (hr >= 5 && hr < 7) flag("bird");
-  later(() => checkBadges(), 1600);
-  later(tour, 1400);
 }
 
 function picker() {
@@ -666,6 +650,7 @@ function sheet(title, body) {
   return close;
 }
 const NEWS = [
+  { v: "3.1", date: "9 Oct 2026", title: "Simpler", items: ["TeamOlive now keeps only what matters: the apps, a Pomodoro timer, live app status and information"] },
   { v: "3.0", date: "9 Oct 2026", title: "TeamOlive", items: ["The4Workspace is now TeamOlive, at teamolive.web.app. Your account, apps and progress are the same; the old address forwards here", "A new logo", "Banda World Islands is now World Islands, at world-islands.web.app"] },
   { v: "2.5", date: "9 Oct 2026", title: "World Islands", items: ["World Islands is the fifth app: a 3D island world with learning games, minigames and teacher tools", "It opens signed in from the dashboard, the launcher and the app switcher"] },
   { v: "2.4", date: "28 Sep 2026", title: "One workspace, everywhere", items: ["A switcher in every app: press the TeamOlive button (or Alt+W) in LearnKyrgyz, Quoldek, Kadam or CompactCoding to jump to another app, signed in", "Install TeamOlive as an app on your phone or computer", "Achievements: 12 badges to collect, with a shiny unlock", "A short tour for your first visit"] },
@@ -690,11 +675,8 @@ function shortcuts() {
 }
 addEventListener("keydown", (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palette(); return; }
-  if (typing || e.metaKey || e.ctrlKey || e.altKey || document.querySelector(".cmdk")) return;
-  if (e.key === "/") { e.preventDefault(); palette(); }
-  else if (e.key === "?") shortcuts();
-  else if (e.key.toLowerCase() === "t") toggleTheme();
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key.toLowerCase() === "t") toggleTheme();
   else if (e.key.toLowerCase() === "f" && session) focus.toggle();
   else if (session && /^[1-9]$/.test(e.key) && +e.key <= ORDER.length) openApp(myOrder()[+e.key - 1]);
 });
@@ -963,7 +945,7 @@ const BADGES = [
   { id: "bird", emoji: "🐦", name: "Early bird", how: "Visit before 7 am", test: (d) => d.flags.bird },
   { id: "install", emoji: "📲", name: "At home", how: "Install TeamOlive as an app", test: (d) => d.flags.install },
 ];
-const flag = (k) => { const f = store.get("flags", {}); if (!f[k]) { f[k] = true; store.set("flags", f); later(checkBadges, 300); } };
+const flag = () => {}; // achievements were removed
 function badgeData() {
   return { opened: new Set(store.get("opened", [])), quests: Object.keys(store.get("quests", {})).length, qstreak: questStreak(), focus: store.get("focusDone", 0), flags: store.get("flags", {}) };
 }
