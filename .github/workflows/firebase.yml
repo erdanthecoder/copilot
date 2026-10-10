@@ -22,7 +22,9 @@ jobs:
       - id: cache
         uses: actions/cache@v4
         with:
-          path: desktop/dist/WorldIslands-Setup.exe
+          path: |
+            desktop/dist/WorldIslands-Setup.exe
+            desktop/dist/WorldIslands-Store.appx
           key: desktop-${{ hashFiles('desktop/package.json', 'desktop/package-lock.json', 'desktop/main.js', 'desktop/offline.html', 'desktop/icon.png', 'desktop/build/**') }}
       - uses: actions/setup-node@v4
         if: steps.cache.outputs.cache-hit != 'true'
@@ -33,7 +35,8 @@ jobs:
         working-directory: desktop
         run: |
           npm ci --no-audit --no-fund
-          npx electron-builder --win nsis --x64 --publish never
+          npx electron-builder --win nsis appx --x64 --publish never
+          dir dist
       - name: Check the app starts (and keeps running)
         if: steps.cache.outputs.cache-hit != 'true'
         shell: pwsh
@@ -51,9 +54,10 @@ jobs:
         run: |
           cd desktop/dist
           sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt
+          STORE=""; [ -f WorldIslands-Store.appx ] && STORE="WorldIslands-Store.appx"
           gh release view windows-app >/dev/null 2>&1 || gh release create windows-app --target "$GITHUB_SHA" --title "World Islands for Windows" --notes "The World Islands app for Windows 10 and 11. Download WorldIslands-Setup.exe and run it. Check: SHA-256 in WorldIslands-Setup.sha256.txt."
           if [ "${{ steps.cache.outputs.cache-hit }}" != "true" ] || ! gh release view windows-app --json assets -q '.assets[].name' | grep -q '^WorldIslands-Setup.exe$'; then
-            gh release upload windows-app WorldIslands-Setup.exe WorldIslands-Setup.sha256.txt --clobber
+            gh release upload windows-app WorldIslands-Setup.exe WorldIslands-Setup.sha256.txt $STORE --clobber
           else echo "Release already has this build"; fi
       - uses: actions/upload-artifact@v4
         with:

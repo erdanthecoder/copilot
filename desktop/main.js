@@ -21,6 +21,9 @@ const openOutside = url => { try { const u = new URL(url); if (u.protocol === 'h
 
 app.enableSandbox();
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
+// smoother 3D: draw on the graphics card where possible and don't slow the game down in the background
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
 if (!app.requestSingleInstanceLock()) app.quit();
 
 let win;
@@ -30,13 +33,13 @@ function create() {
     title: 'World Islands', backgroundColor: '#0e1622', icon: path.join(__dirname, 'icon.png'), autoHideMenuBar: true, show: false,
     webPreferences: {
       sandbox: true, contextIsolation: true, nodeIntegration: false, nodeIntegrationInWorker: false, nodeIntegrationInSubFrames: false,
-      webSecurity: true, allowRunningInsecureContent: false, webviewTag: false, experimentalFeatures: false,
+      webSecurity: true, allowRunningInsecureContent: false, backgroundThrottling: false, webviewTag: false, experimentalFeatures: false,
       navigateOnDragDrop: false, spellcheck: false, devTools: !app.isPackaged, safeDialogs: true,
     },
   });
   // Google refuses to sign in inside apps that say "Electron"; look like the normal Chrome browser this window really is
-  win.webContents.setUserAgent(win.webContents.getUserAgent().replace(/\s(Electron|world-islands)\/\S+/g, ''));
-  win.once('ready-to-show', () => win.show());
+  win.webContents.setUserAgent(win.webContents.getUserAgent().replace(/\s(Electron|world-islands)\/\S+/g, '') + ' WorldIslandsApp/' + app.getVersion());
+  win.once('ready-to-show', () => { win.maximize(); win.show(); });
 
   const wc = win.webContents;
   wc.on('will-navigate', (e, url) => { if (!allowedPage(url) && !isOffline(url)) { e.preventDefault(); openOutside(url); } });
