@@ -1,8 +1,8 @@
 {
   "name": "world-islands",
   "productName": "World Islands",
-  "version": "1.0.0",
-  "description": "World Islands — the island game, as a Windows app.",
+  "version": "2.0.0",
+  "description": "World Islands 2.0 — the island game, as a Windows app.",
   "author": "World Islands",
   "license": "UNLICENSED",
   "private": true,

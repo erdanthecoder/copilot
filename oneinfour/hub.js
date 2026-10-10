@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "🎉 World Islands 2.0", items: [
+    "World Islands is now version 2.0 — with a “What's new in 2.0” screen (Menu → What's new) that lists every update.",
+    "🎪 Up to 3 admin shows at the same time, and 2 new shows: 👽 UFO invasion (a flying saucer, dancing aliens and a beam that lifts you up) and 🫧 Foam party on the stadium. One button starts a MEGA party with 3 shows.",
+    "🌪️ More admin fun: tornado, earthquake, chicken rain, bubbles, a giant rainbow, everyone tiny for 30 seconds, freeze everyone, and shuffle (everyone teleports somewhere random).",
+    "🤖 Bots split up between the shows and dance at each one.",
+    "💻 The Windows app is now version 2.0 too."] },
   { date: "Oct 10, 2026", title: "World Islands: face mood fixed, fishing, hoverboard, new emotes", items: [
     "🙂 Face mood works again: the face reader wasn't loading. Now your avatar copies your face and a big emoji (😂 😡 🤩 😢) shows over your head so everyone can see it.",
     "🎣 Fishing pier on the east beach: cast, wait for a bite, reel in. Catch 7 kinds (even a shark… or an old boot). New 🎣 Fisher job pays $0.25–$3 per fish.",
