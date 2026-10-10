@@ -157,6 +157,35 @@
               "value": "no-cache"
             }
           ]
+        },
+        {
+          "source": "/.well-known/assetlinks.json",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ],
+      "ignore": [
+        "firebase.json",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/download/windows",
+          "destination": "https://github.com/erdanthecoder/copilot/releases/download/windows-app/WorldIslands-Setup.exe",
+          "type": 302
+        },
+        {
+          "source": "/download/android",
+          "destination": "https://github.com/erdanthecoder/copilot/releases/download/android-app/WorldIslands.apk",
+          "type": 302
         }
       ]
     },

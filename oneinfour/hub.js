@@ -6,6 +6,10 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "World Islands for Android", items: [
+    "🤖 World Islands is now an Android app (Android 7+). It runs full screen with Chrome's engine, so the 3D game, Google sign-in, the camera and calls all work.",
+    "📲 Download both apps from world-islands.web.app/download.html (or Menu → Apps in the game) — the files download straight from the World Islands website.",
+    "🪟 We are not using the Microsoft Store; the Windows app downloads from the website too."] },
   { date: "Oct 10, 2026", title: "World Islands: a professional start", items: [
     "▶️ New start screen: the island flies by behind the World Islands logo, with a big Play button, How to play, language, graphics and sound.",
     "📖 How to play: controls for keyboard, mouse and touch, how to earn money, where everything is, the phone, and playing together. Also in Menu → How to play.",

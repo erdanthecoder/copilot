@@ -9,7 +9,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis appx --x64 --publish never"
+    "dist": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
     "electron": "43.7.9",
@@ -48,12 +48,6 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "appx",
-          "arch": [
-            "x64"
-          ]
         }
       ],
       "icon": "build/icon.ico",
@@ -69,27 +63,6 @@
       "shortcutName": "World Islands",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true
-    },
-    "appx": {
-      "identityName": "WorldIslands.WorldIslands",
-      "publisher": "CN=WorldIslands",
-      "publisherDisplayName": "World Islands",
-      "displayName": "World Islands",
-      "applicationId": "WorldIslands",
-      "backgroundColor": "#0e1622",
-      "languages": [
-        "en-US",
-        "ru-RU"
-      ],
-      "capabilities": [
-        "runFullTrust",
-        "internetClient",
-        "webcam",
-        "microphone"
-      ],
-      "showNameOnTiles": true,
-      "minVersion": "10.0.17763.0",
-      "artifactName": "WorldIslands-Store.${ext}"
     }
   }
 }

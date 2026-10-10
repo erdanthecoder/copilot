@@ -22,9 +22,7 @@ jobs:
       - id: cache
         uses: actions/cache@v4
         with:
-          path: |
-            desktop/dist/WorldIslands-Setup.exe
-            desktop/dist/WorldIslands-Store.appx
+          path: desktop/dist/WorldIslands-Setup.exe
           key: desktop-${{ hashFiles('desktop/package.json', 'desktop/package-lock.json', 'desktop/main.js', 'desktop/offline.html', 'desktop/icon.png', 'desktop/build/**') }}
       - uses: actions/setup-node@v4
         if: steps.cache.outputs.cache-hit != 'true'
@@ -35,7 +33,7 @@ jobs:
         working-directory: desktop
         run: |
           npm ci --no-audit --no-fund
-          npx electron-builder --win nsis appx --x64 --publish never
+          npx electron-builder --win nsis --x64 --publish never
           dir dist
       - name: Check the app starts (and keeps running)
         if: steps.cache.outputs.cache-hit != 'true'
@@ -54,10 +52,10 @@ jobs:
         run: |
           cd desktop/dist
           sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt
-          STORE=""; [ -f WorldIslands-Store.appx ] && STORE="WorldIslands-Store.appx"
+          gh release delete-asset windows-app WorldIslands-Store.appx -y >/dev/null 2>&1 || true
           gh release view windows-app >/dev/null 2>&1 || gh release create windows-app --target "$GITHUB_SHA" --title "World Islands for Windows" --notes "The World Islands app for Windows 10 and 11. Download WorldIslands-Setup.exe and run it. Check: SHA-256 in WorldIslands-Setup.sha256.txt."
           if [ "${{ steps.cache.outputs.cache-hit }}" != "true" ] || ! gh release view windows-app --json assets -q '.assets[].name' | grep -q '^WorldIslands-Setup.exe$'; then
-            gh release upload windows-app WorldIslands-Setup.exe WorldIslands-Setup.sha256.txt $STORE --clobber
+            gh release upload windows-app WorldIslands-Setup.exe WorldIslands-Setup.sha256.txt --clobber
           else echo "Release already has this build"; fi
       - uses: actions/upload-artifact@v4
         with:
@@ -65,8 +63,71 @@ jobs:
           path: desktop/dist/WorldIslands-Setup.exe
           retention-days: 5
 
+  # World Islands for Android (a Trusted Web Activity — the game full screen in Chrome's engine).
+  # The signing key is made once and kept in the "android-app" release, encrypted with a key derived from the
+  # FIREBASE_SERVICE_ACCOUNT secret, so every build is signed the same way and updates install over the old app.
+  android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Signing key and Digital Asset Links
+        shell: bash
+        run: |
+          [ -n "$SA" ] || { echo "::warning::No secret, no Android build"; exit 1; }
+          PASS=$(printf '%s' "$SA" | sha256sum | cut -c1-40); ENC=$(printf '%s' "$SA" | sha512sum | cut -c1-64)
+          echo "::add-mask::$PASS"; echo "::add-mask::$ENC"
+          gh release view android-app >/dev/null 2>&1 || gh release create android-app --target "$GITHUB_SHA" --title "World Islands for Android" --notes "World Islands for Android phones and tablets (Android 7+). Download it from world-islands.web.app/download.html"
+          if gh release download android-app -p signing.enc -D "$RUNNER_TEMP" >/dev/null 2>&1; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/signing.enc" -out "$RUNNER_TEMP/wi.jks" -pass pass:"$ENC"
+          else
+            keytool -genkeypair -keystore "$RUNNER_TEMP/wi.jks" -storetype PKCS12 -alias worldislands -keyalg RSA -keysize 3072 -validity 36500 -storepass "$PASS" -keypass "$PASS" -dname "CN=World Islands, O=World Islands"
+            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$RUNNER_TEMP/wi.jks" -out "$RUNNER_TEMP/signing.enc" -pass pass:"$ENC"
+            gh release upload android-app "$RUNNER_TEMP/signing.enc" --clobber
+          fi
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/wi.jks" >> "$GITHUB_ENV"; echo "KEYSTORE_PASS=$PASS" >> "$GITHUB_ENV"
+          FP=$(keytool -list -v -keystore "$RUNNER_TEMP/wi.jks" -alias worldislands -storepass "$PASS" | grep 'SHA256:' | head -1 | sed 's/.*SHA256: *//')
+          mkdir -p out && printf '[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"app.worldislands.game","sha256_cert_fingerprints":["%s"]}}]\n' "$FP" > out/assetlinks.json
+          cat out/assetlinks.json
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: android/app/build/outputs/apk/release/app-release.apk
+          key: android-${{ hashFiles('android/**') }}
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          gradle-version: '8.7'
+      - name: Build the APK
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: android
+        run: VERSION_CODE=${{ github.run_number }} gradle assembleRelease --no-daemon --stacktrace
+      - name: Publish the APK (release "android-app")
+        shell: bash
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk out/WorldIslands.apk
+          (cd out && sha256sum WorldIslands.apk | cut -d' ' -f1 > WorldIslands-apk.sha256.txt && ls -la)
+          if [ "${{ steps.cache.outputs.cache-hit }}" != "true" ] || ! gh release view android-app --json assets -q '.assets[].name' | grep -q '^WorldIslands.apk$'; then
+            gh release upload android-app out/WorldIslands.apk out/WorldIslands-apk.sha256.txt --clobber
+          else echo "Release already has this build"; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-site
+          path: |
+            out/assetlinks.json
+            out/WorldIslands-apk.sha256.txt
+          retention-days: 5
+
   deploy:
-    needs: desktop
+    needs: [desktop, android]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     env:
@@ -90,6 +151,17 @@ jobs:
         with:
           name: windows-app
           path: dist/banda/download
+      - name: Get the Android app's site files
+        if: env.HAS_FIREBASE == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-site
+          path: android-site
+      - name: Put Android files on the site
+        if: env.HAS_FIREBASE == 'true'
+        run: |
+          if [ -f android-site/assetlinks.json ]; then mkdir -p dist/banda/.well-known dist/banda/download && cp android-site/assetlinks.json dist/banda/.well-known/ && cp android-site/WorldIslands-apk.sha256.txt dist/banda/download/; fi
       - name: Checksum for the download page
         if: env.HAS_FIREBASE == 'true'
         run: |
