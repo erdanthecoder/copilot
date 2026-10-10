@@ -1,0 +1,52 @@
+{
+  "name": "world-islands",
+  "productName": "World Islands",
+  "version": "1.0.0",
+  "description": "World Islands — the island game, as a Windows app.",
+  "author": "World Islands",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "43.7.9",
+    "electron-builder": "26.16.1"
+  },
+  "build": {
+    "appId": "app.worldislands.desktop",
+    "productName": "World Islands",
+    "copyright": "World Islands",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "offline.html", "icon.png"],
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico",
+      "artifactName": "WorldIslands-Setup.${ext}",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "World Islands",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": true
+    }
+  }
+}

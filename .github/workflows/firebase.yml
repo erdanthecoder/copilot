@@ -11,7 +11,46 @@ on:
   workflow_dispatch:
 
 jobs:
+  # World Islands for Windows: built on a real Windows machine (only when desktop/ changes), checked that it starts,
+  # then published at world-islands.web.app/download/WorldIslands-Setup.exe by the deploy job below.
+  desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: desktop/dist/WorldIslands-Setup.exe
+          key: desktop-${{ hashFiles('desktop/package.json', 'desktop/package-lock.json', 'desktop/main.js', 'desktop/offline.html', 'desktop/icon.png', 'desktop/build/**') }}
+      - uses: actions/setup-node@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          node-version: 22
+      - name: Build the installer
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: desktop
+        run: |
+          npm ci --no-audit --no-fund
+          npx electron-builder --win nsis --x64 --publish never
+      - name: Check the app starts (and keeps running)
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        working-directory: desktop
+        run: |
+          $p = Start-Process -FilePath "dist\win-unpacked\World Islands.exe" -PassThru
+          Start-Sleep -Seconds 20
+          if ($p.HasExited) { Write-Error "World Islands exited early (code $($p.ExitCode))"; exit 1 }
+          Stop-Process -Id $p.Id -Force
+          Get-FileHash dist\WorldIslands-Setup.exe -Algorithm SHA256 | Format-List
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-app
+          path: desktop/dist/WorldIslands-Setup.exe
+          retention-days: 5
+
   deploy:
+    needs: desktop
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     env:
       HAS_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
@@ -27,6 +66,19 @@ jobs:
       - name: Build the three sites
         if: env.HAS_FIREBASE == 'true'
         run: ./scripts/build-firebase.sh
+      - name: Get the Windows app
+        if: env.HAS_FIREBASE == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-app
+          path: dist/banda/download
+      - name: Checksum for the download page
+        if: env.HAS_FIREBASE == 'true'
+        run: |
+          if [ -f dist/banda/download/WorldIslands-Setup.exe ]; then
+            (cd dist/banda/download && sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt && ls -la)
+          else echo "::warning::No Windows app this time"; fi
       - name: Create sites (if needed) and deploy
         if: env.HAS_FIREBASE == 'true'
         env:

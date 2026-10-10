@@ -10,7 +10,9 @@ const UPDATES = [
     "🙂 Face mood works again: the face reader wasn't loading. Now your avatar copies your face and a big emoji (😂 😡 🤩 😢) shows over your head so everyone can see it.",
     "🎣 Fishing pier on the east beach: cast, wait for a bite, reel in. Catch 7 kinds (even a shark… or an old boot). New 🎣 Fisher job pays $0.25–$3 per fish.",
     "🛹 Hoverboard: open Emotes and tap Hoverboard to zoom around (everyone sees your board).",
-    "💃 New emotes: backflip, floss, laugh, spin and sleep (keys 5–9)."] },
+    "💃 New emotes: backflip, floss, laugh, spin and sleep (keys 5–9).",
+    "🕺 Bots really dance now at shows and dance parties.",
+    "💻 World Islands for Windows: download it at world-islands.web.app/download.html (or Menu → Windows app). Locked-down and safe: it only opens World Islands, the page can't touch your files, only secure connections, and only World Islands may use the camera and microphone."] },
   { date: "Oct 9, 2026", title: "World Islands: funny cat cartoons and more admin fun", items: [
     "🎬 New cinema cartoons: \"Барсик\", a silly orange cat, in 6 funny episodes (the cucumber, the red dot, the tiny box, the vacuum cleaner, the mirror, the cup). He speaks Russian in a squeaky cat voice, with a narrator, cartoon sounds and kids laughing.",
     "🔐 Admin now works on every server at once.",
