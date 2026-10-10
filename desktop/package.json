@@ -1,7 +1,7 @@
 {
   "name": "world-islands",
   "productName": "World Islands",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "World Islands 2.0 \u2014 the island game, as a Windows app.",
   "author": "World Islands",
   "license": "UNLICENSED",
@@ -26,6 +26,8 @@
     "files": [
       "main.js",
       "offline.html",
+      "splash.html",
+      "logo.png",
       "icon.png"
     ],
     "asar": true,

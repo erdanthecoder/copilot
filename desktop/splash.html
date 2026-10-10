@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'">
+<title>World Islands</title>
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: radial-gradient(ellipse at 50% 35%, #1b3a5c 0%, #0e1622 70%); color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-user-select: none; user-select: none; -webkit-app-region: drag; }
+.c { height: 100%; display: grid; place-items: center; text-align: center; }
+img { width: 128px; height: 128px; filter: drop-shadow(0 10px 30px rgba(74,168,255,.5)); animation: f 3s ease-in-out infinite; }
+@keyframes f { 50% { transform: translateY(-6px); } }
+h1 { margin: 10px 0 2px; font-size: 34px; font-weight: 800; letter-spacing: -0.01em; } h1 span { font-size: 15px; background: linear-gradient(90deg,#ff3fa4,#ffb800); color: #1a1030; border-radius: 7px; padding: 1px 7px; vertical-align: middle; margin-left: 4px; }
+p { margin: 0; color: #9fb0c2; font-size: 13px; }
+.bar { width: 220px; height: 5px; border-radius: 5px; background: rgba(255,255,255,.12); margin: 16px auto 0; overflow: hidden; }
+.bar i { display: block; width: 40%; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7cd0ff, #3a9bff); animation: l 1.2s ease-in-out infinite; }
+@keyframes l { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+</style></head>
+<body><div class="c"><div><img src="logo.png" alt=""><h1>World Islands <span>2.0</span></h1><p>Loading the islands… · Загружаем острова…</p><div class="bar"><i></i></div></div></div></body></html>

@@ -9,7 +9,10 @@ const { app, BrowserWindow, session, shell, Menu } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const OFFLINE = path.join(__dirname, 'offline.html');
+// the only local files the app may show: the offline page and the start-up splash (with its logo)
+const LOCAL = new Set(['offline.html', 'splash.html', 'logo.png'].map(f => pathToFileURL(path.join(__dirname, f)).href));
 const isOffline = url => { try { return url.split('#')[0] === pathToFileURL(OFFLINE).href; } catch (e) { return false; } };
+const isLocal = url => { try { return LOCAL.has(url.split('#')[0]); } catch (e) { return false; } };
 
 const HOME = 'https://world-islands.web.app/';
 const GAME = new Set(['https://world-islands.web.app']);
@@ -26,7 +29,16 @@ app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 if (!app.requestSingleInstanceLock()) app.quit();
 
-let win;
+let win, splash;
+// a small branded window while the game loads
+function showSplash() {
+  splash = new BrowserWindow({ width: 520, height: 340, frame: false, resizable: false, movable: true, center: true, show: false, backgroundColor: '#0e1622', icon: path.join(__dirname, 'icon.png'), skipTaskbar: false,
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, devTools: false, javascript: false } });
+  splash.webContents.on('will-navigate', e => e.preventDefault());
+  splash.once('ready-to-show', () => splash.show());
+  splash.loadFile(path.join(__dirname, 'splash.html'));
+  splash.shownAt = Date.now();
+}
 function create() {
   win = new BrowserWindow({
     width: 1280, height: 800, minWidth: 900, minHeight: 600,
@@ -39,7 +51,11 @@ function create() {
   });
   // Google refuses to sign in inside apps that say "Electron"; look like the normal Chrome browser this window really is
   win.webContents.setUserAgent(win.webContents.getUserAgent().replace(/\s(Electron|world-islands)\/\S+/g, '') + ' WorldIslandsApp/' + app.getVersion());
-  win.once('ready-to-show', () => { win.maximize(); win.show(); });
+  // show the game when it has drawn (at least ~1.5 s of splash so it doesn't flash)
+  win.once('ready-to-show', () => {
+    const wait = Math.max(0, 1500 - (Date.now() - (splash ? splash.shownAt : 0)));
+    setTimeout(() => { win.maximize(); win.show(); if (splash && !splash.isDestroyed()) splash.close(); splash = null; }, wait);
+  });
 
   const wc = win.webContents;
   wc.on('will-navigate', (e, url) => { if (!allowedPage(url) && !isOffline(url)) { e.preventDefault(); openOutside(url); } });
@@ -92,7 +108,7 @@ app.whenReady().then(() => {
   const ses = session.defaultSession;
   // only HTTPS / WSS on the network; the offline page is the only local file
   ses.webRequest.onBeforeRequest((d, cb) => {
-    const ok = /^(https|wss|data|blob|devtools):/.test(d.url) || isOffline(d.url);
+    const ok = /^(https|wss|data|blob|devtools):/.test(d.url) || isLocal(d.url);
     cb({ cancel: !ok });
   });
   // camera + microphone (calls, mood camera), fullscreen and pointer lock — and only for World Islands
@@ -101,6 +117,7 @@ app.whenReady().then(() => {
   ses.setPermissionCheckHandler((wc, perm, origin) => GOOD.has(perm) && isGame(origin));
   ses.setDevicePermissionHandler(() => false);
   ses.on('will-download', e => e.preventDefault());
+  showSplash();
   create();
 });
 

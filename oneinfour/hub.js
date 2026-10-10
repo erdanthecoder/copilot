@@ -6,6 +6,10 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "World Islands: a professional start", items: [
+    "▶️ New start screen: the island flies by behind the World Islands logo, with a big Play button, How to play, language, graphics and sound.",
+    "📖 How to play: controls for keyboard, mouse and touch, how to earn money, where everything is, the phone, and playing together. Also in Menu → How to play.",
+    "💻 The Windows app (2.1) opens with a branded loading window, then the game."] },
   { date: "Oct 10, 2026", from: "2026-10-10T07:00:00Z", title: "🎉 World Islands 2.0", items: [
     "World Islands is now version 2.0 — with a “What's new in 2.0” screen (Menu → What's new) that lists every update.",
     "🎪 Up to 3 admin shows at the same time, and 2 new shows: 👽 UFO invasion (a flying saucer, dancing aliens and a beam that lifts you up) and 🫧 Foam party on the stadium. One button starts a MEGA party with 3 shows.",
