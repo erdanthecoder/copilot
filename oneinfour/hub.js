@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "World Islands: hotel, Ferris wheel, fun mPAY and a busy island", items: [
+    "🏨 Island Grand Hotel: book a room ($15) or a Sky Suite ($40) with mPAY. Your key opens only your room: bounce on the bed, watch cartoons on TV, free mini-bar juice and room service. Take the elevator to the roof for the pool, a twisty water slide, a DJ and the Roof Bar.",
+    "💳 mPAY is more fun: cashback on every payment that grows with your level (Blue 3%, Silver 5%, Gold 7%, Diamond 10%), a rain of coins, and a scratch card for every payment of $1 or more. Scratch it to win up to $10!",
+    "🎡 A giant Ferris wheel next to the playground: $2 a ride, with a view over the whole island.",
+    "👥 The island is busy now: hundreds of people walk the paths, chat on the plaza and do the Mexican wave in the stadium.",
+  ] },
   { date: "Oct 10, 2026", title: "Easier to find FlexiHub on Google", items: [
     "🔎 FlexiHub's page now tells search engines clearly what it is (a free learning hub for students), so it's easier to find among other things called FlexiHub.",
   ] },
