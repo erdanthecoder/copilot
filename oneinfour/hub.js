@@ -6,6 +6,11 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "Giant Pentagon Mall & fixed fences", items: [
+    "🛍️ The Pentagon Mall in World Islands is now the biggest building on the island, and the most crowded: more than 100 shoppers walk around, browse the shops and eat at the food court.",
+    "🏬 8 shops inside: Pentagon Café (Barista job), Supermarket, Toys, Hats & Fashion, Pet Shop, Sweets & Ice Cream, Pizza & Burgers and Kyrgyz Kitchen, plus the Job Center and an mBank ATM.",
+    "🚧 Fences are fixed: no more broken gaps, and you can't slip through them anymore, even when running fast or on a hoverboard.",
+  ] },
   { date: "Oct 10, 2026", title: "World Islands for Android", items: [
     "🤖 World Islands is now an Android app (Android 7+). It runs full screen with Chrome's engine, so the 3D game, Google sign-in, the camera and calls all work.",
     "📲 Download both apps from world-islands.web.app/download.html (or Menu → Apps in the game) — the files download straight from the World Islands website.",
