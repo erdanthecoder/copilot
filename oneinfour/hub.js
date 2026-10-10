@@ -6,7 +6,7 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
-  { date: "Oct 10, 2026", title: "🎉 World Islands 2.0", items: [
+  { date: "Oct 10, 2026", from: "2026-10-10T07:00:00Z", title: "🎉 World Islands 2.0", items: [
     "World Islands is now version 2.0 — with a “What's new in 2.0” screen (Menu → What's new) that lists every update.",
     "🎪 Up to 3 admin shows at the same time, and 2 new shows: 👽 UFO invasion (a flying saucer, dancing aliens and a beam that lifts you up) and 🫧 Foam party on the stadium. One button starts a MEGA party with 3 shows.",
     "🌪️ More admin fun: tornado, earthquake, chicken rain, bubbles, a giant rainbow, everyone tiny for 30 seconds, freeze everyone, and shuffle (everyone teleports somewhere random).",
@@ -404,7 +404,7 @@ function landing() {
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
         q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install.")),
       h("div", { class: "center", style: { "margin-top": "56px" } }, h("span", { class: "eyebrow reveal" }, "Updates"), h("h2", { class: "h2 reveal" }, "What's new")),
-      h("div", { class: "faq reveal" }, ...UPDATES.map((u, i) => { const d = q(u.date + " · " + u.title, ""); d.querySelector("p").remove(); d.append(h("ul", { class: "upd" }, ...u.items.map(x => h("li", {}, x)))); if (!i) d.open = true; return d; }))),
+      h("div", { class: "faq reveal" }, ...UPDATES.filter(u => !u.from || Date.now() >= Date.parse(u.from)).map((u, i) => { const d = q(u.date + " · " + u.title, ""); d.querySelector("p").remove(); d.append(h("ul", { class: "upd" }, ...u.items.map(x => h("li", {}, x)))); if (!i) d.open = true; return d; }))),
 
     h("section", { style: { "padding-top": 0, "padding-bottom": 0 } },
       h("div", { class: "cta card reveal" },
