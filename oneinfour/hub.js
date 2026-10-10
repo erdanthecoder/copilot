@@ -6,6 +6,9 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "Easier to find FlexiHub on Google", items: [
+    "🔎 FlexiHub's page now tells search engines clearly what it is (a free learning hub for students), so it's easier to find among other things called FlexiHub.",
+  ] },
   { date: "Oct 10, 2026", title: "Giant Pentagon Mall & fixed fences", items: [
     "🛍️ The Pentagon Mall in World Islands is now the biggest building on the island, and the most crowded: more than 100 shoppers walk around, browse the shops and eat at the food court.",
     "🏬 8 shops inside: Pentagon Café (Barista job), Supermarket, Toys, Hats & Fashion, Pet Shop, Sweets & Ice Cream, Pizza & Burgers and Kyrgyz Kitchen, plus the Job Center and an mBank ATM.",
