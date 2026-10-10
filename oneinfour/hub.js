@@ -6,6 +6,11 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 10, 2026", title: "World Islands: face mood fixed, fishing, hoverboard, new emotes", items: [
+    "🙂 Face mood works again: the face reader wasn't loading. Now your avatar copies your face and a big emoji (😂 😡 🤩 😢) shows over your head so everyone can see it.",
+    "🎣 Fishing pier on the east beach: cast, wait for a bite, reel in. Catch 7 kinds (even a shark… or an old boot). New 🎣 Fisher job pays $0.25–$3 per fish.",
+    "🛹 Hoverboard: open Emotes and tap Hoverboard to zoom around (everyone sees your board).",
+    "💃 New emotes: backflip, floss, laugh, spin and sleep (keys 5–9)."] },
   { date: "Oct 9, 2026", title: "World Islands: funny cat cartoons and more admin fun", items: [
     "🎬 New cinema cartoons: \"Барсик\", a silly orange cat, in 6 funny episodes (the cucumber, the red dot, the tiny box, the vacuum cleaner, the mirror, the cup). He speaks Russian in a squeaky cat voice, with a narrator, cartoon sounds and kids laughing.",
     "🔐 Admin now works on every server at once.",
