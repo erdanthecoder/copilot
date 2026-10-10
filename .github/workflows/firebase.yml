@@ -12,9 +12,11 @@ on:
 
 jobs:
   # World Islands for Windows: built on a real Windows machine (only when desktop/ changes), checked that it starts,
-  # then published at world-islands.web.app/download/WorldIslands-Setup.exe by the deploy job below.
+  # then published as the GitHub release "windows-app" (Firebase's free plan does not allow .exe files).
   desktop:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - id: cache
@@ -42,6 +44,17 @@ jobs:
           if ($p.HasExited) { Write-Error "World Islands exited early (code $($p.ExitCode))"; exit 1 }
           Stop-Process -Id $p.Id -Force
           Get-FileHash dist\WorldIslands-Setup.exe -Algorithm SHA256 | Format-List
+      - name: Publish the installer (GitHub release "windows-app")
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd desktop/dist
+          sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt
+          gh release view windows-app >/dev/null 2>&1 || gh release create windows-app --target "$GITHUB_SHA" --title "World Islands for Windows" --notes "The World Islands app for Windows 10 and 11. Download WorldIslands-Setup.exe and run it. Check: SHA-256 in WorldIslands-Setup.sha256.txt."
+          if [ "${{ steps.cache.outputs.cache-hit }}" != "true" ] || ! gh release view windows-app --json assets -q '.assets[].name' | grep -q '^WorldIslands-Setup.exe$'; then
+            gh release upload windows-app WorldIslands-Setup.exe WorldIslands-Setup.sha256.txt --clobber
+          else echo "Release already has this build"; fi
       - uses: actions/upload-artifact@v4
         with:
           name: windows-app
@@ -76,9 +89,11 @@ jobs:
       - name: Checksum for the download page
         if: env.HAS_FIREBASE == 'true'
         run: |
+          # only the checksum goes on the website; the .exe itself lives in the GitHub release
           if [ -f dist/banda/download/WorldIslands-Setup.exe ]; then
-            (cd dist/banda/download && sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt && ls -la)
+            (cd dist/banda/download && sha256sum WorldIslands-Setup.exe | cut -d' ' -f1 > WorldIslands-Setup.sha256.txt && rm -f WorldIslands-Setup.exe && ls -la)
           else echo "::warning::No Windows app this time"; fi
+          find dist -type f \( -iname '*.exe' -o -iname '*.dll' -o -iname '*.msi' \) -delete
       - name: Create sites (if needed) and deploy
         if: env.HAS_FIREBASE == 'true'
         env:
