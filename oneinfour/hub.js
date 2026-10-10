@@ -267,7 +267,7 @@ function drawFoot() {
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
         : [h("a", { href: "#signin" }, "Sign in"), h("a", { href: "#signup" }, "Create account")])),
-    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} FlexiHub`), h("span", {}, "Made for learners and teachers in Kyrgyzstan")));
+    h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} FlexiHub`), h("span", {}, "Made for a comfortable way for you to learn")));
 }
 
 // ── the console preview: one account, four apps connecting one after another ──
