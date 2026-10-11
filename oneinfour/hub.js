@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 11, 2026", title: "A better FlexiHub", items: [
+    "🧩 The five app cards now have room to breathe on laptops (three on top, two below), so nothing gets cut off.",
+    "📲 World Islands has a new card with today's features and a direct link to the Windows and Android apps.",
+    "👀 Easier to read in the light theme, and the long list of updates now shows the newest four first.",
+    "🔒 Safer and faster: FlexiHub can't be hidden inside other websites, browsers get stricter safety rules, and pictures load from cache.",
+  ] },
   { date: "Oct 10, 2026", title: "World Islands: hotel, Ferris wheel, fun mPAY and a busy island", items: [
     "🏨 Island Grand Hotel: book a room ($15) or a Sky Suite ($40) with mPAY. Your key opens only your room: bounce on the bed, watch cartoons on TV, free mini-bar juice and room service. Take the elevator to the roof for the pool, a twisty water slide, a DJ and the Roof Bar.",
     "💳 mPAY is more fun: cashback on every payment that grows with your level (Blue 3%, Silver 5%, Gold 7%, Diamond 10%), a rain of coins, and a scratch card for every payment of $1 or more. Scratch it to win up to $10!",
@@ -153,11 +159,12 @@ const INFO = {
   },
   worldislands: {
     name: "World Islands", mark: "WI", icon: "icons/worldislands.png", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://world-islands.web.app/", teacherUrl: "https://world-islands.web.app/teachers",
-    points: ["A 3D world in English and Russian, with your own avatar", "Math and language games that earn stars and house points", "Minigames with the class: football, Impostor, Quiz Battle"],
-    how: ["Students explore six islands, ride the metro between them and walk into buildings to play learning games.",
-      "Math, English and Russian games have four levels. Stars add up to house points on a class leaderboard.",
-      "Stand on a pad to start a minigame: football, dodgeball, hide and seek, Impostor or Quiz Battle. Bots join when few people are online.",
-      "Teachers get tools for announcements, star giveaways, music and starting minigames. Opened from FlexiHub, it signs you in with this same account."],
+    extra: { label: "📲 Get it for Windows & Android", url: "https://world-islands.web.app/download.html" },
+    points: ["A busy 3D island in English and Russian, with your own avatar", "Learning games, real jobs and mPAY money: shop at the Pentagon Mall, stay at the hotel", "Play with the class: football, basketball, Impostor and Quiz Battle"],
+    how: ["Students walk around a 3D island with hundreds of people: the World Tower, Pentagon Mall, Island Grand Hotel, a restaurant, a stadium and a Ferris wheel.",
+      "Learning games in math, English, Russian and science earn stars and money. Jobs (barista, cashier, waiter, fisher, helper) earn more, and mPAY pays with your phone or your hand, with cashback and scratch cards.",
+      "Stand on a pad to start a game with the class: football, basketball, Impostor or Quiz Battle. Bots join when few people are online.",
+      "Play in the browser or download the Windows and Android apps. Teachers get tools for announcements, stars and shows. Opened from FlexiHub, it signs you in with this same account."],
   },
 };
 const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo", "worldislands"];
@@ -168,7 +175,8 @@ const appFor = (url) => ORDER.find(id => { try { const u = new URL(url); return 
 // ── motion helpers ──
 function reveal(root) {
   const els = root.querySelectorAll(".reveal");
-  if (reduce || !("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("in")); return; }
+  // no animation for reduced motion, old browsers and search engine robots (they must see every word)
+  if (reduce || !("IntersectionObserver" in window) || navigator.webdriver || /bot|crawl|spider|slurp|lighthouse/i.test(navigator.userAgent)) { els.forEach(e => e.classList.add("in")); return; }
   const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12, rootMargin: "0px 0px -40px 0px" });
   els.forEach(e => io.observe(e));
 }
@@ -276,12 +284,24 @@ function drawFoot() {
   foot.replaceChildren(
     h("div", { class: "foot-in" },
       h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "FlexiHub")),
-        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding. Sign in once, then every app opens signed in.")),
+        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands. Sign in once, then every app opens signed in.")),
       h("div", {}, h("h4", {}, "Apps"), ORDER.map(id => h("a", { href: INFO[id].url, target: "_blank", rel: "noopener" }, INFO[id].name))),
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
         : [h("a", { href: "#signin" }, "Sign in"), h("a", { href: "#signup" }, "Create account")])),
     h("div", { class: "foot-bottom" }, h("span", {}, `© ${new Date().getFullYear()} FlexiHub`), h("span", {}, "Made for a comfortable way for you to learn")));
+}
+
+// the newest four updates, with a button that shows all the older ones
+function updatesList() {
+  const list = UPDATES.filter(u => !u.from || Date.now() >= Date.parse(u.from)), SHOW = 4;
+  const item = (u, i) => { const d = h("details", { class: "card" }, h("summary", {}, u.date + " · " + u.title)); d.append(h("ul", { class: "upd" }, ...u.items.map(x => h("li", {}, x)))); if (!i) d.open = true; return d; };
+  const box = h("div", { class: "faq reveal" }, ...list.slice(0, SHOW).map(item));
+  if (list.length > SHOW) {
+    const more = h("button", { class: "btn ghost sm upd-more", type: "button", onClick: () => { more.replaceWith(...list.slice(SHOW).map((u, i) => item(u, i + SHOW))); } }, `Show all ${list.length} updates`);
+    box.append(more);
+  }
+  return box;
 }
 
 // ── the console preview: one account, four apps connecting one after another ──
@@ -424,11 +444,12 @@ function landing() {
       h("div", { class: "faq reveal" },
         q("Is it free?", "Yes. Creating an account and using all five apps is free."),
         q("I already have a LearnKyrgyz account.", "Then you already have a FlexiHub account. Sign in with the same email or Google account."),
-        q("Do I still need separate accounts for Kadam or CompactCoding?", "No. Open them from FlexiHub and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
+        q("Do I still need separate accounts for Kadam, CompactCoding or World Islands?", "No. Open them from FlexiHub and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
-        q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install.")),
+        q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."),
+        q("Is World Islands an app too?", "Yes. Play it in the browser, or download the free World Islands app for Windows or Android at world-islands.web.app/download.html. It uses this same account.")),
       h("div", { class: "center", style: { "margin-top": "56px" } }, h("span", { class: "eyebrow reveal" }, "Updates"), h("h2", { class: "h2 reveal" }, "What's new")),
-      h("div", { class: "faq reveal" }, ...UPDATES.filter(u => !u.from || Date.now() >= Date.parse(u.from)).map((u, i) => { const d = q(u.date + " · " + u.title, ""); d.querySelector("p").remove(); d.append(h("ul", { class: "upd" }, ...u.items.map(x => h("li", {}, x)))); if (!i) d.open = true; return d; }))),
+      updatesList()),
 
     h("section", { style: { "padding-top": 0, "padding-bottom": 0 } },
       h("div", { class: "cta card reveal" },
@@ -456,6 +477,7 @@ function appCard(id, k) {
   return tilt(h("div", { class: "app card reveal", style: { "--c1": a.c1, "--c2": a.c2, "--d": k } },
     h("div", { class: "app-head" }, tile(id), h("div", {}, h("h3", {}, a.name), h("div", { class: "tag" }, a.tag), h("div", { class: "host" }, new URL(a.url).host))),
     h("ul", {}, a.points.map(p => h("li", {}, p))),
+    a.extra ? h("a", { class: "extra", href: a.extra.url, target: "_blank", rel: "noopener" }, a.extra.label) : null,
     h("div", { class: "foot-row" },
       h("a", { class: "open", href: session ? "#" : "#signup", onClick: session ? (e) => { e.preventDefault(); portal(urlFor(id), id); } : null }, session ? `Open ${a.name}` : "Get started", arrow()),
       h("span", { class: "badge" }, "Auto sign-in"))));
