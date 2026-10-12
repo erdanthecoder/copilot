@@ -6,6 +6,13 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 12, 2026", title: "World Islands is now Marbly", items: [
+    "🎮 Marbly: sign in with FlexiHub, wear your avatar and pick an experience: World Island, Island Raceway, mBank HQ or Quiz Day. Your mBank money comes with you everywhere.",
+    "🏁 Island Raceway: buy a car with your mBank card (Go-kart free, up to a $200 Hypercar), race bots and friends in front of a packed grandstand and win prizes.",
+    "🏦 mBank HQ: the most beautiful building in Marbly. Open your new 7-digit card (so nobody mistakes it for a real bank card), switch on Hand Pay and choose a card style.",
+    "📚 Quiz Day: a normal school day, then a Kahoot-style quiz on your iPad (first-person) against classmates and bots. The bottom three do 10 push-ups!",
+    "🛡️ Admin abuse works in every Marbly game, with a new, stronger password and a lockout after 5 wrong tries.",
+  ] },
   { date: "Oct 11, 2026", title: "A better FlexiHub", items: [
     "🧩 The five app cards now have room to breathe on laptops (three on top, two below), so nothing gets cut off.",
     "📲 World Islands has a new card with today's features and a direct link to the Windows and Android apps.",
@@ -160,7 +167,7 @@ const INFO = {
   worldislands: {
     name: "World Islands", mark: "WI", icon: "icons/worldislands.png", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://world-islands.web.app/", teacherUrl: "https://world-islands.web.app/teachers",
     extra: { label: "📲 Get it for Windows & Android", url: "https://world-islands.web.app/download.html" },
-    points: ["A busy 3D island in English and Russian, with your own avatar", "Learning games, real jobs and mPAY money: shop at the Pentagon Mall, stay at the hotel", "Play with the class: football, basketball, Impostor and Quiz Battle"],
+    points: ["Marbly: one avatar, four games (World Island, Raceway, mBank HQ, Quiz Day)", "Learning games, real jobs and mPAY money: shop at the Pentagon Mall, stay at the hotel", "Play with the class: football, basketball, Impostor and Quiz Battle"],
     how: ["Students walk around a 3D island with hundreds of people: the World Tower, Pentagon Mall, Island Grand Hotel, a restaurant, a stadium and a Ferris wheel.",
       "Learning games in math, English, Russian and science earn stars and money. Jobs (barista, cashier, waiter, fisher, helper) earn more, and mPAY pays with your phone or your hand, with cashback and scratch cards.",
       "Stand on a pad to start a game with the class: football, basketball, Impostor or Quiz Battle. Bots join when few people are online.",
