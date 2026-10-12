@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 12, 2026", title: "Marbly menu and more realistic games", items: [
+    "☰ A Marbly menu like Roblox: every experience with how many people are playing right now, the players in your server, and settings for graphics, sound, language, camera sensitivity and full screen.",
+    "🏎️ Island Raceway feels real: skid marks, tyre smoke and dust, cars lean into corners and bump each other, tyre walls in the corners and an engine that revs with your speed.",
+    "🏫 Quiz Day comes alive: the teacher walks and points at the board, classmates raise their hands, type on their iPads and cheer or groan after every answer.",
+    "🧪 Tested with two players at once: races put both players on the grid, and the quiz gives everyone their own desk and scores every answer.",
+  ] },
   { date: "Oct 12, 2026", title: "World Islands is now Marbly", items: [
     "🎮 Marbly: sign in with FlexiHub, wear your avatar and pick an experience: World Island, Island Raceway, mBank HQ or Quiz Day. Your mBank money comes with you everywhere.",
     "🏁 Island Raceway: buy a car with your mBank card (Go-kart free, up to a $200 Hypercar), race bots and friends in front of a packed grandstand and win prizes.",
