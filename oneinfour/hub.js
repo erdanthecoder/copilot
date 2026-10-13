@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 13, 2026", title: "Marbly: chat, lap records, Sky Deck and quiz streaks", items: [
+    "💬 Chat in every Marbly game: press Enter or 💬 and your message appears as a bubble over your head. Rude words are hidden automatically, in English and Russian (World Island chat too).",
+    "⏱ Island Raceway: a lap timer, your best lap record and a live map of the track with every car on it.",
+    "🌆 mBank HQ: a glass lift takes you to the Sky Deck on top of the twisting tower, with telescopes and a view over all of Marbly.",
+    "🔥 Quiz Day: right answers in a row give bonus points (up to +300), and there are now 50 questions.",
+  ] },
   { date: "Oct 12, 2026", title: "Marbly menu and more realistic games", items: [
     "☰ A Marbly menu like Roblox: every experience with how many people are playing right now, the players in your server, and settings for graphics, sound, language, camera sensitivity and full screen.",
     "🏎️ Island Raceway feels real: skid marks, tyre smoke and dust, cars lean into corners and bump each other, tyre walls in the corners and an engine that revs with your speed.",
