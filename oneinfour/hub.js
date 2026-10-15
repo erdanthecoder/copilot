@@ -6,6 +6,10 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 15, 2026", title: "Raceway bots fight back", items: [
+    "🤖 Bots now spin out on bananas, get knocked aside by a super star, and drop bananas of their own, so every race is a fight.",
+    "✅ Tested with two players at once: bananas, paper balls and hits now show up for everyone."
+  ] },
   { date: "Oct 15, 2026", title: "Marbly games are way more fun", items: [
     "🍄 Island Raceway is a real kart game: ❔ item boxes with turbo, triple turbo, super star, bananas and coin bags, boost pads, drift mini-turbos, a jump ramp with flips, and coins on the track.",
     "🚗 Free drive: step on the green pad and drive your car any time, no race needed.",
