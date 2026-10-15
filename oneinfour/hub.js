@@ -6,6 +6,13 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 15, 2026", title: "Marbly games are way more fun", items: [
+    "🍄 Island Raceway is a real kart game: ❔ item boxes with turbo, triple turbo, super star, bananas and coin bags, boost pads, drift mini-turbos, a jump ramp with flips, and coins on the track.",
+    "🚗 Free drive: step on the green pad and drive your car any time, no race needed.",
+    "🏆 mBank HQ: the Gold Vault Climb, a 26-step parkour tower with moving platforms, checkpoints, a timer and a prize at the top. Plus a coin hunt, gold bars, bounce pads and a Mega bounce.",
+    "🧻 Quiz Day: 50/50 and Double points power-ups, paper balls to throw when the teacher isn't looking (get caught = push-ups!) and a paper fight at break.",
+    "🪙 Coins you collect in every game turn into real mBank money."
+  ] },
   { date: "Oct 15, 2026", title: "Marbly looks much more real", items: [
     "🛣️ Real surfaces everywhere: asphalt with grit and cracks, concrete stands, polished marble in mBank HQ, wooden floors and desks, painted plaster walls and mown grass, all with depth that catches the light.",
     "🏎️ New cars with curved bodies, tinted glass, a painted roof, chrome-spoked wheels, headlights and brake lights that glow when you brake.",
