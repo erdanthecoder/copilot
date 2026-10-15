@@ -6,6 +6,12 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 15, 2026", title: "Marbly looks much more real", items: [
+    "🛣️ Real surfaces everywhere: asphalt with grit and cracks, concrete stands, polished marble in mBank HQ, wooden floors and desks, painted plaster walls and mown grass, all with depth that catches the light.",
+    "🏎️ New cars with curved bodies, tinted glass, a painted roof, chrome-spoked wheels, headlights and brake lights that glow when you brake.",
+    "🏁 The raceway got a catch fence, floodlight towers, painted grid boxes and varied trees.",
+    "🏫 The classroom is properly lit, with a tiled ceiling, skirting boards and radiators. People in every game are smoother and cast shadows, and Beautiful graphics adds soft contact shadows.",
+  ] },
   { date: "Oct 13, 2026", title: "Marbly: chat, lap records, Sky Deck and quiz streaks", items: [
     "💬 Chat in every Marbly game: press Enter or 💬 and your message appears as a bubble over your head. Rude words are hidden automatically, in English and Russian (World Island chat too).",
     "⏱ Island Raceway: a lap timer, your best lap record and a live map of the track with every car on it.",
