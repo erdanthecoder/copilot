@@ -6,6 +6,13 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 19, 2026", title: "4 new Marbly games and way more admin abuse", items: [
+    "⛏️ Marbly Craft: mine, craft 21 recipes (pickaxes, glass, lamps, TNT, trampolines), build together, find diamonds and climb to the sky island. 17 quests pay coins.",
+    "🧗 Mega Obby: 36 stages in 6 worlds with spinners, lasers, conveyors, crumbling blocks, wall jumps and low gravity. Checkpoints save your progress.",
+    "🎉 Party Royale: a minigame party with players and bots: Tile Fall, Color Block, Bomb Tag, King of the Hill, Spinner Jump and Coin Rush.",
+    "🍦 Ice Cream Tycoon: claim a plot, buy droppers, belts and upgrades, build a second floor, catch robbers and rebirth.",
+    "🛡️ 24 new admin abuse actions in every game, World Island too (meteors, black hole, tornado, giant duck, coin rain, big heads, slow motion and more), plus 10 to 19 of its own in every game."
+  ] },
   { date: "Oct 15, 2026", title: "Raceway bots fight back", items: [
     "🤖 Bots now spin out on bananas, get knocked aside by a super star, and drop bananas of their own, so every race is a fight.",
     "✅ Tested with two players at once: bananas, paper balls and hits now show up for everyone."

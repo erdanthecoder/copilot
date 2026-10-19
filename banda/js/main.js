@@ -21,6 +21,7 @@ import { Minigames, MIN_PLAYERS } from './minigames.js';
 import { Bots } from './bots.js';
 import { Shows } from './shows.js';
 import { Admin } from './admin.js';
+import { abuse } from './exp/abuse.js';
 import { Fishing } from './fishing.js';
 import { whatsNew } from './whatsnew.js';
 import { isV2, LAUNCH_2 } from './launch.js';
@@ -135,7 +136,7 @@ async function start(serverId) {
   const world = app.world = new World($('#scene'), { quality });
   Avatar.blobShadows = !world.hq;
   world.setPlayer(new Avatar(me.avatar, me.name, me.role));
-  world.onJump = () => sfx('jump'); world.onFirework = () => sfx('firework');
+  world.onJump = () => { sfx('jump'); if (app.superJumpUntil > performance.now()) world.vel.y = 17; }; world.onFirework = () => sfx('firework');
   app.shop = new Shop(app); app.shop.loadInv(); app.mpay = new MPay(app); app.bankUI = new BankUI(app); app.phone = new Phone(app);
   buildWorld(world);
   app.fishing = new Fishing(app);
@@ -215,6 +216,10 @@ function buildWorld(world) {
   portal(world, BANK.x + 6, BANK.z, '🏦 mBank HQ', '/hq.html', 0x3a86ff);
   portal(world, -19, -9, '🏁 Island Raceway', '/race.html', 0xe71d36);
   portal(world, 19, -9, '📚 Quiz Day', '/school.html', 0x8a3ffc);
+  portal(world, -19, 12, '⛏️ Marbly Craft', '/craft.html', 0x4f9f35);
+  portal(world, 19, 12, '🧗 Mega Obby', '/obby.html', 0xff3d77);
+  portal(world, -9, 17, '🎉 Party Royale', '/party.html', 0x9b5cff);
+  portal(world, 9, 17, '🍦 Ice Cream Tycoon', '/tycoon.html', 0xff6fa8);
   app.resto = new Restaurant(world, { t, sit: seat => restoSit(seat), pass: () => app.jobs.pass() });
   app.mall = new Mall(world, { t, shop: (id, sh) => app.shop.openAisle(`${sh.icon} ${t('mall_' + id)}`, sh.items, { cafe: true }), jobs: () => app.jobs.board(), barista: on => app.jobs && app.jobs.baristaAt(on) });
   app.jobs = new Jobs(app);
@@ -458,6 +463,7 @@ async function onEvent(ev) {
   if (ev.type === 'chat') return ui.chat(`<b>${esc(d.name)}${d.role === 'teacher' ? ' · ' + t('teacher') : ''}:</b> ${esc(clean(d.text))}`, d.role === 'teacher' ? 'tch' : '');
   if (!ev.trusted) return; // everything below comes from a verified teacher command
   switch (ev.type) {
+    case 'xp': if (d.exp === '*' || d.exp === 'world') abuse(app, d.a, d, { ui, L: (en, ru) => (getLang() === 'ru' ? ru : en), sfx, flash: () => {}, money }); break;
     case 'announce':
       $('#announceText').textContent = d.text; $('#announceBy').textContent = d.name || ''; show('#announce');
       clearTimeout(app._an); app._an = setTimeout(() => show('#announce', false), 10000);
