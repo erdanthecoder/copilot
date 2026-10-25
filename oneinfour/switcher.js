@@ -1,5 +1,5 @@
 /* FlexiHub app switcher — one launcher shared by LearnKyrgyz, Quoldek, Kadam and
- * CompactCoding. Each app loads this one file from https://flexihub.web.app/switcher.js,
+ * World Islands. Each app loads this one file from https://flexihub.web.app/switcher.js,
  * so a change here reaches all four at once.
  *
  * Switching goes through FlexiHub (?return=…&silent=1): if you are signed in there, the
@@ -28,7 +28,6 @@
     { id: 'learnkyrgyz', name: 'LearnKyrgyz', tag: 'Learn Kyrgyz', url: teacherLK ? 'https://teachlrnkyrgyz.web.app/' : 'https://studentlrnkyrgyz.web.app/', icon: HUB + '/icons/learnkyrgyz.svg', c: '#58cc02', hosts: /^(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz)\.web\.app$/ },
     { id: 'quoldek', name: 'Quoldek', tag: 'Quiz games', url: 'https://quoldek.web.app/signin.html', icon: HUB + '/icons/quoldek.svg', c: '#7c5cff', hosts: /^quoldek\.web\.app$/ },
     { id: 'kadam', name: 'Kadam', tag: 'Workspace', url: 'https://kadam.web.app/', icon: HUB + '/icons/kadam.svg', c: '#14b8a6', hosts: /^kadam\.web\.app$/ },
-    { id: 'akylduukodo', name: 'CompactCoding', tag: 'Learn to code', url: 'https://compactcoding.web.app/', icon: HUB + '/icons/akylduukodo.svg', c: '#1cb0f6', hosts: /^(compactcoding|akylduukodo)\.web\.app$/ },
     { id: 'worldislands', name: 'World Islands', tag: '3D learning world', url: 'https://world-islands.web.app/', icon: HUB + '/icons/worldislands.png', c: '#3aa0d8', hosts: /^(world-islands|banda-worldislands|bandaworld)\.web\.app$/ },
   ];
   // the pages a class is sent to (joining a game, homework) never show it

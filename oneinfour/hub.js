@@ -1,4 +1,4 @@
-// FlexiHub hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and CompactCoding all open signed in.
+// FlexiHub hub: sign in once, and LearnKyrgyz, Quoldek, Kadam and World Islands all open signed in.
 import { sb } from "../assets/js/config.js";
 import { signInWithGoogle, signUpWithPassword, googleAvailable, GOOGLE_ICON } from "../assets/js/google.js";
 import { handoffUrl, isTrusted, acceptHandoff } from "../assets/js/oneintwo-core.js";
@@ -6,6 +6,9 @@ import { UNITS, TOPICS } from "../assets/js/curriculum.js";
 
 // Every update we ship goes here, newest first. It shows in the FAQ under "Updates".
 const UPDATES = [
+  { date: "Oct 25, 2026", title: "CompactCoding has left FlexiHub", items: [
+    "💻 CompactCoding is no longer part of FlexiHub. The hub, the app switcher and sign-in now cover LearnKyrgyz, Quoldek, Kadam and World Islands."
+  ] },
   { date: "Oct 19, 2026", title: "4 new Marbly games and way more admin abuse", items: [
     "⛏️ Marbly Craft: mine, craft 21 recipes (pickaxes, glass, lamps, TNT, trampolines), build together, find diamonds and climb to the sky island. 17 quests pay coins.",
     "🧗 Mega Obby: 36 stages in 6 worlds with spinners, lasers, conveyors, crumbling blocks, wall jumps and low gravity. Checkpoints save your progress.",
@@ -192,14 +195,6 @@ const INFO = {
       "Everything syncs privately to your account, and you choose who can open it.",
       "Opened from FlexiHub, Kadam signs you in with this same account."],
   },
-  akylduukodo: {
-    name: "CompactCoding", mark: "</>", icon: "icons/akylduukodo.svg", c1: "#1cb0f6", c2: "#ff8fab", tag: "Learn programming step by step", url: "https://compactcoding.web.app/",
-    points: ["Real JavaScript through short, clear lessons", "Guided practice, drills and a Code Lab", "A weekly study goal to keep you going"],
-    how: ["Short lessons teach real JavaScript one idea at a time, with a book of 15 chapters.",
-      "Guided practice and timed drills check every step. The Code Lab is a sandbox for your own code.",
-      "A weekly goal keeps you going, and progress saves to your account.",
-      "Opened from FlexiHub, CompactCoding signs you in with this same account."],
-  },
   worldislands: {
     name: "World Islands", mark: "WI", icon: "icons/worldislands.png", c1: "#3aa0d8", c2: "#ffc94d", tag: "A 3D island world for learning", url: "https://world-islands.web.app/", teacherUrl: "https://world-islands.web.app/teachers",
     extra: { label: "📲 Get it for Windows & Android", url: "https://world-islands.web.app/download.html" },
@@ -210,7 +205,7 @@ const INFO = {
       "Play in the browser or download the Windows and Android apps. Teachers get tools for announcements, stars and shows. Opened from FlexiHub, it signs you in with this same account."],
   },
 };
-const ORDER = ["learnkyrgyz", "quoldek", "kadam", "akylduukodo", "worldislands"];
+const ORDER = ["learnkyrgyz", "quoldek", "kadam", "worldislands"];
 const tile = (id, size = "") => { const a = INFO[id]; return h("span", { class: "tile ico " + size, style: { "--c1": a.c1, "--c2": a.c2 }, "aria-hidden": "true" }, h("img", { src: a.icon, alt: "", draggable: "false", decoding: "async" })); };
 const urlFor = (id) => profile?.role === "teacher" && INFO[id].teacherUrl ? INFO[id].teacherUrl : INFO[id].url;
 const appFor = (url) => ORDER.find(id => { try { const u = new URL(url); return [INFO[id].url, INFO[id].teacherUrl].filter(Boolean).some(x => new URL(x).host === u.host) || (id === "quoldek" && /quoldek\.web\.app$/.test(u.host)); } catch { return false; } });
@@ -327,7 +322,7 @@ function drawFoot() {
   foot.replaceChildren(
     h("div", { class: "foot-in" },
       h("div", {}, h("a", { class: "logo", href: "./", style: { display: "flex", margin: "0 0 4px" } }, mark(), h("span", { style: { color: "var(--ink)" } }, "FlexiHub")),
-        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands. Sign in once, then every app opens signed in.")),
+        h("p", { style: { "max-width": "32ch" } }, "One account for LearnKyrgyz, Quoldek, Kadam and World Islands. Sign in once, then every app opens signed in.")),
       h("div", {}, h("h4", {}, "Apps"), ORDER.map(id => h("a", { href: INFO[id].url, target: "_blank", rel: "noopener" }, INFO[id].name))),
       h("div", {}, h("h4", {}, "Product"), h("a", { href: "#product", onClick: goLanding }, "How it works"), h("a", { href: "#security", onClick: goLanding }, "Security"), h("a", { href: "#faq", onClick: goLanding }, "FAQ")),
       h("div", {}, h("h4", {}, "Account"), session ? [h("a", { href: "#apps" }, "Dashboard"), h("a", { href: "#", onClick: (e) => { e.preventDefault(); signOut(); } }, "Sign out")]
@@ -412,19 +407,19 @@ function landing() {
     h("section", { class: "hero" },
       h("div", {},
         h("span", { class: "pill rise" }, h("b", {}, "New"), "Welcome to FlexiHub"),
-        h("h1", { "aria-label": "One account for all five apps." }, words("One account for"), words("all five apps.", 3, "grad")),
-        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands open already signed in: no second password, no downloads."),
+        h("h1", { "aria-label": "One account for all four apps." }, words("One account for"), words("all four apps.", 3, "grad")),
+        h("p", { class: "lead rise", style: { "--d": 2 } }, "Sign in once with Google or email. LearnKyrgyz, Quoldek, Kadam and World Islands open already signed in: no second password, no downloads."),
         h("div", { class: "cta-row rise", style: { "--d": 3 } },
           h("a", { class: "btn primary lg", href: "#signup" }, "Create free account", arrow()),
           h("a", { class: "btn ghost lg", href: "#signin" }, "Sign in")),
-        h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · CompactCoding · World Islands"))),
+        h("div", { class: "trust rise", style: { "--d": 5 } }, h("span", { class: "tiles" }, ORDER.map(id => tile(id, "sm"))), h("span", {}, "LearnKyrgyz · Quoldek · Kadam · World Islands"))),
       stage()),
 
     h("div", { class: "strip reveal" }, [["5", "apps, one sign-in"], ["99", "Kyrgyz topics"], ["11", "live quiz games"], ["0", "downloads needed"]].map(([b, s]) => h("div", {}, h("b", {}, b), h("span", {}, s)))),
 
     h("section", { id: "product" },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "Single sign-on"), h("h2", { class: "h2 reveal" }, "One sign-in. Every app."),
-        h("p", { class: "lead reveal" }, "Your FlexiHub account is the key. Open any of the five apps from here and it arrives signed in as you.")),
+        h("p", { class: "lead reveal" }, "Your FlexiHub account is the key. Open any of the four apps from here and it arrives signed in as you.")),
       h("div", { class: "doors reveal" },
         h("div", { class: "door-svg", html: '<svg viewBox="0 0 1000 380" preserveAspectRatio="none" aria-hidden="true">' + ORDER.map((id, k) => {
           const x = 100 + k * 800 / (ORDER.length - 1), d = `M 500 88 C 500 200, ${x} 170, ${x} 262`;
@@ -440,9 +435,9 @@ function landing() {
 
     h("section", { id: "features", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "Why FlexiHub"), h("h2", { class: "h2 reveal" }, "Built to save you time"),
-      h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the five apps, behind one account."),
+      h("p", { class: "lead reveal" }, "Everything a student or teacher needs across the four apps, behind one account."),
       h("div", { class: "features" },
-        feature("key", "One account", "One email and password, or one Google account, for all five apps.", 0),
+        feature("key", "One account", "One email and password, or one Google account, for all four apps.", 0),
         feature("bolt", "Opens signed in", "Press an app and you're in. There's no second sign-in screen.", 1),
         feature("swap", "Topics become games", "Pick LearnKyrgyz topics and they become a Quoldek quiz in one tap.", 2),
         feature("sync", "Saved to your account", "Progress and quizzes follow you, not the device you used.", 3),
@@ -450,14 +445,14 @@ function landing() {
         feature("globe", "Three languages", "English, Русский and Кыргызча across the apps.", 5))),
 
     h("section", { id: "apps", style: { "padding-top": 0 } },
-      h("span", { class: "eyebrow reveal" }, "The apps"), h("h2", { class: "h2 reveal" }, "Five apps, one place"),
+      h("span", { class: "eyebrow reveal" }, "The apps"), h("h2", { class: "h2 reveal" }, "Four apps, one place"),
       h("div", { class: "apps" }, ORDER.map((id, k) => appCard(id, k)))),
 
     h("section", { id: "how", style: { "padding-top": 0 } },
       h("span", { class: "eyebrow reveal" }, "How it works"), h("h2", { class: "h2 reveal" }, "Three steps, then you never sign in twice"),
       h("div", { class: "steps" }, [
         ["Create your account", "Use Google or an email address, as a student or a teacher. Already on LearnKyrgyz? That's your account: just sign in."],
-        ["Open any app", "Your dashboard lists all five. Press one and it opens signed in as you."],
+        ["Open any app", "Your dashboard lists all four. Press one and it opens signed in as you."],
         ["Keep going anywhere", "Your progress and quizzes are saved to your account, so they're there on every device."],
       ].map(([t, d], k) => h("div", { class: "step card reveal", style: { "--d": k } }, h("div", { class: "n" }, k + 1), h("h3", {}, t), h("p", {}, d))))),
 
@@ -467,7 +462,7 @@ function landing() {
       h("div", { class: "checks card reveal" },
         checkItem("lock", "Your password stays here", "Apps receive a sign-in token, never your password."),
         checkItem("eye", "Never sent in the open", "The hand-off travels in the part of the link that browsers don't send to servers, and each app removes it at once."),
-        checkItem("link", "Only our five apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands."),
+        checkItem("link", "Only our four apps", "Sign-ins are only ever handed to LearnKyrgyz, Quoldek, Kadam and World Islands."),
         checkItem("shield", "Your data is yours", "Each account can read and change only its own data."))),
 
     h("section", { id: "bridge", style: { "padding-top": 0 } },
@@ -485,9 +480,9 @@ function landing() {
     h("section", { id: "faq", style: { "padding-top": 0 } },
       h("div", { class: "center" }, h("span", { class: "eyebrow reveal" }, "FAQ"), h("h2", { class: "h2 reveal" }, "Questions, answered")),
       h("div", { class: "faq reveal" },
-        q("Is it free?", "Yes. Creating an account and using all five apps is free."),
+        q("Is it free?", "Yes. Creating an account and using all four apps is free."),
         q("I already have a LearnKyrgyz account.", "Then you already have a FlexiHub account. Sign in with the same email or Google account."),
-        q("Do I still need separate accounts for Kadam, CompactCoding or World Islands?", "No. Open them from FlexiHub and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
+        q("Do I still need separate accounts for Kadam or World Islands?", "No. Open them from FlexiHub and they sign you in with this account. If you used the same Google account there before, your old work is still there."),
         q("What happens when I sign out?", "Signing out here signs you out of this page. Each app keeps its own session until you sign out there too."),
         q("Does it work on phones?", "Yes. Everything runs in the browser, so there's nothing to install."),
         q("Is World Islands an app too?", "Yes. Play it in the browser, or download the free World Islands app for Windows or Android at world-islands.web.app/download.html. It uses this same account.")),
@@ -571,17 +566,17 @@ function authView(mode) {
     h("div", { class: "auth-art" },
       h("span", { class: "eyebrow rise" }, mark(), "FlexiHub account"),
       h("h1", { class: "rise", style: { "--d": 1 } }, signup ? "One account for every app." : "Welcome back."),
-      h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and CompactCoding open with it already signed in."),
+      h("p", { class: "lead rise", style: { "--d": 2 } }, "It's your LearnKyrgyz account too. Quoldek, Kadam and World Islands open with it already signed in."),
       h("div", { class: "rise", style: { "--d": 3 } }, consoleCard({ animate: true }))),
     h("div", { class: "auth card rise" },
       target ? h("div", { class: "return-banner" }, tile(target, "sm"), h("span", {}, `Sign in to continue to ${INFO[target].name}`)) : null,
       h("h2", {}, signup ? "Create your account" : "Sign in to FlexiHub"),
-      h("p", { class: "sub" }, signup ? "Free, and it works in all five apps." : "Use the account you use in any of the five apps."),
+      h("p", { class: "sub" }, signup ? "Free, and it works in all four apps." : "Use the account you use in any of the four apps."),
       h("div", { class: "seg" },
         h("button", { type: "button", class: signup ? "" : "on", onClick: () => { location.hash = "signin"; } }, "Sign in"),
         h("button", { type: "button", class: signup ? "on" : "", onClick: () => { location.hash = "signup"; } }, "Create account")),
       err, google, or, form,
-      h("p", { class: "legal" }, "One account for LearnKyrgyz, Quoldek, Kadam and CompactCoding."))));
+      h("p", { class: "legal" }, "One account for LearnKyrgyz, Quoldek, Kadam and World Islands."))));
   if (matchMedia("(pointer: fine)").matches) later(() => (signup ? name : email).focus(), 60);
 }
 
@@ -630,7 +625,7 @@ function dashboard() {
           h("div", {}, h("span", {}, "Email"), h("b", {}, session.user.email)),
           h("div", {}, h("span", {}, "Role"), h("b", {}, teacher ? "Teacher" : "Student")),
           h("div", {}, h("span", {}, "Signs in with"), h("b", {}, provider)),
-          h("div", {}, h("span", {}, "Apps"), h("b", {}, "All five connected"))),
+          h("div", {}, h("span", {}, "Apps"), h("b", {}, "All four connected"))),
         h("button", { class: "btn ghost block", onClick: signOut }, "Sign out"))),
 
     h("div", { class: "sec-h", id: "guides" }, h("h2", {}, "How the apps work"), h("p", {}, "Short guides")),
@@ -639,7 +634,7 @@ function dashboard() {
       h("details", { class: "card" }, h("summary", {}, mark(), "How one account works"),
         h("ol", {}, h("li", {}, "Your FlexiHub account is your LearnKyrgyz account: the same email, password or Google."),
           h("li", {}, "When you open an app from here, your sign-in goes with you in the part of the link that browsers don't send to servers, and the app removes it straight away."),
-          h("li", {}, "Kadam and CompactCoding swap it for their own sign-in, so you arrive signed in there too."),
+          h("li", {}, "Kadam and World Islands swap it for their own sign-in, so you arrive signed in there too."),
           h("li", {}, "Signing out here signs out of this page only; each app keeps its own session.")))])));
   reveal(app);
 }
@@ -833,7 +828,6 @@ const QUEST = {
   learnkyrgyz: { teacher: "Check on your classes", student: "Do one Kyrgyz lesson", emoji: "📚" },
   quoldek: { teacher: "Run a quiz game", student: "Play a quiz game", emoji: "🎮" },
   kadam: { teacher: "Plan your week", student: "Plan one university task", emoji: "🗂️" },
-  akylduukodo: { teacher: "Try a coding lesson", student: "Write a little code", emoji: "💻" },
   worldislands: { teacher: "Start a Quiz Battle", student: "Earn a star on the islands", emoji: "🏝️" },
 };
 const todayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
@@ -1112,7 +1106,7 @@ function tour() {
   if (store.get("toured", false) || reduce) return;
   store.set("toured", true);
   const steps = [
-    { sel: ".sky", title: "Welcome to your workspace 👋", text: "This is your home for LearnKyrgyz, Quoldek, Kadam and CompactCoding. The sky follows the real time of day." },
+    { sel: ".sky", title: "Welcome to your workspace 👋", text: "This is your home for LearnKyrgyz, Quoldek, Kadam and World Islands. The sky follows the real time of day." },
     { sel: ".launch", title: "Your apps, your order", text: "Drag the cards into the order you like, then press 1–4 to open them from anywhere on this page." },
     { sel: ".search-pill", title: "Jump anywhere", text: `Press ${isMac ? "⌘" : "Ctrl"}+K to find any app, action or Kyrgyz topic. Inside the apps, Alt+W opens the app switcher.` },
   ];

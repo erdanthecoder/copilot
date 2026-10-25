@@ -1,4 +1,4 @@
-// FlexiHub (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and CompactCoding.
+// FlexiHub (formerly OneInFour) — one account for LearnKyrgyz, Quoldek, Kadam and World Islands.
 //
 // The account is the LearnKyrgyz (Supabase) account. flexihub.web.app signs people in;
 // opening another app hands the session over in the URL fragment (#oit=…), which never
@@ -11,10 +11,9 @@ export const APPS = [
   { id: "learnkyrgyz", name: "LearnKyrgyz", url: "https://studentlrnkyrgyz.web.app/", teacherUrl: "https://teachlrnkyrgyz.web.app/", color: "#58cc02", sso: true },
   { id: "quoldek", name: "Quoldek", url: "https://quoldek.web.app/", color: "#7c5cff", sso: true },
   { id: "kadam", name: "Kadam", url: "https://kadam.web.app/", color: "#0f9d58", sso: true },
-  { id: "akylduukodo", name: "CompactCoding", url: "https://compactcoding.web.app/", color: "#1cb0f6", sso: true },
   { id: "worldislands", name: "World Islands", url: "https://world-islands.web.app/", color: "#3aa0d8", sso: true },
 ];
-const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|akylduukodo|compactcoding|oneintwo|oneinfour|the4workspace|recoon|teamolive|flexihub|banda-worldislands|bandaworld|world-islands)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
+const TRUSTED = /^https:\/\/(learnkyrgyz|studentlrnkyrgyz|teachlrnkyrgyz|quoldek|playquoldek|livequoldek|hwquoldek|kadam|oneintwo|oneinfour|the4workspace|recoon|teamolive|flexihub|banda-worldislands|bandaworld|world-islands)\.web\.app(\/|$)|^https:\/\/erdanthecoder\.github\.io\/(copilot|quiznova|official-fixed_game)(\/|$)/;
 export const isTrusted = (url) => { try { return TRUSTED.test(new URL(url).href); } catch { return false; } };
 
 const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

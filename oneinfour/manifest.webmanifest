@@ -1,7 +1,7 @@
 {
   "name": "FlexiHub",
   "short_name": "FlexiHub",
-  "description": "One account for LearnKyrgyz, Quoldek, Kadam, CompactCoding and World Islands.",
+  "description": "One account for LearnKyrgyz, Quoldek, Kadam and World Islands.",
   "start_url": "/?source=app",
   "scope": "/",
   "display": "standalone",
@@ -57,16 +57,6 @@
       "icons": [
         {
           "src": "icons/kadam.svg",
-          "sizes": "any"
-        }
-      ]
-    },
-    {
-      "name": "CompactCoding",
-      "url": "/?return=https%3A%2F%2Fcompactcoding.web.app%2F&silent=1",
-      "icons": [
-        {
-          "src": "icons/akylduukodo.svg",
           "sizes": "any"
         }
       ]

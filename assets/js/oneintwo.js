@@ -41,6 +41,6 @@ export function hubNote(ru) {
   return h("a", { class: "card click oit-note", href: HUB, target: "_blank", rel: "noopener" },
     wsMark(34),
     h("div", { class: "grow" }, h("b", {}, ru ? "Один аккаунт — FlexiHub" : "One account — FlexiHub"),
-      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и CompactCoding." : "The same account opens Quoldek, Kadam and CompactCoding.")),
+      h("p", { class: "small muted", style: { margin: "2px 0 0" } }, ru ? "Этот же аккаунт открывает Quoldek, Kadam и World Islands." : "The same account opens Quoldek, Kadam and World Islands.")),
     icon("right"));
 }
